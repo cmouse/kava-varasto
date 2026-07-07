@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next";
 
 import { useCurrentUser } from "../api/auth";
-import { useEquipmentList } from "../api/inventory";
+import { useLoanableEquipment } from "../api/loans";
 import LoginForm from "../components/LoginForm";
 
 function Storage() {
   const { t } = useTranslation();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
-  const { data, isLoading, isError } = useEquipmentList({ enabled: user?.authenticated });
+  const { data, isLoading, isError } = useLoanableEquipment({ enabled: user?.authenticated });
 
   if (isUserLoading) {
     return null;
@@ -38,6 +38,7 @@ function Storage() {
               <th className="text-end">{t("storage.quantity")}</th>
               <th className="text-end">{t("storage.broken")}</th>
               <th className="text-end">{t("storage.available")}</th>
+              <th>{t("storage.status")}</th>
               <th>{t("storage.externalLoanable")}</th>
             </tr>
           </thead>
@@ -49,7 +50,14 @@ function Storage() {
                 <td>{item.category}</td>
                 <td className="text-end">{item.quantity}</td>
                 <td className="text-end">{item.broken_quantity}</td>
-                <td className="text-end">{item.available_quantity}</td>
+                <td className="text-end">{item.loanable_quantity}</td>
+                <td>
+                  {item.loanable_quantity > 0 ? (
+                    <span className="badge text-bg-success">{t("storage.availableBadge")}</span>
+                  ) : (
+                    <span className="badge text-bg-secondary">{t("storage.unavailableBadge")}</span>
+                  )}
+                </td>
                 <td>
                   {item.is_external_loanable ? (
                     <span className="badge text-bg-success">{t("storage.yes")}</span>
