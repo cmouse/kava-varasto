@@ -92,17 +92,35 @@ exceeds what's actually free right now.
 of `quantity - quantity_returned` across all its `LoanItem` rows (no need to
 special-case archived loans -- a fully returned item already sums to 0).
 `loanable_quantity = available_quantity - currently_out` is what
-`LoanCreateSerializer.validate_items()` enforces, and what the picker
-(`GET /api/loans/loanable-equipment/`, `kava_varasto.loans.views
-.LoanableEquipmentListView`) shows so staff see real availability, not just
-`available_quantity` (which ignores other active loans). This lives in the
-`loans` app, not `inventory`, since it's loan data.
+`LoanCreateSerializer.validate_items()` enforces, and what
+`GET /api/loans/loanable-equipment/` (`kava_varasto.loans.views
+.LoanableEquipmentListView`) reports, alongside the full equipment stock
+fields (`quantity`, `broken_quantity`, `available_quantity`,
+`is_external_loanable`). This lives in the `loans` app, not `inventory`,
+since it's loan data -- `inventory` still has no reverse dependency on
+`loans`.
 
 This is a check-then-act validation with no row locking -- two staff
 creating loans for the same last-remaining item at the same instant could
 both pass validation. Accepted for this app's scale (few users, a single
 non-profit's gear closet).
 
-The read-only Storage view (`Storage.jsx` / `GET /api/inventory/equipment/`)
-still shows no "out" column -- that scope decision is unchanged; only loan
-creation accounts for other active loans.
+The read-only Storage view (`Storage.jsx`) now sources from
+`GET /api/loans/loanable-equipment/` instead of the plain
+`GET /api/inventory/equipment/`, so it shows real-time availability
+(accounting for other active loans, not just broken stock) with a
+badge for whether each item is currently available to loan. This
+supersedes the earlier "no out column" scope decision. The
+`inventory` equipment endpoint itself is unchanged and still exists
+(own test coverage), just no longer the SPA's source for stock
+display.
+
+Loan overview page
+-------------------
+
+Staff view all loans via the SPA (`frontend/src/pages/LoanList.jsx`,
+`GET /api/loans/` -- the same URL as loan creation, `POST`; DRF's
+`ListCreateAPIView` dispatches by method), split into active (not yet
+fully returned) and returned/historical sections client-side using the
+`is_returned` field on `LoanSerializer`. No check-in/return action yet --
+that's a separate, still-open piece of work.
