@@ -80,6 +80,23 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# --- Sub-path mounting -----------------------------------------------------
+# This project must be relocatable to run under a URL prefix, e.g.
+# http://webhost/varasto/, behind a reverse proxy that strips the prefix
+# before forwarding the request (see README.md for the nginx recipe). One
+# env var drives every setting that needs to know about the prefix, so they
+# can never drift out of sync with each other.
+SCRIPT_NAME = env("DJANGO_FORCE_SCRIPT_NAME", default="")
+FORCE_SCRIPT_NAME = SCRIPT_NAME or None
+STATIC_URL = f"{SCRIPT_NAME}/static/"
+MEDIA_URL = f"{SCRIPT_NAME}/media/"
+
+# Scope cookies to the mount point too, in case this host is ever shared
+# with another application. Safe no-op default ("/") when SCRIPT_NAME="".
+SESSION_COOKIE_PATH = SCRIPT_NAME or "/"
+CSRF_COOKIE_PATH = SCRIPT_NAME or "/"
