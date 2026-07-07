@@ -43,8 +43,8 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
       SPA component strings
 - [ ] Add new component strings to `frontend/src/i18n/locales/{en,fi}.json` as the SPA grows
       (equipment/loan pages etc.)
-- [ ] Run `django-admin makemessages -l fi -l en` and translate real UI strings once templates exist
-- [ ] `compilemessages` as part of the deploy step
+- [x] Run `django-admin makemessages -l fi -l en` and translate real UI strings once templates exist — `locale/{fi,en}/LC_MESSAGES/django.po`, currently visible only in Django admin (see DESIGN.md)
+- [x] `compilemessages` as part of the deploy step — README's deploy steps
 
 ## Production hardening
 - [x] SECURE_HSTS_SECONDS, SESSION/CSRF_COOKIE_SECURE, logging config — `kava_varasto.settings.prod`, confirmed via `manage.py check --deploy`

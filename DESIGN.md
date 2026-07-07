@@ -250,3 +250,27 @@ a smaller version of the right feature, it's modeling a relationship that
 doesn't exist in this domain. No new endpoint or migration was needed since
 `LoanList.jsx`/`LoanReturn.jsx` already rely on the same unpaginated loan
 list.
+
+Django-side translations
+--------------------------
+
+`LOCALE_PATHS = [BASE_DIR / "locale"]` was already set, but `locale/` had
+never been generated. `django-admin makemessages -l fi -l en` now extracts
+the ~35 real `gettext_lazy`/`_()` call sites that already existed in the
+code -- model `verbose_name`/`help_text` (inventory/loans/accounts models),
+admin fieldset/list_display labels, and DRF `ValidationError` messages in
+the loans/accounts serializers and views. `locale/fi/LC_MESSAGES/django.po`
+has real Finnish translations; `locale/en/LC_MESSAGES/django.po` leaves
+every `msgstr` empty since the source `msgid`s are already the English
+strings (Django falls back to `msgid`, same effect as duplicating it, less
+to keep in sync). Compiled `.mo` files aren't committed
+(`locale/**/*.mo` is gitignored) -- `manage.py compilemessages` runs as a
+deploy step, same pattern as `collectstatic`.
+
+Worth stating plainly: today this only has visible effect inside Django
+admin. The SPA never surfaces backend DRF error `detail` text -- every API
+error in the frontend shows its own hardcoded `react-i18next` string
+instead (e.g. `t("loanForm.error")`) -- so the serializer/view message
+translations above are real and correct but currently unreachable from the
+SPA's own UI. The model/admin-label translations are the part with actual
+visible impact right now.
