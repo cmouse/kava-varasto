@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useCurrentUser } from "../api/auth";
 import { useCreateLoan, useLoanableEquipment } from "../api/loans";
 import LoginForm from "../components/LoginForm";
+import { useEquipmentFilter } from "../hooks/useEquipmentFilter";
 
 function emptyItem(key) {
   return { key, equipmentId: "", quantity: 1 };
@@ -33,12 +34,24 @@ function defaultDueDateValue() {
 const PHONE_PATTERN = "\\+358\\d{6,12}|0\\d{6,12}";
 const NAME_PATTERN = "\\S+(\\s+\\S+)+";
 
+function groupByCategory(list) {
+  const groups = new Map();
+  for (const item of list) {
+    if (!groups.has(item.category)) {
+      groups.set(item.category, []);
+    }
+    groups.get(item.category).push(item);
+  }
+  return Array.from(groups, ([category, items]) => ({ category, items }));
+}
+
 function LoanNew() {
   const { t } = useTranslation();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
   const { data: equipment, isLoading: isEquipmentLoading } = useLoanableEquipment({
     enabled: user?.authenticated,
   });
+  const { search, setSearch, filteredEquipment } = useEquipmentFilter(equipment);
   const createLoan = useCreateLoan();
   const nextKey = useRef(1);
 
@@ -67,6 +80,17 @@ function LoanNew() {
 
   function updateItem(key, changes) {
     setItems((prev) => prev.map((item) => (item.key === key ? { ...item, ...changes } : item)));
+  }
+
+  function groupsForRow(currentId) {
+    const list = [...filteredEquipment];
+    if (currentId && !list.some((eq) => String(eq.id) === currentId)) {
+      const current = equipment?.find((eq) => String(eq.id) === currentId);
+      if (current) {
+        list.push(current);
+      }
+    }
+    return groupByCategory(list);
   }
 
   function handleSubmit(event) {
@@ -157,8 +181,16 @@ function LoanNew() {
 
       <div className="mb-3">
         <label className="form-label">{t("loanForm.items")}</label>
+        <input
+          type="search"
+          className="form-control mb-2"
+          placeholder={t("equipmentFilter.searchPlaceholder")}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
         {items.map((item) => {
           const selected = equipment?.find((eq) => String(eq.id) === item.equipmentId);
+          const groups = groupsForRow(item.equipmentId);
           return (
             <div key={item.key} className="d-flex flex-column flex-md-row gap-2 mb-2 pb-2 border-bottom">
               <select
@@ -167,10 +199,14 @@ function LoanNew() {
                 onChange={(event) => updateItem(item.key, { equipmentId: event.target.value })}
               >
                 <option value="">{t("loanForm.selectEquipment")}</option>
-                {(equipment ?? []).map((eq) => (
-                  <option key={eq.id} value={eq.id} disabled={eq.loanable_quantity <= 0}>
-                    {equipmentLabel(eq)} ({eq.loanable_quantity} {t("loanForm.available")})
-                  </option>
+                {groups.map((group) => (
+                  <optgroup key={group.category} label={group.category}>
+                    {group.items.map((eq) => (
+                      <option key={eq.id} value={eq.id} disabled={eq.loanable_quantity <= 0}>
+                        {equipmentLabel(eq)} ({eq.loanable_quantity} {t("loanForm.available")})
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
               <input
