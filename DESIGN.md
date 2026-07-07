@@ -37,6 +37,16 @@ so we know how many are in storage vs. borrowed. Enforced by
 `Equipment.clean()` and a DB check constraint
 (`kava_varasto.inventory.models.Equipment`).
 
+Broken equipment
+----------------
+
+Equipment can be marked broken via `broken_quantity` (0 by default). For
+short-coded items (quantity always 1) this is effectively a broken/not-broken
+flag; for bulk stock (e.g. Trangia stoves) it tracks how many of the total are
+currently broken, so `available_quantity` (quantity minus broken_quantity)
+reflects what can actually be loaned out. Cannot exceed `quantity`, enforced
+by `Equipment.clean()` and a DB check constraint.
+
 Categorization
 --------------
 To make it easier to find equipment, there should be categories of equipment when borrowing, so that equipment with no short code is discoverable.
