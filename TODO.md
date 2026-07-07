@@ -33,7 +33,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Loan check-in/return UI in the SPA — `frontend/src/pages/LoanReturn.jsx`, `POST /api/loans/<id>/return/`
 - [x] Cache-busting for frontend assets: `vite.config.js` emits hashed filenames + a manifest; `spa.html` resolves them via the `vite_asset`/`vite_css` template tags (`src/kava_varasto/templatetags/vite.py`)
 - [x] Add `npm ci && npm run build` (in `frontend/`) to the deploy steps in README, before `collectstatic`
-- [ ] Business logo in the header — download https://www.karhunvartijat.net/site/wp-content/uploads/2020/03/cropped-cropped-cropped-b84547adb1de4692e50ae00ea9a882beJH1exUFYMMKpHQn4-0-1-e1711610706918.png into the repo (frontend asset), don't hotlink it
+- [x] Business logo in the header — `frontend/src/assets/logo.png`, shown in `frontend/src/components/Layout.jsx`'s navbar brand
 
 ## Localization
 - [x] Wire an i18n library into the React frontend (react-i18next) with FI/EN string
