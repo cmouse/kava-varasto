@@ -88,4 +88,14 @@ class LoanableEquipmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Equipment
-        fields = ["id", "name", "short_code", "category", "loanable_quantity"]
+        fields = [
+            "id",
+            "name",
+            "short_code",
+            "category",
+            "quantity",
+            "broken_quantity",
+            "available_quantity",
+            "is_external_loanable",
+            "loanable_quantity",
+        ]
