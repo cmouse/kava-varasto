@@ -9,6 +9,16 @@ def test_me_anonymous(client):
 
 
 @pytest.mark.django_db
+def test_me_sets_csrf_cookie(client):
+    # The frontend's first call on every page load is GET /me/ (see
+    # useCurrentUser()), so this is what primes the csrftoken cookie the
+    # login form and language switcher need -- regardless of whether the
+    # shell HTML came from Django's spa view or the Vite dev server.
+    response = client.get("/api/accounts/me/")
+    assert "csrftoken" in response.cookies
+
+
+@pytest.mark.django_db
 def test_login_then_me_then_logout(client, django_user_model):
     django_user_model.objects.create_user(username="alice", password="s3cret-pw")
 
