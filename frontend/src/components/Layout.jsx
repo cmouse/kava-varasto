@@ -34,6 +34,13 @@ function Layout() {
                   {t("layout.home")}
                 </NavLink>
               </li>
+              {data?.authenticated ? (
+                <li className="nav-item">
+                  <NavLink className="nav-link" to="/storage">
+                    {t("layout.storage")}
+                  </NavLink>
+                </li>
+              ) : null}
             </ul>
             <div className="d-flex align-items-center gap-3">
               <LanguageSwitcher />

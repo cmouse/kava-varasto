@@ -12,7 +12,21 @@
   },
   "layout": {
     "home": "Etusivu",
+    "storage": "Varasto",
     "logout": "Kirjaudu ulos",
     "toggleNav": "Valikko"
+  },
+  "storage": {
+    "title": "Varasto",
+    "shortCode": "Koodi",
+    "name": "Nimi",
+    "category": "Kategoria",
+    "quantity": "Määrä",
+    "broken": "Rikki",
+    "available": "Vapaana",
+    "externalLoanable": "Lainattavissa ulos",
+    "yes": "Kyllä",
+    "no": "Ei",
+    "error": "Varaston lataus epäonnistui."
   }
 }

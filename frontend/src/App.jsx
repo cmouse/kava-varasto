@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
+import Storage from "./pages/Storage";
 
 const queryClient = new QueryClient();
 const scriptName = typeof window !== "undefined" ? window.SCRIPT_NAME || "" : "";
@@ -14,6 +15,7 @@ function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="storage" element={<Storage />} />
           </Route>
         </Routes>
       </BrowserRouter>

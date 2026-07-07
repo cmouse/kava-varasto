@@ -12,7 +12,21 @@
   },
   "layout": {
     "home": "Home",
+    "storage": "Storage",
     "logout": "Log out",
     "toggleNav": "Toggle navigation"
+  },
+  "storage": {
+    "title": "Storage",
+    "shortCode": "Code",
+    "name": "Name",
+    "category": "Category",
+    "quantity": "Quantity",
+    "broken": "Broken",
+    "available": "Available",
+    "externalLoanable": "External loanable",
+    "yes": "Yes",
+    "no": "No",
+    "error": "Failed to load equipment."
   }
 }
