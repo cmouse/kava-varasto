@@ -17,8 +17,7 @@ function Layout() {
       <nav className="navbar navbar-expand-md navbar-dark bg-dark">
         <div className="container-fluid">
           <NavLink className="navbar-brand d-flex align-items-center gap-2" to="/">
-            <img src={logo} height="30" alt="Karhunvartijat ry" />
-            Kava-varasto
+            <img src={logo} height="40" alt="Karhunvartijat ry" />
           </NavLink>
           <button
             className="navbar-toggler"
