@@ -1,9 +1,12 @@
 from datetime import date, timedelta
+from types import SimpleNamespace
 
 import pytest
+from django.db import IntegrityError
 
 from kava_varasto.inventory.models import Category, Equipment
 from kava_varasto.loans.models import Loan, LoanItem
+from kava_varasto.loans.serializers import LoanCreateSerializer
 
 FUTURE_DUE_DATE = (date.today() + timedelta(days=60)).isoformat()
 
@@ -76,6 +79,25 @@ def test_loan_create_rejects_duplicate_equipment(admin_client, equipment):
         content_type="application/json",
     )
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_loan_create_rolls_back_loan_if_items_fail(admin_user, equipment):
+    serializer = LoanCreateSerializer(context={"request": SimpleNamespace(user=admin_user)})
+    validated_data = {
+        "borrower_name": "Matti Meikäläinen",
+        "borrower_phone": "0401234567",
+        "due_date": date.today(),
+        "details": "",
+        "items": [
+            {"equipment": equipment, "quantity": 1},
+            {"equipment": equipment, "quantity": 1},
+        ],
+    }
+    with pytest.raises(IntegrityError):
+        serializer.create(validated_data)
+
+    assert Loan.objects.count() == 0
 
 
 @pytest.mark.django_db

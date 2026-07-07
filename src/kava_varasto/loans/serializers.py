@@ -1,5 +1,6 @@
 import re
 
+from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -99,8 +100,9 @@ class LoanCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         items = validated_data.pop("items")
-        loan = Loan.objects.create(responsible=self.context["request"].user, **validated_data)
-        LoanItem.objects.bulk_create(LoanItem(loan=loan, **item) for item in items)
+        with transaction.atomic():
+            loan = Loan.objects.create(responsible=self.context["request"].user, **validated_data)
+            LoanItem.objects.bulk_create(LoanItem(loan=loan, **item) for item in items)
         return loan
 
 
