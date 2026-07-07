@@ -1,9 +1,11 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { useCurrentUser, useLogout } from "../api/auth";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 function Layout() {
+  const { t } = useTranslation();
   const { data } = useCurrentUser();
   const logout = useLogout();
 
@@ -21,7 +23,7 @@ function Layout() {
             data-bs-target="#nav-content"
             aria-controls="nav-content"
             aria-expanded="false"
-            aria-label="Toggle navigation"
+            aria-label={t("layout.toggleNav")}
           >
             <span className="navbar-toggler-icon" />
           </button>
@@ -29,7 +31,7 @@ function Layout() {
             <ul className="navbar-nav me-auto">
               <li className="nav-item">
                 <NavLink className="nav-link" to="/" end>
-                  Home
+                  {t("layout.home")}
                 </NavLink>
               </li>
             </ul>
@@ -44,7 +46,7 @@ function Layout() {
                     onClick={() => logout.mutate()}
                     disabled={logout.isPending}
                   >
-                    Log out
+                    {t("layout.logout")}
                   </button>
                 </div>
               ) : null}

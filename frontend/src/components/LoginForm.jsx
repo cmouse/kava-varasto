@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useLogin } from "../api/auth";
 
 function LoginForm() {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const login = useLogin();
@@ -14,10 +16,10 @@ function LoginForm() {
 
   return (
     <form className="mx-auto" style={{ maxWidth: "24rem" }} onSubmit={handleSubmit}>
-      <h1 className="h4 mb-3">Log in</h1>
+      <h1 className="h4 mb-3">{t("login.title")}</h1>
       <div className="mb-3">
         <label className="form-label" htmlFor="username">
-          Username
+          {t("login.username")}
         </label>
         <input
           id="username"
@@ -30,7 +32,7 @@ function LoginForm() {
       </div>
       <div className="mb-3">
         <label className="form-label" htmlFor="password">
-          Password
+          {t("login.password")}
         </label>
         <input
           id="password"
@@ -44,11 +46,11 @@ function LoginForm() {
       </div>
       {login.isError ? (
         <div className="alert alert-danger py-2" role="alert">
-          Invalid username or password.
+          {t("login.error")}
         </div>
       ) : null}
       <button className="btn btn-primary w-100" type="submit" disabled={login.isPending}>
-        Log in
+        {t("login.submit")}
       </button>
     </form>
   );

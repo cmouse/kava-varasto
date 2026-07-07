@@ -1,7 +1,10 @@
+import { useTranslation } from "react-i18next";
+
 import { useCurrentUser } from "../api/auth";
 import LoginForm from "../components/LoginForm";
 
 function Home() {
+  const { t } = useTranslation();
   const { data, isLoading } = useCurrentUser();
 
   if (isLoading) {
@@ -14,8 +17,8 @@ function Home() {
 
   return (
     <div>
-      <h1 className="h4">Welcome, {data.user.username}</h1>
-      <p className="text-muted">Inventory and loan lists coming here.</p>
+      <h1 className="h4">{t("home.welcome", { username: data.user.username })}</h1>
+      <p className="text-muted">{t("home.placeholder")}</p>
     </div>
   );
 }

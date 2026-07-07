@@ -1,0 +1,18 @@
+{
+  "login": {
+    "title": "Log in",
+    "username": "Username",
+    "password": "Password",
+    "error": "Invalid username or password.",
+    "submit": "Log in"
+  },
+  "home": {
+    "welcome": "Welcome, {{username}}",
+    "placeholder": "Inventory and loan lists coming here."
+  },
+  "layout": {
+    "home": "Home",
+    "logout": "Log out",
+    "toggleNav": "Toggle navigation"
+  }
+}
