@@ -10,7 +10,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 
 ## Auth / accounts
 - [x] Document createsuperuser flow using accounts.User in README — see "Creating additional user accounts" in README.md
-- [ ] Borrower-name -> User mapping UX
+- [x] Borrower-name autofill from loan history — `<datalist>` in `frontend/src/pages/LoanNew.jsx`, no real `User` account link (see DESIGN.md)
 - [x] Password change form so users can change their own password — `POST /api/accounts/change-password/`, `frontend/src/pages/ChangePassword.jsx`
 - [x] Require password change on first use — `must_change_password` on `accounts.User`, forced via `accounts/admin.py`, gated in `frontend/src/components/Layout.jsx`
 

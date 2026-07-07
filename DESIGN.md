@@ -230,3 +230,23 @@ in place of `<Outlet/>` (navbar/logout stay usable) rather than repeating
 the per-page auth-guard pattern used elsewhere. This is a frontend-only
 gate -- the API itself doesn't block other endpoints for a flagged user,
 an accepted tradeoff at this app's few-trusted-staff scale.
+
+Borrower name/phone autofill
+-----------------------------
+
+`LoanNew.jsx` reuses the already-fetched, unpaginated `GET /api/loans/`
+(`useLoans()`, no backend changes) to remember past borrowers: a
+`<datalist>` on the borrower name field offers every distinct
+`borrower_name` seen before, and picking (or exactly retyping) one
+autofills `borrower_phone` from that borrower's most recent loan -- only
+when the phone field is still empty, so a manual edit is never clobbered.
+
+This is convenience autofill, not an account link -- it matches purely on
+the freeform name string and has no relation to `accounts.User`. That's a
+deliberate tradeoff: a real `Loan.borrower_user` FK would only help
+borrowers who already have a `User` account, but DESIGN.md's own borrowing
+section notes some borrowers are external, non-member people with no
+account at all -- autofill from history helps them too, at the cost of not
+building actual identity linkage. No new endpoint or migration was needed
+since `LoanList.jsx`/`LoanReturn.jsx` already rely on the same unpaginated
+loan list.
