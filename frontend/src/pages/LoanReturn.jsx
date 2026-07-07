@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { useCurrentUser } from "../api/auth";
 import { useLoans, useReturnLoan } from "../api/loans";
@@ -8,6 +8,7 @@ import LoginForm from "../components/LoginForm";
 
 function LoanReturn() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { id } = useParams();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
   const { data: loans, isLoading: isLoansLoading } = useLoans({ enabled: user?.authenticated });
@@ -59,7 +60,7 @@ function LoanReturn() {
     const items = loan.items
       .filter((item) => item.quantity_returned < item.quantity)
       .map((item) => ({ item: item.id, quantity_returned: Number(quantityFor(item)) }));
-    returnLoan.mutate({ loanId: loan.id, items });
+    returnLoan.mutate({ loanId: loan.id, items }, { onSuccess: () => navigate("/loans") });
   }
 
   return (
