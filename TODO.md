@@ -25,7 +25,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 
 ## UI/templates
 - [x] Base template, mobile-first layout — SPA shell (`templates/spa.html`) + React/Bootstrap navbar in `frontend/src/components/Layout.jsx`
-- [ ] Static asset serving strategy: whitenoise vs nginx-served (pick one)
+- [x] Static asset serving strategy: nginx-served — see README's "Production (gunicorn behind nginx)" section
 - [x] Language switcher UI (backend plumbing for /i18n/setlang/ already in place, see README)
 - [x] Equipment storage view in the SPA (read-only stock levels: quantity/broken/available, real-time availability accounting for active loans) — `frontend/src/pages/Storage.jsx`, `GET /api/loans/loanable-equipment/`
 - [x] Loan creation page in the SPA (add/remove items, stock-out limit enforcement) — `frontend/src/pages/LoanNew.jsx`, `POST /api/loans/`
