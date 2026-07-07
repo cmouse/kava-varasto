@@ -23,7 +23,8 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Base template, mobile-first layout — SPA shell (`templates/spa.html`) + React/Bootstrap navbar in `frontend/src/components/Layout.jsx`
 - [ ] Static asset serving strategy: whitenoise vs nginx-served (pick one)
 - [x] Language switcher UI (backend plumbing for /i18n/setlang/ already in place, see README)
-- [ ] Equipment/loan pages in the SPA (currently just a login screen + placeholder home page — see `frontend/src/pages/`)
+- [x] Equipment storage view in the SPA (read-only stock levels: quantity/broken/available) — `frontend/src/pages/Storage.jsx`, `GET /api/inventory/equipment/`
+- [ ] Loan pages in the SPA (checkout/checkin, active/historical listings)
 - [x] Cache-busting for frontend assets: `vite.config.js` emits hashed filenames + a manifest; `spa.html` resolves them via the `vite_asset`/`vite_css` template tags (`src/kava_varasto/templatetags/vite.py`)
 - [x] Add `npm ci && npm run build` (in `frontend/`) to the deploy steps in README, before `collectstatic`
 - [ ] Business logo in the header — download https://www.karhunvartijat.net/site/wp-content/uploads/2020/03/cropped-cropped-cropped-b84547adb1de4692e50ae00ea9a882beJH1exUFYMMKpHQn4-0-1-e1711610706918.png into the repo (frontend asset), don't hotlink it
