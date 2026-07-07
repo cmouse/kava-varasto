@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useCurrentUser } from "../api/auth";
-import { useCreateLoan, useLoanableEquipment } from "../api/loans";
+import { useCreateLoan, useLoanableEquipment, useLoans } from "../api/loans";
 import LoginForm from "../components/LoginForm";
 import { useEquipmentFilter } from "../hooks/useEquipmentFilter";
 
@@ -52,8 +52,19 @@ function LoanNew() {
     enabled: user?.authenticated,
   });
   const { search, setSearch, filteredEquipment } = useEquipmentFilter(equipment);
+  const { data: loans } = useLoans({ enabled: user?.authenticated });
   const createLoan = useCreateLoan();
   const nextKey = useRef(1);
+
+  const borrowerPhoneByName = useMemo(() => {
+    const map = new Map();
+    for (const loan of loans ?? []) {
+      if (!map.has(loan.borrower_name)) {
+        map.set(loan.borrower_name, loan.borrower_phone);
+      }
+    }
+    return map;
+  }, [loans]);
 
   const [borrowerName, setBorrowerName] = useState("");
   const [borrowerPhone, setBorrowerPhone] = useState("");
@@ -76,6 +87,15 @@ function LoanNew() {
 
   function removeItem(key) {
     setItems((prev) => (prev.length > 1 ? prev.filter((item) => item.key !== key) : prev));
+  }
+
+  function handleBorrowerNameChange(event) {
+    const name = event.target.value;
+    setBorrowerName(name);
+    const knownPhone = borrowerPhoneByName.get(name);
+    if (knownPhone && !borrowerPhone) {
+      setBorrowerPhone(knownPhone);
+    }
   }
 
   function updateItem(key, changes) {
@@ -127,12 +147,18 @@ function LoanNew() {
         <input
           id="borrowerName"
           className="form-control"
+          list="borrowerNameHistory"
           value={borrowerName}
-          onChange={(event) => setBorrowerName(event.target.value)}
+          onChange={handleBorrowerNameChange}
           pattern={NAME_PATTERN}
           title={t("loanForm.borrowerNameHint")}
           required
         />
+        <datalist id="borrowerNameHistory">
+          {Array.from(borrowerPhoneByName.keys()).map((name) => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
       </div>
 
       <div className="mb-3">
