@@ -148,6 +148,7 @@ class LoanReturnSerializer(serializers.Serializer):
 
 class LoanableEquipmentSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
+    category_id = serializers.PrimaryKeyRelatedField(source="category", read_only=True)
     loanable_quantity = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -157,6 +158,7 @@ class LoanableEquipmentSerializer(serializers.ModelSerializer):
             "name",
             "short_code",
             "category",
+            "category_id",
             "quantity",
             "broken_quantity",
             "available_quantity",

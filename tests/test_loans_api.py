@@ -284,6 +284,8 @@ def test_loanable_equipment_reflects_stock_already_out(admin_client, admin_user,
     assert data[0]["loanable_quantity"] == 3
     assert data[0]["quantity"] == 5
     assert data[0]["is_external_loanable"] is False
+    assert data[0]["category_id"] == equipment.category_id
+    assert data[0]["category"] == equipment.category.name
 
 
 @pytest.mark.django_db
