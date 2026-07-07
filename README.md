@@ -30,6 +30,19 @@ python manage.py runserver
 Visit `http://127.0.0.1:8000/` for the app, or `http://127.0.0.1:8000/admin/` for
 the Django admin.
 
+### Creating additional user accounts
+
+There's no signup or account-creation API — regular staff accounts are
+created through the Django admin (`/admin/accounts/user/add/`) by an
+existing superuser. Whenever an admin creates a new account, or resets an
+existing user's password via the admin's "change password" screen, that
+account is automatically flagged to require a password change: the user
+must set a new password immediately after their next login, before they
+can use the rest of the app. This does **not** apply to the initial
+superuser created via `createsuperuser` above, nor to any password a user
+sets for themselves — users can change their own password anytime from the
+navbar ("Change password").
+
 ## Architecture
 
 This is a single-page app: Django serves one HTML shell (`templates/spa.html`)

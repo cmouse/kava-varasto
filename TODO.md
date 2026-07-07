@@ -9,7 +9,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Loan/Borrow model (borrower name+phone, due date, details, per-item quantity/quantity_returned for partial returns, responsible/returned_by tied to logged-in users, no delete) — `kava_varasto.loans.models.Loan`/`LoanItem`, registered in admin
 
 ## Auth / accounts
-- [ ] Document createsuperuser flow using accounts.User in README
+- [x] Document createsuperuser flow using accounts.User in README — see "Creating additional user accounts" in README.md
 - [ ] Borrower-name -> User mapping UX
 - [x] Password change form so users can change their own password — `POST /api/accounts/change-password/`, `frontend/src/pages/ChangePassword.jsx`
 - [x] Require password change on first use — `must_change_password` on `accounts.User`, forced via `accounts/admin.py`, gated in `frontend/src/components/Layout.jsx`
