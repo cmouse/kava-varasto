@@ -2,12 +2,14 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useCurrentUser, useLogout } from "../api/auth";
+import ChangePasswordForm from "./ChangePasswordForm";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 function Layout() {
   const { t } = useTranslation();
   const { data } = useCurrentUser();
   const logout = useLogout();
+  const mustChangePassword = data?.authenticated && data.user.must_change_password;
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -72,7 +74,7 @@ function Layout() {
         </div>
       </nav>
       <main className="container-fluid flex-grow-1 py-3">
-        <Outlet />
+        {mustChangePassword ? <ChangePasswordForm forced /> : <Outlet />}
       </main>
     </div>
   );
