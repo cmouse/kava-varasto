@@ -21,7 +21,7 @@ def test_loan_create_sets_responsible_and_echoes_items(admin_client, admin_user,
     response = admin_client.post(
         "/api/loans/",
         {
-            "borrower_name": "Matti",
+            "borrower_name": "Matti Meikäläinen",
             "borrower_phone": "0401234567",
             "due_date": "2026-08-01",
             "details": "",
@@ -91,6 +91,73 @@ def test_loan_create_rejects_quantity_over_available(admin_client, equipment):
 
 
 @pytest.mark.django_db
+def test_loan_create_rejects_single_word_name(admin_client, equipment):
+    response = admin_client.post(
+        "/api/loans/",
+        {
+            "borrower_name": "Matti",
+            "borrower_phone": "0401234567",
+            "due_date": "2026-08-01",
+            "details": "",
+            "items": [{"equipment": equipment.pk, "quantity": 1}],
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert "borrower_name" in response.json()
+
+
+@pytest.mark.django_db
+def test_loan_create_rejects_invalid_phone(admin_client, equipment):
+    response = admin_client.post(
+        "/api/loans/",
+        {
+            "borrower_name": "Matti Meikäläinen",
+            "borrower_phone": "12345",
+            "due_date": "2026-08-01",
+            "details": "",
+            "items": [{"equipment": equipment.pk, "quantity": 1}],
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert "borrower_phone" in response.json()
+
+
+@pytest.mark.django_db
+def test_loan_create_accepts_plus358_phone(admin_client, equipment):
+    response = admin_client.post(
+        "/api/loans/",
+        {
+            "borrower_name": "Matti Meikäläinen",
+            "borrower_phone": "+358401234567",
+            "due_date": "2026-08-01",
+            "details": "",
+            "items": [{"equipment": equipment.pk, "quantity": 1}],
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 201, response.json()
+
+
+@pytest.mark.django_db
+def test_loan_create_rejects_past_due_date(admin_client, equipment):
+    response = admin_client.post(
+        "/api/loans/",
+        {
+            "borrower_name": "Matti Meikäläinen",
+            "borrower_phone": "0401234567",
+            "due_date": "2020-01-01",
+            "details": "",
+            "items": [{"equipment": equipment.pk, "quantity": 1}],
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert "due_date" in response.json()
+
+
+@pytest.mark.django_db
 def test_loan_create_accounts_for_stock_already_out_on_other_loans(admin_client, admin_user, equipment):
     first_loan = Loan.objects.create(
         borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
@@ -100,7 +167,7 @@ def test_loan_create_accounts_for_stock_already_out_on_other_loans(admin_client,
     response = admin_client.post(
         "/api/loans/",
         {
-            "borrower_name": "Liisa",
+            "borrower_name": "Liisa Virtanen",
             "borrower_phone": "0407654321",
             "due_date": "2026-08-01",
             "details": "",
@@ -150,7 +217,7 @@ def test_loan_create_allows_stock_freed_by_a_return(admin_client, admin_user, eq
     response = admin_client.post(
         "/api/loans/",
         {
-            "borrower_name": "Liisa",
+            "borrower_name": "Liisa Virtanen",
             "borrower_phone": "0407654321",
             "due_date": "2026-08-01",
             "details": "",
