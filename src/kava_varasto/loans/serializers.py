@@ -83,6 +83,7 @@ class LoanCreateSerializer(serializers.ModelSerializer):
 
 class LoanableEquipmentSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
+    loanable_quantity = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Equipment
