@@ -37,3 +37,17 @@ export function useCreateLoan() {
     },
   });
 }
+
+export function useReturnLoan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ loanId, items }) => {
+      const { data } = await apiClient.post(`loans/${loanId}/return/`, { items });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loanableEquipment"] });
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+    },
+  });
+}
