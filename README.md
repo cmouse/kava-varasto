@@ -7,6 +7,7 @@ for what's left to build.
 ## Requirements
 
 - Python 3.11+
+- Node.js 20+ (only needed to build the frontend)
 - No external services required for local dev (SQLite by default)
 
 ## Setup
@@ -17,10 +18,37 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 python manage.py migrate
 python manage.py createsuperuser
+
+cd frontend
+npm install
+npm run build
+cd ..
+
 python manage.py runserver
 ```
 
-Visit `http://127.0.0.1:8000/admin/` and log in.
+Visit `http://127.0.0.1:8000/` for the app, or `http://127.0.0.1:8000/admin/` for
+the Django admin.
+
+## Architecture
+
+This is a single-page app: Django serves one HTML shell (`templates/spa.html`)
+for every non-API route, and the React app in `frontend/` does all rendering
+and interaction client-side, talking to the backend exclusively over the REST
+API mounted under `/api/` (built with Django REST Framework, session-cookie
+authenticated — see `kava_varasto.accounts.urls`).
+
+`frontend/` is a separate Vite/React project:
+
+- `npm run build` compiles it to `src/kava_varasto/static/frontend/`, which
+  Django's staticfiles app picks up via `STATICFILES_DIRS`
+  (`src/kava_varasto/settings/base.py`) — same `collectstatic`/nginx pipeline
+  as any other static asset, see "Sub-path mounting" below.
+- `npm run dev` runs the Vite dev server with hot reload; it proxies `/api/`
+  and `/i18n/` to a Django dev server running on `127.0.0.1:8000` (see
+  `frontend/vite.config.js`), so run both `manage.py runserver` and
+  `npm run dev` side by side and browse the Vite dev server's own port
+  instead of Django's.
 
 ## Configuration
 
@@ -69,7 +97,8 @@ location /varasto/ {
 
 gunicorn never serves static files itself (that's true regardless of
 sub-path mounting), so nginx must serve `STATIC_ROOT` directly — run
-`manage.py collectstatic` under prod settings first. The trailing slashes on
+`npm run build` (in `frontend/`) and then `manage.py collectstatic` under
+prod settings before starting gunicorn. The trailing slashes on
 both the app `location` and `proxy_pass` make nginx strip `/varasto` before
 forwarding — gunicorn/Django think they're serving from `/`. Setting
 `DJANGO_FORCE_SCRIPT_NAME=/varasto` (e.g. in the gunicorn service's
@@ -98,9 +127,9 @@ form and static CSS both carry the `/varasto/` prefix.
 
 The site defaults to Finnish (`fi`) with English (`en`) available. Language
 is picked via the standard Django flow (session, cookie, then the
-`Accept-Language` header, falling back to `LANGUAGE_CODE`). `POST` to
-`/i18n/setlang/` to switch language explicitly (see
-`django.conf.urls.i18n` — a UI for this is still on `TODO.md`).
+`Accept-Language` header, falling back to `LANGUAGE_CODE`). The navbar's
+language switcher (`frontend/src/components/LanguageSwitcher.jsx`) posts to
+`/i18n/setlang/` to switch language explicitly (see `django.conf.urls.i18n`).
 
 Once real UI strings exist beyond Django's own bundled translations:
 

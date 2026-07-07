@@ -19,9 +19,12 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [ ] Search by name/short code, category filter buttons
 
 ## UI/templates
-- [ ] Base template, mobile-first layout
+- [x] Base template, mobile-first layout — SPA shell (`templates/spa.html`) + React/Bootstrap navbar in `frontend/src/components/Layout.jsx`
 - [ ] Static asset serving strategy: whitenoise vs nginx-served (pick one)
-- [ ] Language switcher UI (backend plumbing for /i18n/setlang/ already in place, see README)
+- [x] Language switcher UI (backend plumbing for /i18n/setlang/ already in place, see README)
+- [ ] Equipment/loan pages in the SPA (currently just a login screen + placeholder home page — see `frontend/src/pages/`)
+- [ ] Cache-busting for frontend assets: `vite.config.js` currently emits fixed, unhashed `main.js`/`main.css` for simplicity; switch to hashed filenames + a manifest-reading template tag once repeat deploys need cache invalidation
+- [ ] Add `npm ci && npm run build` (in `frontend/`) to the deploy steps in README, before `collectstatic`
 
 ## Localization
 - [ ] Run `django-admin makemessages -l fi -l en` and translate real UI strings once templates exist
