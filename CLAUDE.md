@@ -8,6 +8,7 @@ Instructions
 - Keep commits so that they try to change only one thing. Avoid commits that say "change this and that".
 - Do not add Co-Authored-By header
 - Keep commit messages short
+- Always commit code automatically
 
 This software has to be relocatable, so we want to make an installable package that can be mounted as http://webhost/something
 
