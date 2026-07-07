@@ -173,6 +173,22 @@ django-admin makemessages -l fi -l en
 django-admin compilemessages
 ```
 
+## Releasing
+
+Versioning lives in one place: the `version` field in `pyproject.toml`
+(`frontend/package.json`'s version is unused, the frontend ships bundled
+inside the backend package). To cut a release:
+
+1. Bump `version` in `pyproject.toml` (e.g. `0.2.0`), commit.
+2. Tag it to match, prefixed with `v`: `git tag v0.2.0`.
+3. `git push --tags`.
+
+Pushing a matching `vX.Y.Z` tag runs `.github/workflows/publish.yml`, which
+lints and tests the backend and frontend, then — only if the tag matches
+`pyproject.toml`'s version — builds a Python sdist/wheel and attaches them
+to a new GitHub Release. No PyPI/npm publish and no container images: this
+project publishes downloadable release artifacts only, not to a registry.
+
 ## Deployment notes
 
 No Docker setup — deploy as a plain WSGI app (gunicorn) behind a reverse
