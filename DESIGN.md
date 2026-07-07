@@ -10,6 +10,7 @@ Key requirements for this system:
  - Simple user management and authentication, only few users for the system. 
  - Needs to work sub-path mounting
  - Must have working mobile and pc UI, especially for borrowing equipment.
+ - Must be localizable to Finnish and English, defaulting to Finnish.
 
 Borrowing equipment
 -------------------
