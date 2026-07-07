@@ -26,6 +26,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [ ] Equipment/loan pages in the SPA (currently just a login screen + placeholder home page — see `frontend/src/pages/`)
 - [x] Cache-busting for frontend assets: `vite.config.js` emits hashed filenames + a manifest; `spa.html` resolves them via the `vite_asset`/`vite_css` template tags (`src/kava_varasto/templatetags/vite.py`)
 - [x] Add `npm ci && npm run build` (in `frontend/`) to the deploy steps in README, before `collectstatic`
+- [ ] Business logo in the header — download https://www.karhunvartijat.net/site/wp-content/uploads/2020/03/cropped-cropped-cropped-b84547adb1de4692e50ae00ea9a882beJH1exUFYMMKpHQn4-0-1-e1711610706918.png into the repo (frontend asset), don't hotlink it
 
 ## Localization
 - [x] Wire an i18n library into the React frontend (react-i18next) with FI/EN string
