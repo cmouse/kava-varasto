@@ -60,6 +60,6 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] CI running pytest + `manage.py check --deploy` — `.github/workflows/ci.yml`
 
 ## Repository / GitHub publishing (future)
-- [ ] Create SECURITY.md
+- [x] Create SECURITY.md
 - [x] Create LICENSE.md — `LICENSE` (AGPL-3.0-or-later)
-- [ ] Add .github/workflows for when this is pushed to GitHub — we publish packages only (no container images/deploy targets) (note: `.github/workflows/ci.yml` already exists for test/lint CI, this item is about a package-publish workflow specifically)
+- [x] Add .github/workflows for when this is pushed to GitHub — `.github/workflows/publish.yml`, triggered on `vX.Y.Z` tags matching `pyproject.toml`'s version, lints+tests then builds a Python sdist/wheel and attaches them to a GitHub Release (packages only, no container images/deploy targets); shared lint/test steps factored into `.github/workflows/checks.yml`, reused by both `ci.yml` and `publish.yml` — see README's "Releasing" section
