@@ -1,16 +1,19 @@
-{% load static %}<!doctype html>
+{% load vite %}<!doctype html>
 <html lang="{{ LANGUAGE_CODE }}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Kava-varasto</title>
-    <link rel="stylesheet" href="{% static 'frontend/main.css' %}" />
+    {% vite_css "index.html" as css_files %}
+    {% for href in css_files %}
+    <link rel="stylesheet" href="{{ href }}" />
+    {% endfor %}
   </head>
   <body>
     <div id="root"></div>
     <script>
       window.SCRIPT_NAME = "{{ script_name|escapejs }}";
     </script>
-    <script type="module" src="{% static 'frontend/main.js' %}"></script>
+    <script type="module" src="{% vite_asset 'index.html' %}"></script>
   </body>
 </html>
