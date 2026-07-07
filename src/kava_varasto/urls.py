@@ -7,6 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
     path("api/accounts/", include("kava_varasto.accounts.urls")),
+    path("api/inventory/", include("kava_varasto.inventory.urls")),
     # Client-side routes handled by the SPA; keep this last so it doesn't
     # shadow admin/i18n/api/static/media.
     re_path(r"^(?!admin/|i18n/|api/|static/|media/).*$", views.spa, name="spa"),

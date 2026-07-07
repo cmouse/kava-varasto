@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from rest_framework.generics import ListAPIView
 
-# Create your views here.
+from .models import Equipment
+from .serializers import EquipmentSerializer
+
+
+class EquipmentListView(ListAPIView):
+    queryset = Equipment.objects.select_related("category").order_by("category__name", "name")
+    serializer_class = EquipmentSerializer
