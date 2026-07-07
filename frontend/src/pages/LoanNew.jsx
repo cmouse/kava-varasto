@@ -13,6 +13,26 @@ function equipmentLabel(item) {
   return item.short_code ? `${item.short_code} ${item.name}` : item.name;
 }
 
+function toDateInputValue(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function todayValue() {
+  return toDateInputValue(new Date());
+}
+
+function defaultDueDateValue() {
+  const d = new Date();
+  d.setDate(d.getDate() + 7);
+  return toDateInputValue(d);
+}
+
+const PHONE_PATTERN = "\\+358\\d{6,12}|0\\d{6,12}";
+const NAME_PATTERN = "\\S+(\\s+\\S+)+";
+
 function LoanNew() {
   const { t } = useTranslation();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
@@ -24,7 +44,7 @@ function LoanNew() {
 
   const [borrowerName, setBorrowerName] = useState("");
   const [borrowerPhone, setBorrowerPhone] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState(() => defaultDueDateValue());
   const [details, setDetails] = useState("");
   const [items, setItems] = useState([emptyItem(0)]);
 
@@ -64,7 +84,7 @@ function LoanNew() {
       onSuccess: () => {
         setBorrowerName("");
         setBorrowerPhone("");
-        setDueDate("");
+        setDueDate(defaultDueDateValue());
         setDetails("");
         nextKey.current += 1;
         setItems([emptyItem(nextKey.current)]);
@@ -85,6 +105,8 @@ function LoanNew() {
           className="form-control"
           value={borrowerName}
           onChange={(event) => setBorrowerName(event.target.value)}
+          pattern={NAME_PATTERN}
+          title={t("loanForm.borrowerNameHint")}
           required
         />
       </div>
@@ -99,6 +121,8 @@ function LoanNew() {
           className="form-control"
           value={borrowerPhone}
           onChange={(event) => setBorrowerPhone(event.target.value)}
+          pattern={PHONE_PATTERN}
+          title={t("loanForm.borrowerPhoneHint")}
           required
         />
       </div>
@@ -112,6 +136,7 @@ function LoanNew() {
           type="date"
           className="form-control"
           value={dueDate}
+          min={todayValue()}
           onChange={(event) => setDueDate(event.target.value)}
           required
         />
