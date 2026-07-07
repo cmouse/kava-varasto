@@ -63,6 +63,20 @@
     "returnedAt": "Returned at",
     "noActive": "No active loans.",
     "noHistorical": "No returned loans yet.",
-    "error": "Failed to load loans."
+    "error": "Failed to load loans.",
+    "returnAction": "Return"
+  },
+  "loanReturn": {
+    "title": "Return equipment",
+    "backToList": "Back to loans",
+    "equipment": "Equipment",
+    "quantity": "Quantity",
+    "returnedQuantity": "Returned",
+    "fullyReturned": "Fully returned",
+    "alreadyReturned": "This loan has already been returned.",
+    "notFound": "Loan not found.",
+    "submit": "Mark returned",
+    "success": "Return recorded.",
+    "error": "Failed to record return."
   }
 }

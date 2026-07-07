@@ -63,6 +63,20 @@
     "returnedAt": "Palautettu",
     "noActive": "Ei aktiivisia lainoja.",
     "noHistorical": "Ei vielä palautettuja lainoja.",
-    "error": "Lainojen lataus epäonnistui."
+    "error": "Lainojen lataus epäonnistui.",
+    "returnAction": "Palautus"
+  },
+  "loanReturn": {
+    "title": "Palauta varusteet",
+    "backToList": "Takaisin lainoihin",
+    "equipment": "Varuste",
+    "quantity": "Määrä",
+    "returnedQuantity": "Palautettu",
+    "fullyReturned": "Palautettu kokonaan",
+    "alreadyReturned": "Tämä laina on jo palautettu.",
+    "notFound": "Lainaa ei löytynyt.",
+    "submit": "Merkitse palautetuksi",
+    "success": "Palautus tallennettu.",
+    "error": "Palautuksen tallennus epäonnistui."
   }
 }
