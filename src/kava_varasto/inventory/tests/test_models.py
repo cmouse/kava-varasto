@@ -85,3 +85,40 @@ def test_equipment_short_code_requires_quantity_one_db_constraint():
     category = Category.objects.create(name="Tents")
     with pytest.raises(IntegrityError):
         Equipment.objects.create(name="Dome tent", short_code="X75", quantity=2, category=category)
+
+
+@pytest.mark.django_db
+def test_equipment_broken_quantity_defaults_to_zero():
+    category = Category.objects.create(name="Tents")
+    equipment = Equipment.objects.create(name="Dome tent", short_code="X75", category=category)
+    assert equipment.broken_quantity == 0
+    assert equipment.available_quantity == 1
+
+
+@pytest.mark.django_db
+def test_equipment_broken_quantity_reduces_available_quantity():
+    category = Category.objects.create(name="Cooking")
+    equipment = Equipment.objects.create(name="Trangia stove", quantity=5, broken_quantity=2, category=category)
+    assert equipment.available_quantity == 3
+
+
+@pytest.mark.django_db
+def test_equipment_broken_quantity_can_equal_quantity():
+    category = Category.objects.create(name="Tents")
+    equipment = Equipment.objects.create(name="Dome tent", short_code="X75", broken_quantity=1, category=category)
+    assert equipment.available_quantity == 0
+
+
+@pytest.mark.django_db
+def test_equipment_broken_quantity_over_quantity_rejected_by_clean():
+    category = Category.objects.create(name="Cooking")
+    equipment = Equipment(name="Trangia stove", quantity=5, broken_quantity=6, category=category)
+    with pytest.raises(ValidationError):
+        equipment.full_clean()
+
+
+@pytest.mark.django_db
+def test_equipment_broken_quantity_over_quantity_rejected_by_db_constraint():
+    category = Category.objects.create(name="Cooking")
+    with pytest.raises(IntegrityError):
+        Equipment.objects.create(name="Trangia stove", quantity=5, broken_quantity=6, category=category)

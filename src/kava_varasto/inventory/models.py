@@ -45,6 +45,11 @@ class Equipment(models.Model):
         default=False,
         help_text=_("If unset, only club members can borrow this equipment."),
     )
+    broken_quantity = models.PositiveIntegerField(
+        _("broken quantity"),
+        default=0,
+        help_text=_("How many of this equipment are currently broken and unavailable for loan."),
+    )
 
     class Meta:
         verbose_name = _("equipment")
@@ -55,14 +60,26 @@ class Equipment(models.Model):
                 condition=models.Q(short_code__isnull=True) | models.Q(quantity=1),
                 name="equipment_short_code_implies_quantity_one",
             ),
+            models.CheckConstraint(
+                condition=models.Q(broken_quantity__lte=models.F("quantity")),
+                name="equipment_broken_quantity_lte_quantity",
+            ),
         ]
 
     def __str__(self):
         return f"{self.short_code} {self.name}" if self.short_code else self.name
+
+    @property
+    def available_quantity(self):
+        return self.quantity - self.broken_quantity
 
     def clean(self):
         super().clean()
         if self.short_code and self.quantity != 1:
             raise ValidationError(
                 {"quantity": _("Equipment with a short code identifies a single item, so quantity must be 1.")}
+            )
+        if self.broken_quantity > self.quantity:
+            raise ValidationError(
+                {"broken_quantity": _("Broken quantity cannot exceed total quantity.")}
             )
