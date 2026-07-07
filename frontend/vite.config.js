@@ -6,16 +6,12 @@ export default defineConfig({
   plugins: [react()],
   build: {
     // Django serves this directory as a static app (see settings/base.py
-    // STATICFILES_DIRS); fixed, unhashed filenames so base.html can
-    // reference them directly without reading a Vite manifest.
+    // STATICFILES_DIRS). Hashed filenames + manifest so repeat deploys
+    // bust caches; spa.html resolves the real filenames via the
+    // `vite_asset`/`vite_css` template tags (kava_varasto/templatetags/vite.py).
     outDir: '../src/kava_varasto/static/frontend',
     emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        entryFileNames: 'main.js',
-        assetFileNames: 'main.[ext]',
-      },
-    },
+    manifest: true,
   },
   server: {
     // Let `npm run dev` talk to a locally running Django dev server
