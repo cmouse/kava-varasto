@@ -17,7 +17,12 @@ function Layout() {
       <nav className="navbar navbar-expand-md navbar-dark bg-dark">
         <div className="container-fluid">
           <NavLink className="navbar-brand d-flex align-items-center gap-2" to="/">
-            <img src={logo} height="40" alt="Karhunvartijat ry" />
+            <img
+              src={logo}
+              height="40"
+              alt="Karhunvartijat ry"
+              className="bg-white rounded px-2 py-1"
+            />
           </NavLink>
           <button
             className="navbar-toggler"
