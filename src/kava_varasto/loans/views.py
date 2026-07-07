@@ -1,7 +1,7 @@
 from django.db.models import F, Sum, Value
 from django.db.models.functions import Coalesce
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework.response import Response
 
 from kava_varasto.inventory.models import Equipment
@@ -10,9 +10,13 @@ from .models import Loan
 from .serializers import LoanableEquipmentSerializer, LoanCreateSerializer, LoanSerializer
 
 
-class LoanCreateView(CreateAPIView):
-    queryset = Loan.objects.all()
-    serializer_class = LoanCreateSerializer
+class LoanListCreateView(ListCreateAPIView):
+    queryset = Loan.objects.prefetch_related("items__equipment__category").all()
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return LoanCreateSerializer
+        return LoanSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

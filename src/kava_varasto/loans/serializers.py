@@ -44,6 +44,7 @@ class LoanSerializer(serializers.ModelSerializer):
             "returned_by",
             "returned_at",
             "created_at",
+            "is_returned",
             "items",
         ]
 
