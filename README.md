@@ -96,9 +96,19 @@ location /varasto/ {
 ```
 
 gunicorn never serves static files itself (that's true regardless of
-sub-path mounting), so nginx must serve `STATIC_ROOT` directly — run
-`npm run build` (in `frontend/`) and then `manage.py collectstatic` under
-prod settings before starting gunicorn. The trailing slashes on
+sub-path mounting), so nginx must serve `STATIC_ROOT` directly — build the
+frontend and collect static files under prod settings before starting
+gunicorn:
+
+```sh
+cd frontend
+npm ci
+npm run build
+cd ..
+DJANGO_SETTINGS_MODULE=kava_varasto.settings.prod python manage.py collectstatic --noinput
+```
+
+The trailing slashes on
 both the app `location` and `proxy_pass` make nginx strip `/varasto` before
 forwarding — gunicorn/Django think they're serving from `/`. Setting
 `DJANGO_FORCE_SCRIPT_NAME=/varasto` (e.g. in the gunicorn service's
