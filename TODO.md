@@ -47,7 +47,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [ ] `compilemessages` as part of the deploy step
 
 ## Production hardening
-- [ ] SECURE_HSTS_SECONDS, SESSION/CSRF_COOKIE_SECURE, logging config
+- [x] SECURE_HSTS_SECONDS, SESSION/CSRF_COOKIE_SECURE, logging config — `kava_varasto.settings.prod`, confirmed via `manage.py check --deploy`
 - [ ] Real SECRET_KEY generation/storage docs
 - [ ] psycopg2-binary/mysqlclient only if/when Postgres/MySQL chosen
 - [ ] pyproject.toml license field

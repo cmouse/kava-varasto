@@ -165,5 +165,8 @@ django-admin compilemessages
 ## Deployment notes
 
 No Docker setup — deploy as a plain WSGI app (gunicorn) behind a reverse
-proxy such as nginx. See `TODO.md` for outstanding production-hardening
-items (HSTS, secure cookies, logging, etc.) before going live.
+proxy such as nginx. `kava_varasto.settings.prod` (used by `wsgi.py`/
+`asgi.py`) already enables HSTS, forces secure session/CSRF cookies, and
+logs to the console (captured by systemd/journald or your process
+supervisor) — nothing further to configure for these. Run
+`manage.py check --deploy` under prod settings before going live to confirm.
