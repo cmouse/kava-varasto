@@ -3,8 +3,9 @@
 Foundation/infrastructure is done. Remaining work, roughly in priority order:
 
 ## Domain models
-- [ ] Equipment (name, optional short code e.g. X75/M96, quantity, category FK, member-only vs external-loanable flag)
-- [ ] Category model + browsing
+- [x] Equipment (name, optional short code e.g. X75/M96, quantity, category FK, member-only vs external-loanable flag) — `kava_varasto.inventory.models.Equipment`, registered in admin
+- [x] Category model — `kava_varasto.inventory.models.Category`, registered in admin
+- [ ] Category browsing UI (search/filter buttons in the SPA)
 - [ ] Loan/Borrow (equipment FK, freeform borrower name, borrower->User mapping, borrow date, due date, checkout/checkin timestamps)
 
 ## Auth / accounts
