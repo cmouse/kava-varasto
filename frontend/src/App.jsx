@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout";
+import ChangePassword from "./pages/ChangePassword";
 import Home from "./pages/Home";
 import LoanList from "./pages/LoanList";
 import LoanNew from "./pages/LoanNew";
@@ -22,6 +23,7 @@ function App() {
             <Route path="loans" element={<LoanList />} />
             <Route path="loans/new" element={<LoanNew />} />
             <Route path="loans/:id/return" element={<LoanReturn />} />
+            <Route path="account/password" element={<ChangePassword />} />
           </Route>
         </Routes>
       </BrowserRouter>
