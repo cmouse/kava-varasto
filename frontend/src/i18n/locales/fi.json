@@ -15,7 +15,8 @@
     "storage": "Varasto",
     "loans": "Lainat",
     "logout": "Kirjaudu ulos",
-    "toggleNav": "Valikko"
+    "toggleNav": "Valikko",
+    "changePassword": "Vaihda salasana"
   },
   "storage": {
     "title": "Varasto",
@@ -85,5 +86,16 @@
     "submit": "Merkitse palautetuksi",
     "success": "Palautus tallennettu.",
     "error": "Palautuksen tallennus epäonnistui."
+  },
+  "changePassword": {
+    "title": "Vaihda salasana",
+    "forcedTitle": "Sinun täytyy asettaa uusi salasana ennen kuin jatkat",
+    "currentPassword": "Nykyinen salasana",
+    "newPassword": "Uusi salasana",
+    "confirmNewPassword": "Vahvista uusi salasana",
+    "mismatchError": "Uusi salasana ja vahvistus eivät täsmää.",
+    "submit": "Vaihda salasana",
+    "success": "Salasana vaihdettu.",
+    "error": "Salasanan vaihto epäonnistui."
   }
 }

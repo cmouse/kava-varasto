@@ -15,7 +15,8 @@
     "storage": "Storage",
     "loans": "Loans",
     "logout": "Log out",
-    "toggleNav": "Toggle navigation"
+    "toggleNav": "Toggle navigation",
+    "changePassword": "Change password"
   },
   "storage": {
     "title": "Storage",
@@ -85,5 +86,16 @@
     "submit": "Mark returned",
     "success": "Return recorded.",
     "error": "Failed to record return."
+  },
+  "changePassword": {
+    "title": "Change password",
+    "forcedTitle": "You must set a new password before continuing",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "mismatchError": "New password and confirmation do not match.",
+    "submit": "Change password",
+    "success": "Password changed.",
+    "error": "Failed to change password."
   }
 }
