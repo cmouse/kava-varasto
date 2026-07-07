@@ -11,10 +11,13 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 ## Auth / accounts
 - [ ] Document createsuperuser flow using accounts.User in README
 - [ ] Borrower-name -> User mapping UX
+- [ ] Password change form so users can change their own password
+- [ ] Require password change on first use
 
 ## Borrowing workflow
 - [x] Checkout (loan creation) view, with stock-out limit enforcement — `kava_varasto.loans.views.LoanListCreateView`, `frontend/src/pages/LoanNew.jsx`
-- [ ] Check-in view
+- [ ] Loan form input validation: phone number in `+358xxx` or `0xxx` format, borrower name must have at least two parts, due date defaults to +1 week and can't be in the past
+- [x] Check-in view — `POST /api/loans/<id>/return/` (`kava_varasto.loans.views.LoanReturnView`), `frontend/src/pages/LoanReturn.jsx`, supports partial returns
 - [x] Active vs historical loan listings — `GET /api/loans/`, `frontend/src/pages/LoanList.jsx`
 
 ## Search & browsing
@@ -27,7 +30,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Equipment storage view in the SPA (read-only stock levels: quantity/broken/available, real-time availability accounting for active loans) — `frontend/src/pages/Storage.jsx`, `GET /api/loans/loanable-equipment/`
 - [x] Loan creation page in the SPA (add/remove items, stock-out limit enforcement) — `frontend/src/pages/LoanNew.jsx`, `POST /api/loans/`
 - [x] Loan overview page in the SPA (active vs historical listings) — `frontend/src/pages/LoanList.jsx`, `GET /api/loans/`
-- [ ] Loan check-in/return UI in the SPA
+- [x] Loan check-in/return UI in the SPA — `frontend/src/pages/LoanReturn.jsx`, `POST /api/loans/<id>/return/`
 - [x] Cache-busting for frontend assets: `vite.config.js` emits hashed filenames + a manifest; `spa.html` resolves them via the `vite_asset`/`vite_css` template tags (`src/kava_varasto/templatetags/vite.py`)
 - [x] Add `npm ci && npm run build` (in `frontend/`) to the deploy steps in README, before `collectstatic`
 - [ ] Business logo in the header — download https://www.karhunvartijat.net/site/wp-content/uploads/2020/03/cropped-cropped-cropped-b84547adb1de4692e50ae00ea9a882beJH1exUFYMMKpHQn4-0-1-e1711610706918.png into the repo (frontend asset), don't hotlink it

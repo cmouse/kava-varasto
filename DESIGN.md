@@ -122,5 +122,35 @@ Staff view all loans via the SPA (`frontend/src/pages/LoanList.jsx`,
 `GET /api/loans/` -- the same URL as loan creation, `POST`; DRF's
 `ListCreateAPIView` dispatches by method), split into active (not yet
 fully returned) and returned/historical sections client-side using the
-`is_returned` field on `LoanSerializer`. No check-in/return action yet --
-that's a separate, still-open piece of work.
+`is_returned` field on `LoanSerializer`.
+
+Loan check-in / return
+-----------------------
+
+Each active loan on `LoanList.jsx` has a "Return" button
+(`frontend/src/pages/LoanReturn.jsx`, `/loans/:id/return`) that posts to
+`POST /api/loans/<id>/return/` (`kava_varasto.loans.views.LoanReturnView`).
+The page looks the loan up from the already-fetched `useLoans()` list
+(no separate loan-detail endpoint) and shows one row per `LoanItem`: a
+number input (defaulting to full quantity) for items not yet fully
+returned, or a "fully returned" badge for items that are.
+
+The request body is `{"items": [{"item": <LoanItem id>, "quantity_returned":
+<int>}, ...]}` -- an absolute new total per item, same semantics as the
+Django admin's inline field, not a delta. `LoanReturnSerializer`
+(`loans/serializers.py`) rejects: items not belonging to the target loan,
+a `quantity_returned` that decreases (returns are monotonic, no "undo"),
+or one that exceeds `quantity`. The view rejects the whole request with
+400 if the loan is already `is_returned`. Partial returns are allowed --
+some items can be completed while others stay outstanding; the loan only
+archives (`returned_at`/`returned_by` set) once every item is fully
+returned, via the existing `Loan.mark_returned_if_complete()`, called
+with the submitting user (same rule as loan creation's `responsible`).
+
+Implementation note: `LoanReturnView` fetches the `Loan` *without*
+`prefetch_related("items")`. Prefetching before mutating and saving the
+`LoanItem` rows would leave the reverse-FK cache holding stale (pre-update)
+instances, so both `mark_returned_if_complete()`'s own item check and the
+response `LoanSerializer` would report outdated `quantity_returned` values
+even though the DB was already correct. Leaving the queryset unprefetched
+means every `.items.all()` access re-queries fresh.
