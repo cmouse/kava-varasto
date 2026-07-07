@@ -1,13 +1,17 @@
+from django.db import transaction
 from django.db.models import F, Sum, Value
 from django.db.models.functions import Coalesce
+from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from kava_varasto.inventory.models import Equipment
 
 from .models import Loan
-from .serializers import LoanableEquipmentSerializer, LoanCreateSerializer, LoanSerializer
+from .serializers import LoanableEquipmentSerializer, LoanCreateSerializer, LoanReturnSerializer, LoanSerializer
 
 
 class LoanListCreateView(ListCreateAPIView):
@@ -23,6 +27,20 @@ class LoanListCreateView(ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         loan = serializer.save()
         return Response(LoanSerializer(loan).data, status=status.HTTP_201_CREATED)
+
+
+class LoanReturnView(APIView):
+    def post(self, request, pk):
+        loan = get_object_or_404(Loan, pk=pk)
+        if loan.is_returned:
+            return Response({"detail": _("This loan has already been returned.")}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = LoanReturnSerializer(data=request.data, context={"loan": loan, "request": request})
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            serializer.save()
+
+        return Response(LoanSerializer(loan).data, status=status.HTTP_200_OK)
 
 
 class LoanableEquipmentListView(ListAPIView):

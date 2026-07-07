@@ -213,3 +213,159 @@ def test_loanable_equipment_reflects_stock_already_out(admin_client, admin_user,
     assert data[0]["loanable_quantity"] == 3
     assert data[0]["quantity"] == 5
     assert data[0]["is_external_loanable"] is False
+
+
+@pytest.mark.django_db
+def test_loan_return_requires_auth(client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
+
+    response = client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 2}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_loan_return_full_marks_loan_returned(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 2}]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200, response.json()
+    data = response.json()
+    assert data["is_returned"] is True
+    assert data["returned_by"] == admin_user.username
+    assert data["returned_at"] is not None
+    assert data["items"][0]["quantity_returned"] == 2
+
+    loan.refresh_from_db()
+    assert loan.is_returned is True
+
+
+@pytest.mark.django_db
+def test_loan_return_partial_keeps_loan_active(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    item_a = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
+    category = item_a.equipment.category
+    other_equipment = Equipment.objects.create(name="Lantern", quantity=1, category=category)
+    item_b = LoanItem.objects.create(loan=loan, equipment=other_equipment, quantity=1)
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item_a.pk, "quantity_returned": 2}]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200, response.json()
+    data = response.json()
+    assert data["is_returned"] is False
+    by_item_id = {entry["id"]: entry for entry in data["items"]}
+    assert by_item_id[item_a.pk]["quantity_returned"] == 2
+    assert by_item_id[item_b.pk]["quantity_returned"] == 0
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item_b.pk, "quantity_returned": 1}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.json()
+    assert response.json()["is_returned"] is True
+
+
+@pytest.mark.django_db
+def test_loan_return_rejects_decreasing_quantity(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2, quantity_returned=1)
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 0}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_loan_return_rejects_quantity_over_borrowed(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 3}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_loan_return_rejects_item_from_another_loan(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    other_loan = Loan.objects.create(
+        borrower_name="Liisa", borrower_phone="0407654321", due_date="2026-08-01", responsible=admin_user
+    )
+    other_item = LoanItem.objects.create(loan=other_loan, equipment=equipment, quantity=1)
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": other_item.pk, "quantity_returned": 1}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_loan_return_rejects_already_returned_loan(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2, quantity_returned=2)
+    loan.mark_returned_if_complete(admin_user)
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 2}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_loan_return_frees_stock_for_new_loan(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=5)
+
+    response = admin_client.get("/api/loans/loanable-equipment/")
+    assert response.json()[0]["loanable_quantity"] == 0
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 5}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.json()
+
+    response = admin_client.get("/api/loans/loanable-equipment/")
+    assert response.json()[0]["loanable_quantity"] == 5
