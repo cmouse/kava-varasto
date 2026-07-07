@@ -45,7 +45,9 @@ short-coded items (quantity always 1) this is effectively a broken/not-broken
 flag; for bulk stock (e.g. Trangia stoves) it tracks how many of the total are
 currently broken, so `available_quantity` (quantity minus broken_quantity)
 reflects what can actually be loaned out. Cannot exceed `quantity`, enforced
-by `Equipment.clean()` and a DB check constraint.
+by `Equipment.clean()` and a DB check constraint. Loan returns can also
+increment this per equipment (see "Loan check-in / return" below) when
+returned items come back damaged.
 
 Categorization
 --------------
@@ -146,6 +148,40 @@ some items can be completed while others stay outstanding; the loan only
 archives (`returned_at`/`returned_by` set) once every item is fully
 returned, via the existing `Loan.mark_returned_if_complete()`, called
 with the submitting user (same rule as loan creation's `responsible`).
+
+Each `LoanItem` also tracks `quantity_broken` -- how many of the returned
+quantity came back damaged. It's an optional key per return-request item
+(`{"item": <id>, "quantity_returned": <int>, "quantity_broken": <int>}`),
+bounded the same way as `quantity_returned`: cannot decrease from what's
+already stored, and cannot exceed the *new* `quantity_returned` in the same
+request. If omitted, the existing stored value carries over unchanged --
+it is never implicitly reset to 0, which would otherwise clobber a broken
+count recorded in an earlier partial return.
+
+Marking something broken updates `Equipment.broken_quantity` inside the
+same `transaction.atomic()` block as the `quantity_returned` update: only
+the *delta* between old and new `quantity_broken` is added, via
+`Equipment.objects.filter(pk=...).update(broken_quantity=F("broken_quantity")
++ delta)` -- a single atomic SQL statement, so concurrent returns touching
+the same equipment can't race into a lost update. This reuses the existing
+`broken_quantity` field and `available_quantity`/`loanable_quantity`
+computations unchanged -- no other code needed to change for damaged
+returns to stop showing as available.
+
+`LoanItem`'s own DB check constraint
+(`loanitem_quantity_broken_lte_quantity_returned`) and `clean()` mirror
+`loanitem_quantity_returned_lte_quantity` exactly. The Django admin's
+`LoanItemInline` shows `quantity_broken` read-only -- editing it there
+would bypass the `Equipment.broken_quantity` side effect, so the return
+endpoint / `LoanReturn.jsx` is the only write path.
+
+Scope note: broken can only be recorded for a `LoanItem` while it's still
+being actively returned -- once an item is fully returned, `LoanReturn.jsx`
+only shows a static badge and it drops out of the submitted payload, so
+there's no UI path to retroactively mark an already-returned item broken
+later. The pre-existing Django-admin-only editing of `Equipment.broken_quantity`
+already covers "found broken after the fact", just coarsely at the
+equipment level rather than per loan item.
 
 Implementation note: `LoanReturnView` fetches the `Loan` *without*
 `prefetch_related("items")`. Prefetching before mutating and saving the
