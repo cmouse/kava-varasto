@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kava-varasto\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-07 18:30+0300\n"
+"POT-Creation-Date: 2026-07-07 22:19+0300\n"
 "PO-Revision-Date: 2026-07-07 18:30+0300\n"
 "Last-Translator: Karhunvartijat ry\n"
 "Language-Team: English\n"
@@ -18,6 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
 #: src/kava_varasto/accounts/admin.py:34
 msgid "Password policy"
 msgstr ""
@@ -103,7 +104,7 @@ msgstr ""
 msgid "Broken quantity cannot exceed total quantity."
 msgstr ""
 
-#: src/kava_varasto/loans/admin.py:21
+#: src/kava_varasto/loans/admin.py:22
 msgid "returned"
 msgstr ""
 
@@ -165,16 +166,28 @@ msgstr ""
 msgid "quantity returned"
 msgstr ""
 
-#: src/kava_varasto/loans/models.py:74
-msgid "loan item"
+#: src/kava_varasto/loans/models.py:73
+msgid "quantity broken"
 msgstr ""
 
 #: src/kava_varasto/loans/models.py:75
+msgid "How many of the returned quantity came back broken."
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:79
+msgid "loan item"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:80
 msgid "loan items"
 msgstr ""
 
-#: src/kava_varasto/loans/models.py:95
+#: src/kava_varasto/loans/models.py:104
 msgid "Returned quantity cannot exceed borrowed quantity."
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:106
+msgid "Broken quantity cannot exceed returned quantity."
 msgstr ""
 
 #: src/kava_varasto/loans/serializers.py:66
@@ -190,7 +203,7 @@ msgid "Due date cannot be in the past."
 msgstr ""
 
 #: src/kava_varasto/loans/serializers.py:83
-#: src/kava_varasto/loans/serializers.py:117
+#: src/kava_varasto/loans/serializers.py:118
 msgid "At least one item is required."
 msgstr ""
 
@@ -203,23 +216,34 @@ msgstr ""
 msgid "Only %(loanable)d of %(name)s available to loan right now."
 msgstr ""
 
-#: src/kava_varasto/loans/serializers.py:121
+#: src/kava_varasto/loans/serializers.py:122
 msgid "Each loan item can only appear once per return."
-msgstr ""
-
-#: src/kava_varasto/loans/serializers.py:127
-#, python-format
-msgid "Item %(id)d does not belong to this loan."
 msgstr ""
 
 #: src/kava_varasto/loans/serializers.py:130
 #, python-format
+msgid "Item %(id)d does not belong to this loan."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:133
+#, python-format
 msgid "Returned quantity for %(name)s cannot decrease."
 msgstr ""
 
-#: src/kava_varasto/loans/serializers.py:134
+#: src/kava_varasto/loans/serializers.py:137
 #, python-format
 msgid "Returned quantity for %(name)s cannot exceed %(quantity)d."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:142
+#, python-format
+msgid "Broken quantity for %(name)s cannot decrease."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:146
+#, python-format
+msgid ""
+"Broken quantity for %(name)s cannot exceed returned quantity %(quantity)d."
 msgstr ""
 
 #: src/kava_varasto/loans/views.py:36

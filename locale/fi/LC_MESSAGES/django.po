@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kava-varasto\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-07 18:30+0300\n"
+"POT-Creation-Date: 2026-07-07 22:19+0300\n"
 "PO-Revision-Date: 2026-07-07 18:30+0300\n"
 "Last-Translator: Karhunvartijat ry\n"
 "Language-Team: Finnish\n"
@@ -30,8 +30,7 @@ msgid ""
 "when an admin creates the account or resets its password."
 msgstr ""
 "Pakottaa käyttäjän vaihtamaan salasanansa seuraavalla kirjautumisella. "
-"Asetetaan automaattisesti, kun ylläpitäjä luo tilin tai nollaa sen "
-"salasanan."
+"Asetetaan automaattisesti, kun ylläpitäjä luo tilin tai nollaa sen salasanan."
 
 #: src/kava_varasto/accounts/serializers.py:21
 msgid "Current password is incorrect."
@@ -73,7 +72,8 @@ msgstr "määrä"
 
 #: src/kava_varasto/inventory/models.py:38
 msgid "Total number in stock. Must be 1 for equipment with a short code."
-msgstr "Varastossa oleva kokonaismäärä. Oltava 1, jos varusteella on lyhytkoodi."
+msgstr ""
+"Varastossa oleva kokonaismäärä. Oltava 1, jos varusteella on lyhytkoodi."
 
 #: src/kava_varasto/inventory/models.py:44
 msgid "external loanable"
@@ -90,7 +90,8 @@ msgstr "rikkinäisten määrä"
 #: src/kava_varasto/inventory/models.py:51
 msgid ""
 "How many of this equipment are currently broken and unavailable for loan."
-msgstr "Kuinka monta tästä varusteesta on tällä hetkellä rikki ja pois lainauksesta."
+msgstr ""
+"Kuinka monta tästä varusteesta on tällä hetkellä rikki ja pois lainauksesta."
 
 #: src/kava_varasto/inventory/models.py:55
 #: src/kava_varasto/inventory/models.py:56 src/kava_varasto/loans/models.py:68
@@ -100,13 +101,14 @@ msgstr "varuste"
 #: src/kava_varasto/inventory/models.py:80
 msgid ""
 "Equipment with a short code identifies a single item, so quantity must be 1."
-msgstr "Lyhytkoodillinen varuste yksilöi yhden kappaleen, joten määrän on oltava 1."
+msgstr ""
+"Lyhytkoodillinen varuste yksilöi yhden kappaleen, joten määrän on oltava 1."
 
 #: src/kava_varasto/inventory/models.py:84
 msgid "Broken quantity cannot exceed total quantity."
 msgstr "Rikkinäisten määrä ei voi ylittää kokonaismäärää."
 
-#: src/kava_varasto/loans/admin.py:21
+#: src/kava_varasto/loans/admin.py:22
 msgid "returned"
 msgstr "palautettu"
 
@@ -170,17 +172,29 @@ msgstr "Lainoja ei voi poistaa luomisen jälkeen."
 msgid "quantity returned"
 msgstr "palautettu määrä"
 
-#: src/kava_varasto/loans/models.py:74
+#: src/kava_varasto/loans/models.py:73
+msgid "quantity broken"
+msgstr "rikkinäinen määrä"
+
+#: src/kava_varasto/loans/models.py:75
+msgid "How many of the returned quantity came back broken."
+msgstr "Kuinka moni palautetuista kappaleista tuli takaisin rikkinäisenä."
+
+#: src/kava_varasto/loans/models.py:79
 msgid "loan item"
 msgstr "lainarivi"
 
-#: src/kava_varasto/loans/models.py:75
+#: src/kava_varasto/loans/models.py:80
 msgid "loan items"
 msgstr "lainarivit"
 
-#: src/kava_varasto/loans/models.py:95
+#: src/kava_varasto/loans/models.py:104
 msgid "Returned quantity cannot exceed borrowed quantity."
 msgstr "Palautettu määrä ei voi ylittää lainattua määrää."
+
+#: src/kava_varasto/loans/models.py:106
+msgid "Broken quantity cannot exceed returned quantity."
+msgstr "Rikkinäinen määrä ei voi ylittää palautettua määrää."
 
 #: src/kava_varasto/loans/serializers.py:66
 msgid "Enter both first and last name."
@@ -195,7 +209,7 @@ msgid "Due date cannot be in the past."
 msgstr "Eräpäivä ei voi olla menneisyydessä."
 
 #: src/kava_varasto/loans/serializers.py:83
-#: src/kava_varasto/loans/serializers.py:117
+#: src/kava_varasto/loans/serializers.py:118
 msgid "At least one item is required."
 msgstr "Vähintään yksi kohde vaaditaan."
 
@@ -208,24 +222,35 @@ msgstr "Kukin varuste voi esiintyä lainassa vain kerran."
 msgid "Only %(loanable)d of %(name)s available to loan right now."
 msgstr "Vain %(loanable)d kpl kohdetta %(name)s on juuri nyt lainattavissa."
 
-#: src/kava_varasto/loans/serializers.py:121
+#: src/kava_varasto/loans/serializers.py:122
 msgid "Each loan item can only appear once per return."
 msgstr "Kukin lainarivi voi esiintyä palautuksessa vain kerran."
 
-#: src/kava_varasto/loans/serializers.py:127
+#: src/kava_varasto/loans/serializers.py:130
 #, python-format
 msgid "Item %(id)d does not belong to this loan."
 msgstr "Kohde %(id)d ei kuulu tähän lainaan."
 
-#: src/kava_varasto/loans/serializers.py:130
+#: src/kava_varasto/loans/serializers.py:133
 #, python-format
 msgid "Returned quantity for %(name)s cannot decrease."
 msgstr "Kohteen %(name)s palautettu määrä ei voi pienentyä."
 
-#: src/kava_varasto/loans/serializers.py:134
+#: src/kava_varasto/loans/serializers.py:137
 #, python-format
 msgid "Returned quantity for %(name)s cannot exceed %(quantity)d."
 msgstr "Kohteen %(name)s palautettu määrä ei voi ylittää arvoa %(quantity)d."
+
+#: src/kava_varasto/loans/serializers.py:142
+#, python-format
+msgid "Broken quantity for %(name)s cannot decrease."
+msgstr "Kohteen %(name)s rikkinäinen määrä ei voi pienentyä."
+
+#: src/kava_varasto/loans/serializers.py:146
+#, python-format
+msgid ""
+"Broken quantity for %(name)s cannot exceed returned quantity %(quantity)d."
+msgstr "Kohteen %(name)s rikkinäinen määrä ei voi ylittää palautettua määrää %(quantity)d."
 
 #: src/kava_varasto/loans/views.py:36
 msgid "This loan has already been returned."

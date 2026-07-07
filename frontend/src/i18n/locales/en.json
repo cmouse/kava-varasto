@@ -75,6 +75,7 @@
     "equipment": "Equipment",
     "quantity": "Quantity",
     "returnedQuantity": "Returned",
+    "brokenQuantity": "Broken",
     "fullyReturned": "Fully returned",
     "alreadyReturned": "This loan has already been returned.",
     "notFound": "Loan not found.",

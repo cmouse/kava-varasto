@@ -75,6 +75,7 @@
     "equipment": "Varuste",
     "quantity": "Määrä",
     "returnedQuantity": "Palautettu",
+    "brokenQuantity": "Rikki",
     "fullyReturned": "Palautettu kokonaan",
     "alreadyReturned": "Tämä laina on jo palautettu.",
     "notFound": "Lainaa ei löytynyt.",
