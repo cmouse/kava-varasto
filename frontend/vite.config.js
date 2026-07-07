@@ -4,6 +4,10 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Relative so built asset URLs (e.g. imported images) resolve correctly
+  // regardless of STATIC_URL/FORCE_SCRIPT_NAME -- this app is relocatable,
+  // mountable at any sub-path (see README's "Sub-path mounting").
+  base: './',
   build: {
     // Django serves this directory as a static app (see settings/base.py
     // STATICFILES_DIRS). Hashed filenames + manifest so repeat deploys
