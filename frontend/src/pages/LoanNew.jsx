@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import { useCurrentUser } from "../api/auth";
 import { useCreateLoan, useLoanableEquipment, useLoans } from "../api/loans";
@@ -47,6 +48,7 @@ function groupByCategory(list) {
 
 function LoanNew() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
   const { data: equipment, isLoading: isEquipmentLoading } = useLoanableEquipment({
     enabled: user?.authenticated,
@@ -126,12 +128,7 @@ function LoanNew() {
     };
     createLoan.mutate(payload, {
       onSuccess: () => {
-        setBorrowerName("");
-        setBorrowerPhone("");
-        setDueDate(defaultDueDateValue());
-        setDetails("");
-        nextKey.current += 1;
-        setItems([emptyItem(nextKey.current)]);
+        navigate("/loans");
       },
     });
   }
