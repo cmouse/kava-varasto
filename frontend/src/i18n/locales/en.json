@@ -31,7 +31,12 @@
     "externalLoanable": "External loanable",
     "yes": "Yes",
     "no": "No",
-    "error": "Failed to load equipment."
+    "error": "Failed to load equipment.",
+    "noResults": "No equipment matches your search."
+  },
+  "equipmentFilter": {
+    "searchPlaceholder": "Search by name or code…",
+    "allCategories": "All categories"
   },
   "loanForm": {
     "title": "New loan",

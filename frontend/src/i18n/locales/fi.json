@@ -31,7 +31,12 @@
     "externalLoanable": "Lainattavissa ulos",
     "yes": "Kyllä",
     "no": "Ei",
-    "error": "Varaston lataus epäonnistui."
+    "error": "Varaston lataus epäonnistui.",
+    "noResults": "Haku ei löytänyt varusteita."
+  },
+  "equipmentFilter": {
+    "searchPlaceholder": "Hae nimellä tai koodilla…",
+    "allCategories": "Kaikki kategoriat"
   },
   "loanForm": {
     "title": "Uusi laina",
