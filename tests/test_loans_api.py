@@ -1,7 +1,11 @@
+from datetime import date, timedelta
+
 import pytest
 
 from kava_varasto.inventory.models import Category, Equipment
 from kava_varasto.loans.models import Loan, LoanItem
+
+FUTURE_DUE_DATE = (date.today() + timedelta(days=60)).isoformat()
 
 
 @pytest.fixture
@@ -23,7 +27,7 @@ def test_loan_create_sets_responsible_and_echoes_items(admin_client, admin_user,
         {
             "borrower_name": "Matti Meikäläinen",
             "borrower_phone": "0401234567",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [{"equipment": equipment.pk, "quantity": 2}],
         },
@@ -46,7 +50,7 @@ def test_loan_create_requires_at_least_one_item(admin_client, equipment):
         {
             "borrower_name": "Matti",
             "borrower_phone": "0401234567",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [],
         },
@@ -62,7 +66,7 @@ def test_loan_create_rejects_duplicate_equipment(admin_client, equipment):
         {
             "borrower_name": "Matti",
             "borrower_phone": "0401234567",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [
                 {"equipment": equipment.pk, "quantity": 1},
@@ -81,7 +85,7 @@ def test_loan_create_rejects_quantity_over_available(admin_client, equipment):
         {
             "borrower_name": "Matti",
             "borrower_phone": "0401234567",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [{"equipment": equipment.pk, "quantity": 6}],
         },
@@ -97,7 +101,7 @@ def test_loan_create_rejects_single_word_name(admin_client, equipment):
         {
             "borrower_name": "Matti",
             "borrower_phone": "0401234567",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [{"equipment": equipment.pk, "quantity": 1}],
         },
@@ -114,7 +118,7 @@ def test_loan_create_rejects_invalid_phone(admin_client, equipment):
         {
             "borrower_name": "Matti Meikäläinen",
             "borrower_phone": "12345",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [{"equipment": equipment.pk, "quantity": 1}],
         },
@@ -131,7 +135,7 @@ def test_loan_create_accepts_plus358_phone(admin_client, equipment):
         {
             "borrower_name": "Matti Meikäläinen",
             "borrower_phone": "+358401234567",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [{"equipment": equipment.pk, "quantity": 1}],
         },
@@ -169,7 +173,7 @@ def test_loan_create_accounts_for_stock_already_out_on_other_loans(admin_client,
         {
             "borrower_name": "Liisa Virtanen",
             "borrower_phone": "0407654321",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [{"equipment": equipment.pk, "quantity": 2}],
         },
@@ -182,7 +186,7 @@ def test_loan_create_accounts_for_stock_already_out_on_other_loans(admin_client,
         {
             "borrower_name": "Kalle",
             "borrower_phone": "0409876543",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [{"equipment": equipment.pk, "quantity": 1}],
         },
@@ -203,7 +207,7 @@ def test_loan_create_allows_stock_freed_by_a_return(admin_client, admin_user, eq
         {
             "borrower_name": "Liisa",
             "borrower_phone": "0407654321",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [{"equipment": equipment.pk, "quantity": 1}],
         },
@@ -219,7 +223,7 @@ def test_loan_create_allows_stock_freed_by_a_return(admin_client, admin_user, eq
         {
             "borrower_name": "Liisa Virtanen",
             "borrower_phone": "0407654321",
-            "due_date": "2026-08-01",
+            "due_date": FUTURE_DUE_DATE,
             "details": "",
             "items": [{"equipment": equipment.pk, "quantity": 2}],
         },
