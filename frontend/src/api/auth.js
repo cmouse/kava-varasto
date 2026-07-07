@@ -32,3 +32,14 @@ export function useLogout() {
     onSuccess: () => queryClient.setQueryData(["currentUser"], { authenticated: false, user: null }),
   });
 }
+
+export function useChangePassword() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ current_password, new_password }) => {
+      const { data } = await apiClient.post("accounts/change-password/", { current_password, new_password });
+      return data;
+    },
+    onSuccess: (data) => queryClient.setQueryData(["currentUser"], data),
+  });
+}
