@@ -442,3 +442,135 @@ def test_loan_return_frees_stock_for_new_loan(admin_client, admin_user, equipmen
 
     response = admin_client.get("/api/loans/loanable-equipment/")
     assert response.json()[0]["loanable_quantity"] == 5
+
+
+@pytest.mark.django_db
+def test_loan_return_marks_broken_and_updates_equipment(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 2, "quantity_broken": 1}]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200, response.json()
+    assert response.json()["items"][0]["quantity_broken"] == 1
+
+    equipment.refresh_from_db()
+    assert equipment.broken_quantity == 1
+
+    response = admin_client.get("/api/loans/loanable-equipment/")
+    assert response.json()[0]["loanable_quantity"] == 4
+
+
+@pytest.mark.django_db
+def test_loan_return_rejects_broken_quantity_exceeding_returned(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 1, "quantity_broken": 2}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+
+    equipment.refresh_from_db()
+    assert equipment.broken_quantity == 0
+
+
+@pytest.mark.django_db
+def test_loan_return_rejects_decreasing_broken_quantity(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    item = LoanItem.objects.create(
+        loan=loan, equipment=equipment, quantity=2, quantity_returned=2, quantity_broken=1
+    )
+    equipment.broken_quantity = 1
+    equipment.save(update_fields=["broken_quantity"])
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 2, "quantity_broken": 0}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_loan_return_broken_quantity_omitted_keeps_existing_value(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    other_equipment = Equipment.objects.create(name="Lantern", quantity=3, category=equipment.category)
+    item_a = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=3)
+    item_b = LoanItem.objects.create(loan=loan, equipment=other_equipment, quantity=2)
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item_a.pk, "quantity_returned": 2, "quantity_broken": 2}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.json()
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {
+            "items": [
+                {"item": item_a.pk, "quantity_returned": 3},
+                {"item": item_b.pk, "quantity_returned": 2, "quantity_broken": 1},
+            ]
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.json()
+    by_item_id = {entry["id"]: entry for entry in response.json()["items"]}
+    assert by_item_id[item_a.pk]["quantity_broken"] == 2
+    assert by_item_id[item_b.pk]["quantity_broken"] == 1
+
+    equipment.refresh_from_db()
+    other_equipment.refresh_from_db()
+    assert equipment.broken_quantity == 2
+    assert other_equipment.broken_quantity == 1
+
+
+@pytest.mark.django_db
+def test_loan_return_broken_quantity_applies_delta_across_partial_returns(admin_client, admin_user, equipment):
+    other_loan = Loan.objects.create(
+        borrower_name="Liisa Virtanen", borrower_phone="0407654321", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    LoanItem.objects.create(
+        loan=other_loan, equipment=equipment, quantity=2, quantity_returned=2, quantity_broken=1
+    )
+    equipment.broken_quantity = 1
+    equipment.save(update_fields=["broken_quantity"])
+
+    loan = Loan.objects.create(
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=3)
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 1, "quantity_broken": 1}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.json()
+    equipment.refresh_from_db()
+    assert equipment.broken_quantity == 2
+
+    response = admin_client.post(
+        f"/api/loans/{loan.pk}/return/",
+        {"items": [{"item": item.pk, "quantity_returned": 3, "quantity_broken": 3}]},
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.json()
+    equipment.refresh_from_db()
+    assert equipment.broken_quantity == 4

@@ -29,7 +29,7 @@ class LoanItemReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LoanItem
-        fields = ["id", "equipment", "quantity", "quantity_returned"]
+        fields = ["id", "equipment", "quantity", "quantity_returned", "quantity_broken"]
 
 
 class LoanSerializer(serializers.ModelSerializer):
@@ -107,6 +107,7 @@ class LoanCreateSerializer(serializers.ModelSerializer):
 class LoanReturnItemSerializer(serializers.Serializer):
     item = serializers.PrimaryKeyRelatedField(queryset=LoanItem.objects.all())
     quantity_returned = serializers.IntegerField(min_value=0)
+    quantity_broken = serializers.IntegerField(min_value=0, required=False)
 
 
 class LoanReturnSerializer(serializers.Serializer):
@@ -123,6 +124,8 @@ class LoanReturnSerializer(serializers.Serializer):
         for entry in items:
             loan_item = entry["item"]
             new_quantity = entry["quantity_returned"]
+            new_broken = entry.get("quantity_broken", loan_item.quantity_broken)
+            entry["quantity_broken"] = new_broken
             if loan_item.loan_id != loan.pk:
                 errors.append(_("Item %(id)d does not belong to this loan.") % {"id": loan_item.pk})
             elif new_quantity < loan_item.quantity_returned:
@@ -134,6 +137,15 @@ class LoanReturnSerializer(serializers.Serializer):
                     _("Returned quantity for %(name)s cannot exceed %(quantity)d.")
                     % {"name": str(loan_item.equipment), "quantity": loan_item.quantity}
                 )
+            elif new_broken < loan_item.quantity_broken:
+                errors.append(
+                    _("Broken quantity for %(name)s cannot decrease.") % {"name": str(loan_item.equipment)}
+                )
+            elif new_broken > new_quantity:
+                errors.append(
+                    _("Broken quantity for %(name)s cannot exceed returned quantity %(quantity)d.")
+                    % {"name": str(loan_item.equipment), "quantity": new_quantity}
+                )
         if errors:
             raise serializers.ValidationError(errors)
         return items
@@ -141,8 +153,15 @@ class LoanReturnSerializer(serializers.Serializer):
     def save(self):
         for entry in self.validated_data["items"]:
             loan_item = entry["item"]
+            new_broken = entry["quantity_broken"]
+            broken_delta = new_broken - loan_item.quantity_broken
             loan_item.quantity_returned = entry["quantity_returned"]
-            loan_item.save(update_fields=["quantity_returned"])
+            loan_item.quantity_broken = new_broken
+            loan_item.save(update_fields=["quantity_returned", "quantity_broken"])
+            if broken_delta:
+                Equipment.objects.filter(pk=loan_item.equipment_id).update(
+                    broken_quantity=F("broken_quantity") + broken_delta
+                )
         self.context["loan"].mark_returned_if_complete(self.context["request"].user)
 
 
