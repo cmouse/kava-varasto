@@ -14,6 +14,7 @@ function LoanReturn() {
   const { data: loans, isLoading: isLoansLoading } = useLoans({ enabled: user?.authenticated });
   const returnLoan = useReturnLoan();
   const [quantities, setQuantities] = useState({});
+  const [brokenQuantities, setBrokenQuantities] = useState({});
 
   if (isUserLoading) {
     return null;
@@ -55,11 +56,23 @@ function LoanReturn() {
     setQuantities((prev) => ({ ...prev, [item.id]: value }));
   }
 
+  function brokenQuantityFor(item) {
+    return brokenQuantities[item.id] ?? item.quantity_broken;
+  }
+
+  function setBrokenQuantityFor(item, value) {
+    setBrokenQuantities((prev) => ({ ...prev, [item.id]: value }));
+  }
+
   function handleSubmit(event) {
     event.preventDefault();
     const items = loan.items
       .filter((item) => item.quantity_returned < item.quantity)
-      .map((item) => ({ item: item.id, quantity_returned: Number(quantityFor(item)) }));
+      .map((item) => ({
+        item: item.id,
+        quantity_returned: Number(quantityFor(item)),
+        quantity_broken: Number(brokenQuantityFor(item)),
+      }));
     returnLoan.mutate({ loanId: loan.id, items }, { onSuccess: () => navigate("/loans") });
   }
 
@@ -98,6 +111,20 @@ function LoanReturn() {
                     required
                   />
                   <span className="text-muted small">/ {item.quantity}</span>
+                  <label className="form-label mb-0 small" htmlFor={`broken-item-${item.id}`}>
+                    {t("loanReturn.brokenQuantity")}
+                  </label>
+                  <input
+                    id={`broken-item-${item.id}`}
+                    type="number"
+                    min={item.quantity_broken}
+                    max={quantityFor(item)}
+                    className="form-control"
+                    style={{ maxWidth: "8rem" }}
+                    value={brokenQuantityFor(item)}
+                    onChange={(event) => setBrokenQuantityFor(item, event.target.value)}
+                    required
+                  />
                 </div>
               )}
             </div>
