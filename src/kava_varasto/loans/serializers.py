@@ -1,10 +1,15 @@
+import re
+
 from django.db.models import F, Sum
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from kava_varasto.inventory.models import Equipment
 
 from .models import Loan, LoanItem
+
+PHONE_RE = re.compile(r"^(\+358\d{6,12}|0\d{6,12})$")
 
 
 def outstanding_quantity(equipment):
@@ -55,6 +60,23 @@ class LoanCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Loan
         fields = ["borrower_name", "borrower_phone", "due_date", "details", "items"]
+
+    def validate_borrower_name(self, value):
+        if len(value.split()) < 2:
+            raise serializers.ValidationError(_("Enter both first and last name."))
+        return value
+
+    def validate_borrower_phone(self, value):
+        if not PHONE_RE.match(value):
+            raise serializers.ValidationError(
+                _("Enter a valid phone number, e.g. 0401234567 or +358401234567.")
+            )
+        return value
+
+    def validate_due_date(self, value):
+        if value < timezone.localdate():
+            raise serializers.ValidationError(_("Due date cannot be in the past."))
+        return value
 
     def validate_items(self, items):
         if not items:
