@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "kava_varasto.accounts",
+    "kava_varasto.inventory",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
