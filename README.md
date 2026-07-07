@@ -55,6 +55,10 @@ of sync.
 ### Production (gunicorn behind nginx)
 
 ```
+location /varasto/static/ {
+    alias /path/to/kava-varasto/staticfiles/;
+}
+
 location /varasto/ {
     proxy_pass http://127.0.0.1:8000/;
     proxy_set_header Host $host;
@@ -63,10 +67,13 @@ location /varasto/ {
 }
 ```
 
-The trailing slashes on both `location` and `proxy_pass` make nginx strip
-`/varasto` before forwarding — gunicorn/Django think they're serving from
-`/`. Setting `DJANGO_FORCE_SCRIPT_NAME=/varasto` (e.g. in the gunicorn
-service's environment) adds the prefix back for generated links and static
+gunicorn never serves static files itself (that's true regardless of
+sub-path mounting), so nginx must serve `STATIC_ROOT` directly — run
+`manage.py collectstatic` under prod settings first. The trailing slashes on
+both the app `location` and `proxy_pass` make nginx strip `/varasto` before
+forwarding — gunicorn/Django think they're serving from `/`. Setting
+`DJANGO_FORCE_SCRIPT_NAME=/varasto` (e.g. in the gunicorn service's
+environment) adds the prefix back for generated links and static
 URLs. Run gunicorn with production settings:
 
 ```sh
