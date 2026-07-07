@@ -36,7 +36,9 @@
   "loanForm": {
     "title": "Uusi laina",
     "borrowerName": "Lainaajan nimi",
+    "borrowerNameHint": "Anna etu- ja sukunimi, esim. Matti Meikäläinen",
     "borrowerPhone": "Lainaajan puhelin",
+    "borrowerPhoneHint": "Anna suomalainen puhelinnumero, esim. 0401234567 tai +358401234567",
     "dueDate": "Eräpäivä",
     "details": "Lisätiedot",
     "items": "Varusteet",

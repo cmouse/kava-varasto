@@ -36,7 +36,9 @@
   "loanForm": {
     "title": "New loan",
     "borrowerName": "Borrower name",
+    "borrowerNameHint": "Enter first and last name, e.g. Matti Meikäläinen",
     "borrowerPhone": "Borrower phone",
+    "borrowerPhoneHint": "Enter a Finnish phone number, e.g. 0401234567 or +358401234567",
     "dueDate": "Due date",
     "details": "Details",
     "items": "Equipment",
