@@ -45,12 +45,13 @@ ROOT_URLCONF = "kava_varasto.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
@@ -91,6 +92,9 @@ USE_TZ = True
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Built by `npm run build` in frontend/ (see frontend/vite.config.js outDir).
+STATICFILES_DIRS = [BASE_DIR / "src" / "kava_varasto" / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
