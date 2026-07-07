@@ -20,7 +20,7 @@ and needs to be mapped to the current user. There should also be information whe
 and when it is suposed to be returned.
 
 There should be way to search equipment by name and short code. Or using category buttons.
-0
+
 Then the borrowed equipment is checked out, and when user returns them, they are checked in.
 
 There are some equipment that is borrowed for members of non-profit only, and small amount of equipment that is borrowed outside.
