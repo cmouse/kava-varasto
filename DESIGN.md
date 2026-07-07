@@ -242,11 +242,11 @@ autofills `borrower_phone` from that borrower's most recent loan -- only
 when the phone field is still empty, so a manual edit is never clobbered.
 
 This is convenience autofill, not an account link -- it matches purely on
-the freeform name string and has no relation to `accounts.User`. That's a
-deliberate tradeoff: a real `Loan.borrower_user` FK would only help
-borrowers who already have a `User` account, but DESIGN.md's own borrowing
-section notes some borrowers are external, non-member people with no
-account at all -- autofill from history helps them too, at the cost of not
-building actual identity linkage. No new endpoint or migration was needed
-since `LoanList.jsx`/`LoanReturn.jsx` already rely on the same unpaginated
-loan list.
+the freeform name string and has no relation to `accounts.User`. This isn't
+a scope tradeoff: only staff -- the people handing equipment out and
+processing returns (`responsible`/`returned_by`) -- ever have `User`
+accounts. Borrowers never do, so a `Loan.borrower_user` FK to `User` isn't
+a smaller version of the right feature, it's modeling a relationship that
+doesn't exist in this domain. No new endpoint or migration was needed since
+`LoanList.jsx`/`LoanReturn.jsx` already rely on the same unpaginated loan
+list.
