@@ -14,10 +14,10 @@ function LoginForm() {
 
   return (
     <form className="mx-auto" style={{ maxWidth: "24rem" }} onSubmit={handleSubmit}>
-      <h1 className="h4 mb-3">Kirjaudu sisään</h1>
+      <h1 className="h4 mb-3">Log in</h1>
       <div className="mb-3">
         <label className="form-label" htmlFor="username">
-          Käyttäjätunnus
+          Username
         </label>
         <input
           id="username"
@@ -30,7 +30,7 @@ function LoginForm() {
       </div>
       <div className="mb-3">
         <label className="form-label" htmlFor="password">
-          Salasana
+          Password
         </label>
         <input
           id="password"
@@ -44,11 +44,11 @@ function LoginForm() {
       </div>
       {login.isError ? (
         <div className="alert alert-danger py-2" role="alert">
-          Virheellinen käyttäjätunnus tai salasana.
+          Invalid username or password.
         </div>
       ) : null}
       <button className="btn btn-primary w-100" type="submit" disabled={login.isPending}>
-        Kirjaudu
+        Log in
       </button>
     </form>
   );

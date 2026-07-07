@@ -14,8 +14,8 @@ function Home() {
 
   return (
     <div>
-      <h1 className="h4">Tervetuloa, {data.user.username}</h1>
-      <p className="text-muted">Varasto- ja lainauslistat tulevat tähän.</p>
+      <h1 className="h4">Welcome, {data.user.username}</h1>
+      <p className="text-muted">Inventory and loan lists coming here.</p>
     </div>
   );
 }

@@ -29,7 +29,7 @@ function Layout() {
             <ul className="navbar-nav me-auto">
               <li className="nav-item">
                 <NavLink className="nav-link" to="/" end>
-                  Etusivu
+                  Home
                 </NavLink>
               </li>
             </ul>
@@ -44,7 +44,7 @@ function Layout() {
                     onClick={() => logout.mutate()}
                     disabled={logout.isPending}
                   >
-                    Kirjaudu ulos
+                    Log out
                   </button>
                 </div>
               ) : null}
