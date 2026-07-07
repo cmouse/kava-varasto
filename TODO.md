@@ -27,10 +27,13 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [ ] Add `npm ci && npm run build` (in `frontend/`) to the deploy steps in README, before `collectstatic`
 
 ## Localization
-- [ ] Wire an i18n library into the React frontend (e.g. react-i18next) with FI/EN string
-      catalogs for existing components — confirmed by manual test that `/i18n/setlang/`
-      backend plumbing works (cookie set, `Content-Language` flips), but no SPA component
-      strings are translated yet, so switching language currently has no visible effect
+- [x] Wire an i18n library into the React frontend (react-i18next) with FI/EN string
+      catalogs for existing components (`frontend/src/i18n/`) — language is read from
+      the server-rendered `<html lang>` (which the existing `/i18n/setlang/` flow
+      controls), confirmed by manual test that switching FI/EN in the navbar flips all
+      SPA component strings
+- [ ] Add new component strings to `frontend/src/i18n/locales/{en,fi}.json` as the SPA grows
+      (equipment/loan pages etc.)
 - [ ] Run `django-admin makemessages -l fi -l en` and translate real UI strings once templates exist
 - [ ] `compilemessages` as part of the deploy step
 
