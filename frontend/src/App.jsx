@@ -3,7 +3,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout";
 import ChangePassword from "./pages/ChangePassword";
-import Home from "./pages/Home";
 import LoanList from "./pages/LoanList";
 import LoanNew from "./pages/LoanNew";
 import LoanReturn from "./pages/LoanReturn";
@@ -18,7 +17,7 @@ function App() {
       <BrowserRouter basename={scriptName}>
         <Routes>
           <Route element={<Layout />}>
-            <Route index element={<Home />} />
+            <Route index element={<LoanList />} />
             <Route path="storage" element={<Storage />} />
             <Route path="loans" element={<LoanList />} />
             <Route path="loans/new" element={<LoanNew />} />

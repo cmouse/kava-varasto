@@ -6,12 +6,7 @@
     "error": "Invalid username or password.",
     "submit": "Log in"
   },
-  "home": {
-    "welcome": "Welcome, {{username}}",
-    "placeholder": "Inventory and loan lists coming here."
-  },
   "layout": {
-    "home": "Home",
     "storage": "Storage",
     "loans": "Loans",
     "logout": "Log out",

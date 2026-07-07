@@ -33,11 +33,6 @@ function Layout() {
           </button>
           <div className="collapse navbar-collapse" id="nav-content">
             <ul className="navbar-nav me-auto">
-              <li className="nav-item">
-                <NavLink className="nav-link" to="/" end>
-                  {t("layout.home")}
-                </NavLink>
-              </li>
               {data?.authenticated ? (
                 <li className="nav-item">
                   <NavLink className="nav-link" to="/storage">

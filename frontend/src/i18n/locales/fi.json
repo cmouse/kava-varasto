@@ -6,12 +6,7 @@
     "error": "Virheellinen käyttäjätunnus tai salasana.",
     "submit": "Kirjaudu"
   },
-  "home": {
-    "welcome": "Tervetuloa, {{username}}",
-    "placeholder": "Varasto- ja lainauslistat tulevat tähän."
-  },
   "layout": {
-    "home": "Etusivu",
     "storage": "Varasto",
     "loans": "Lainat",
     "logout": "Kirjaudu ulos",
