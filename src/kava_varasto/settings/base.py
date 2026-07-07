@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
     "kava_varasto.accounts",
     "kava_varasto.inventory",
     "kava_varasto.loans",
@@ -108,3 +109,17 @@ MEDIA_URL = f"{SCRIPT_NAME}/media/"
 # with another application. Safe no-op default ("/") when SCRIPT_NAME="".
 SESSION_COOKIE_PATH = SCRIPT_NAME or "/"
 CSRF_COOKIE_PATH = SCRIPT_NAME or "/"
+
+# --- REST API (SPA frontend) ------------------------------------------------
+# The frontend is a single-page app that talks to this backend exclusively
+# over the REST API below; it authenticates using the same session cookie as
+# the Django admin, so the JS client needs to read the CSRF cookie and echo
+# it back as a header (axios does this by default with matching names).
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
