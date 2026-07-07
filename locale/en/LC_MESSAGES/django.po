@@ -1,0 +1,227 @@
+# English translations for kava-varasto.
+# Copyright (C) 2026 Karhunvartijat ry
+# This file is distributed under the same license as the kava-varasto package.
+#
+# Source strings are already English; msgstr is left empty throughout so
+# Django falls back to msgid (functionally identical, less error-prone if
+# source strings change later).
+msgid ""
+msgstr ""
+"Project-Id-Version: kava-varasto\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-07 18:30+0300\n"
+"PO-Revision-Date: 2026-07-07 18:30+0300\n"
+"Last-Translator: Karhunvartijat ry\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: src/kava_varasto/accounts/admin.py:34
+msgid "Password policy"
+msgstr ""
+
+#: src/kava_varasto/accounts/models.py:8
+msgid "must change password"
+msgstr ""
+
+#: src/kava_varasto/accounts/models.py:11
+msgid ""
+"Forces the user to change their password on next login. Set automatically "
+"when an admin creates the account or resets its password."
+msgstr ""
+
+#: src/kava_varasto/accounts/serializers.py:21
+msgid "Current password is incorrect."
+msgstr ""
+
+#: src/kava_varasto/inventory/admin.py:28
+msgid "available quantity"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:7
+#: src/kava_varasto/inventory/models.py:19
+msgid "name"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:10
+#: src/kava_varasto/inventory/models.py:41
+msgid "category"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:11
+msgid "categories"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:24
+msgid "short code"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:29
+msgid ""
+"Identifies one specific physical item, e.g. X75. Leave blank for equipment "
+"tracked only as a stock count (see quantity)."
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:36 src/kava_varasto/loans/models.py:70
+msgid "quantity"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:38
+msgid "Total number in stock. Must be 1 for equipment with a short code."
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:44
+msgid "external loanable"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:46
+msgid "If unset, only club members can borrow this equipment."
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:49
+msgid "broken quantity"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:51
+msgid ""
+"How many of this equipment are currently broken and unavailable for loan."
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:55
+#: src/kava_varasto/inventory/models.py:56 src/kava_varasto/loans/models.py:68
+msgid "equipment"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:80
+msgid ""
+"Equipment with a short code identifies a single item, so quantity must be 1."
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:84
+msgid "Broken quantity cannot exceed total quantity."
+msgstr ""
+
+#: src/kava_varasto/loans/admin.py:21
+msgid "returned"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:12
+msgid "borrower name"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:13
+msgid "borrower phone"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:14
+msgid "due date"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:15
+msgid "details"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:20
+msgid "responsible"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:21
+msgid "Staff member who handed out this loan."
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:27
+msgid "returned by"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:30
+msgid ""
+"Staff member who processed the return. Set automatically once all equipment "
+"is returned."
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:32
+msgid "returned at"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:33
+msgid "created at"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:36 src/kava_varasto/loans/models.py:66
+msgid "loan"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:37
+msgid "loans"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:62
+msgid "Loans cannot be deleted once created."
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:71
+msgid "quantity returned"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:74
+msgid "loan item"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:75
+msgid "loan items"
+msgstr ""
+
+#: src/kava_varasto/loans/models.py:95
+msgid "Returned quantity cannot exceed borrowed quantity."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:66
+msgid "Enter both first and last name."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:72
+msgid "Enter a valid phone number, e.g. 0401234567 or +358401234567."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:78
+msgid "Due date cannot be in the past."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:83
+#: src/kava_varasto/loans/serializers.py:117
+msgid "At least one item is required."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:86
+msgid "Each piece of equipment can only appear once per loan."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:93
+#, python-format
+msgid "Only %(loanable)d of %(name)s available to loan right now."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:121
+msgid "Each loan item can only appear once per return."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:127
+#, python-format
+msgid "Item %(id)d does not belong to this loan."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:130
+#, python-format
+msgid "Returned quantity for %(name)s cannot decrease."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:134
+#, python-format
+msgid "Returned quantity for %(name)s cannot exceed %(quantity)d."
+msgstr ""
+
+#: src/kava_varasto/loans/views.py:36
+msgid "This loan has already been returned."
+msgstr ""

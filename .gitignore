@@ -17,6 +17,9 @@ db.sqlite3-journal
 staticfiles/
 media/
 
+# Compiled translations (run `manage.py compilemessages` as part of deploy)
+locale/**/*.mo
+
 # Env / secrets
 .env
 
