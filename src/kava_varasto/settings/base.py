@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "kava_varasto",
     "kava_varasto.accounts",
     "kava_varasto.inventory",
     "kava_varasto.loans",
