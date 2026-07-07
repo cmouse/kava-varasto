@@ -79,6 +79,16 @@ Copy `env.example` to `.env` and adjust as needed. Relevant variables:
 | `DJANGO_FORCE_SCRIPT_NAME` | sub-path this app is mounted under, e.g. `/varasto` (no trailing slash) | unset (serve from domain root) |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | comma-separated trusted origins, e.g. `https://webhost` | unset (prod only) |
 
+### Generating a SECRET_KEY
+
+```sh
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+Store the result in `DJANGO_SECRET_KEY` via an environment variable or your
+deployment's secrets manager — never commit it (`.env` is already
+gitignored).
+
 ## Testing
 
 ```sh
