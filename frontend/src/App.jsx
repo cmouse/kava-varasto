@@ -5,6 +5,7 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import LoanList from "./pages/LoanList";
 import LoanNew from "./pages/LoanNew";
+import LoanReturn from "./pages/LoanReturn";
 import Storage from "./pages/Storage";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ function App() {
             <Route path="storage" element={<Storage />} />
             <Route path="loans" element={<LoanList />} />
             <Route path="loans/new" element={<LoanNew />} />
+            <Route path="loans/:id/return" element={<LoanReturn />} />
           </Route>
         </Routes>
       </BrowserRouter>

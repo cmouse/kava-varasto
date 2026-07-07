@@ -65,6 +65,7 @@ function LoanList() {
                 <th>{t("loanList.items")}</th>
                 <th>{t("loanList.details")}</th>
                 <th>{t("loanList.responsible")}</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -78,6 +79,11 @@ function LoanList() {
                   </td>
                   <td>{loan.details}</td>
                   <td>{loan.responsible}</td>
+                  <td>
+                    <Link to={`/loans/${loan.id}/return`} className="btn btn-sm btn-outline-primary">
+                      {t("loanList.returnAction")}
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>
