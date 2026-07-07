@@ -165,7 +165,6 @@ function LoanNew() {
                 className="form-select"
                 value={item.equipmentId}
                 onChange={(event) => updateItem(item.key, { equipmentId: event.target.value })}
-                required
               >
                 <option value="">{t("loanForm.selectEquipment")}</option>
                 {(equipment ?? []).map((eq) => (
