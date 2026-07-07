@@ -8,6 +8,10 @@ version = "0.1.0"
 description = "Storage bookkeeping system for Karhunvartijat ry"
 readme = "README.md"
 requires-python = ">=3.11"
+license = {text = "AGPL-3.0-or-later"}
+classifiers = [
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+]
 dependencies = [
     "Django>=5.2,<5.3",
     "django-environ>=0.11,<0.12",
