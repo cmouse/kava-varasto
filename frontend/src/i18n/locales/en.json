@@ -13,6 +13,7 @@
   "layout": {
     "home": "Home",
     "storage": "Storage",
+    "newLoan": "New loan",
     "logout": "Log out",
     "toggleNav": "Toggle navigation"
   },
@@ -28,5 +29,20 @@
     "yes": "Yes",
     "no": "No",
     "error": "Failed to load equipment."
+  },
+  "loanForm": {
+    "title": "New loan",
+    "borrowerName": "Borrower name",
+    "borrowerPhone": "Borrower phone",
+    "dueDate": "Due date",
+    "details": "Details",
+    "items": "Equipment",
+    "selectEquipment": "Select equipment…",
+    "available": "available",
+    "addItem": "Add item",
+    "removeItem": "Remove item",
+    "submit": "Create loan",
+    "success": "Loan created.",
+    "error": "Failed to create loan."
   }
 }

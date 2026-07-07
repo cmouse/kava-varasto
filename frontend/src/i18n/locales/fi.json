@@ -13,6 +13,7 @@
   "layout": {
     "home": "Etusivu",
     "storage": "Varasto",
+    "newLoan": "Uusi laina",
     "logout": "Kirjaudu ulos",
     "toggleNav": "Valikko"
   },
@@ -28,5 +29,20 @@
     "yes": "Kyllä",
     "no": "Ei",
     "error": "Varaston lataus epäonnistui."
+  },
+  "loanForm": {
+    "title": "Uusi laina",
+    "borrowerName": "Lainaajan nimi",
+    "borrowerPhone": "Lainaajan puhelin",
+    "dueDate": "Eräpäivä",
+    "details": "Lisätiedot",
+    "items": "Varusteet",
+    "selectEquipment": "Valitse varuste…",
+    "available": "vapaana",
+    "addItem": "Lisää rivi",
+    "removeItem": "Poista rivi",
+    "submit": "Luo laina",
+    "success": "Laina luotu.",
+    "error": "Lainan luonti epäonnistui."
   }
 }
