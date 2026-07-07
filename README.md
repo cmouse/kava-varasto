@@ -7,7 +7,7 @@ for what's left to build.
 ## Requirements
 
 - Python 3.11+
-- Node.js 20+ (only needed to build the frontend)
+- Node.js 22+ (only needed to build the frontend)
 - No external services required for local dev (SQLite by default)
 
 ## Setup
