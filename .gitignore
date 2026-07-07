@@ -31,5 +31,9 @@ media/
 .coverage
 htmlcov/
 
+# Frontend (built by `npm run build` in frontend/, see vite.config.js)
+frontend/node_modules/
+src/kava_varasto/static/frontend/
+
 # Personal, unrelated to project
 /.gitconfig
