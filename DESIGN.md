@@ -154,3 +154,25 @@ instances, so both `mark_returned_if_complete()`'s own item check and the
 response `LoanSerializer` would report outdated `quantity_returned` values
 even though the DB was already correct. Leaving the queryset unprefetched
 means every `.items.all()` access re-queries fresh.
+
+Loan form input validation
+---------------------------
+
+`LoanCreateSerializer` (`loans/serializers.py`) validates three fields on
+creation, in addition to the existing item/quantity checks:
+
+- `borrower_name` must have at least two whitespace-separated parts (first
+  and last name).
+- `borrower_phone` must match `^(\+358\d{6,12}|0\d{6,12})$` -- a Finnish
+  number starting with `+358` or a local `0` prefix.
+- `due_date` must not be before today, using `timezone.localdate()` (not
+  `.now().date()`) since the app runs with `TIME_ZONE = "Europe/Helsinki"`
+  and `USE_TZ = True` -- comparing against the UTC date would reject valid
+  dates or accept a past one near local midnight.
+
+This is enforced only in the serializer (the SPA's one creation path), not
+as a model-level `clean()`/DB constraint -- admin-created loans are trusted
+staff input and out of scope. `LoanNew.jsx` mirrors the same rules
+client-side via native HTML5 `pattern`/`min` attributes (no new per-field
+error UI -- the app has none anywhere), and defaults the due-date field to
+today+7 days.

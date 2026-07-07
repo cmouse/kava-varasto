@@ -16,7 +16,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 
 ## Borrowing workflow
 - [x] Checkout (loan creation) view, with stock-out limit enforcement — `kava_varasto.loans.views.LoanListCreateView`, `frontend/src/pages/LoanNew.jsx`
-- [ ] Loan form input validation: phone number in `+358xxx` or `0xxx` format, borrower name must have at least two parts, due date defaults to +1 week and can't be in the past
+- [x] Loan form input validation: phone number in `+358xxx` or `0xxx` format, borrower name must have at least two parts, due date defaults to +1 week and can't be in the past — `LoanCreateSerializer` in `kava_varasto.loans.serializers`, mirrored client-side in `frontend/src/pages/LoanNew.jsx`
 - [x] Check-in view — `POST /api/loans/<id>/return/` (`kava_varasto.loans.views.LoanReturnView`), `frontend/src/pages/LoanReturn.jsx`, supports partial returns
 - [x] Active vs historical loan listings — `GET /api/loans/`, `frontend/src/pages/LoanList.jsx`
 
