@@ -78,3 +78,31 @@ saved.
 Loans can never be deleted, only returned/archived --
 `Loan.delete()` raises `PermissionDenied`, and the admin has delete
 permission turned off.
+
+Loan creation UI and stock-out limits
+--------------------------------------
+
+Staff create loans via the SPA (`frontend/src/pages/LoanNew.jsx`, `POST
+/api/loans/`), picking any number of equipment rows to add/remove on one
+form. Creating a loan sets `responsible` to the logged-in user automatically
+(same rule as the admin), and rejects (400) if any requested quantity
+exceeds what's actually free right now.
+
+"Currently out" for a piece of equipment is computed on the fly as the sum
+of `quantity - quantity_returned` across all its `LoanItem` rows (no need to
+special-case archived loans -- a fully returned item already sums to 0).
+`loanable_quantity = available_quantity - currently_out` is what
+`LoanCreateSerializer.validate_items()` enforces, and what the picker
+(`GET /api/loans/loanable-equipment/`, `kava_varasto.loans.views
+.LoanableEquipmentListView`) shows so staff see real availability, not just
+`available_quantity` (which ignores other active loans). This lives in the
+`loans` app, not `inventory`, since it's loan data.
+
+This is a check-then-act validation with no row locking -- two staff
+creating loans for the same last-remaining item at the same instant could
+both pass validation. Accepted for this app's scale (few users, a single
+non-profit's gear closet).
+
+The read-only Storage view (`Storage.jsx` / `GET /api/inventory/equipment/`)
+still shows no "out" column -- that scope decision is unchanged; only loan
+creation accounts for other active loans.
