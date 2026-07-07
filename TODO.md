@@ -24,7 +24,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Language switcher UI (backend plumbing for /i18n/setlang/ already in place, see README)
 - [ ] Equipment/loan pages in the SPA (currently just a login screen + placeholder home page — see `frontend/src/pages/`)
 - [ ] Cache-busting for frontend assets: `vite.config.js` currently emits fixed, unhashed `main.js`/`main.css` for simplicity; switch to hashed filenames + a manifest-reading template tag once repeat deploys need cache invalidation
-- [ ] Add `npm ci && npm run build` (in `frontend/`) to the deploy steps in README, before `collectstatic`
+- [x] Add `npm ci && npm run build` (in `frontend/`) to the deploy steps in README, before `collectstatic`
 
 ## Localization
 - [x] Wire an i18n library into the React frontend (react-i18next) with FI/EN string
