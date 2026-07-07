@@ -2,6 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useCurrentUser, useLogout } from "../api/auth";
+import logo from "../assets/logo.png";
 import ChangePasswordForm from "./ChangePasswordForm";
 import LanguageSwitcher from "./LanguageSwitcher";
 
@@ -15,7 +16,8 @@ function Layout() {
     <div className="d-flex flex-column min-vh-100">
       <nav className="navbar navbar-expand-md navbar-dark bg-dark">
         <div className="container-fluid">
-          <NavLink className="navbar-brand" to="/">
+          <NavLink className="navbar-brand d-flex align-items-center gap-2" to="/">
+            <img src={logo} height="30" alt="Karhunvartijat ry" />
             Kava-varasto
           </NavLink>
           <button
