@@ -57,7 +57,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 
 ## Testing / CI
 - [ ] Real model + workflow tests once models exist
-- [ ] CI running pytest + `manage.py check --deploy`
+- [x] CI running pytest + `manage.py check --deploy` — `.github/workflows/ci.yml`
 
 ## Repository / GitHub publishing (future)
 - [ ] Create SECURITY.md
