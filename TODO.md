@@ -23,7 +23,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [ ] Static asset serving strategy: whitenoise vs nginx-served (pick one)
 - [x] Language switcher UI (backend plumbing for /i18n/setlang/ already in place, see README)
 - [ ] Equipment/loan pages in the SPA (currently just a login screen + placeholder home page — see `frontend/src/pages/`)
-- [ ] Cache-busting for frontend assets: `vite.config.js` currently emits fixed, unhashed `main.js`/`main.css` for simplicity; switch to hashed filenames + a manifest-reading template tag once repeat deploys need cache invalidation
+- [x] Cache-busting for frontend assets: `vite.config.js` emits hashed filenames + a manifest; `spa.html` resolves them via the `vite_asset`/`vite_css` template tags (`src/kava_varasto/templatetags/vite.py`)
 - [x] Add `npm ci && npm run build` (in `frontend/`) to the deploy steps in README, before `collectstatic`
 
 ## Localization
