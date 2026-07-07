@@ -1,16 +1,18 @@
 """
-Django settings for kava_varasto project.
+Django settings shared by all environments for kava_varasto project.
 """
 
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+import environ
 
-SECRET_KEY = "django-insecure-dev-only-change-me"
+# src/kava_varasto/settings/base.py -> settings/ -> kava_varasto/ -> src/ -> repo root
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
-DEBUG = True
-
-ALLOWED_HOSTS = []
+env = environ.Env()
+_env_file = BASE_DIR / ".env"
+if _env_file.exists():
+    environ.Env.read_env(str(_env_file))
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -52,10 +54,10 @@ TEMPLATES = [
 WSGI_APPLICATION = "kava_varasto.wsgi.application"
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": env.db(
+        "DATABASE_URL",
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+    ),
 }
 
 AUTH_PASSWORD_VALIDATORS = [
