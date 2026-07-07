@@ -176,3 +176,29 @@ staff input and out of scope. `LoanNew.jsx` mirrors the same rules
 client-side via native HTML5 `pattern`/`min` attributes (no new per-field
 error UI -- the app has none anywhere), and defaults the due-date field to
 today+7 days.
+
+Search / category browsing
+----------------------------
+
+`Storage.jsx` and `LoanNew.jsx`'s equipment picker both filter client-side
+via the shared `frontend/src/hooks/useEquipmentFilter.js` hook -- no
+django-filter or query-param plumbing was added, since `useLoanableEquipment()`
+already fetches the full equipment list and the app's stated scale (few
+users, one gear closet) doesn't warrant server-side search. The hook matches
+`name`/`short_code` (case-insensitive substring) and an optional
+`category_id`.
+
+`LoanableEquipmentSerializer` (`loans/serializers.py`) gained an additive
+`category_id` field (`PrimaryKeyRelatedField(source="category",
+read_only=True)`) alongside the existing `category` name string, so category
+filter buttons can key off a stable id instead of matching by name. The
+plain `inventory` app endpoint/serializer is untouched -- the SPA has never
+used it, only the loans app's annotated `loanable-equipment` endpoint.
+
+`Storage.jsx` gets a full search box + category pill buttons
+(`EquipmentFilterBar.jsx`). `LoanNew.jsx`'s picker gets a search box only
+(its rows aren't a table, so pill buttons don't fit) plus `<optgroup>`
+grouping by category inside each row's `<select>`; if a row's already-chosen
+equipment gets excluded by a new search term, its option is spliced back in
+from the unfiltered list so the dropdown never silently loses the visible
+selection.
