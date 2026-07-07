@@ -11,8 +11,8 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 ## Auth / accounts
 - [ ] Document createsuperuser flow using accounts.User in README
 - [ ] Borrower-name -> User mapping UX
-- [ ] Password change form so users can change their own password
-- [ ] Require password change on first use
+- [x] Password change form so users can change their own password — `POST /api/accounts/change-password/`, `frontend/src/pages/ChangePassword.jsx`
+- [x] Require password change on first use — `must_change_password` on `accounts.User`, forced via `accounts/admin.py`, gated in `frontend/src/components/Layout.jsx`
 
 ## Borrowing workflow
 - [x] Checkout (loan creation) view, with stock-out limit enforcement — `kava_varasto.loans.views.LoanListCreateView`, `frontend/src/pages/LoanNew.jsx`

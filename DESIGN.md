@@ -202,3 +202,31 @@ grouping by category inside each row's `<select>`; if a row's already-chosen
 equipment gets excluded by a new search term, its option is spliced back in
 from the unfiltered list so the dropdown never silently loses the visible
 selection.
+
+Password policy
+-----------------
+
+`accounts.User` has a `must_change_password` boolean (default `False`),
+exposed on `UserSerializer` so `/me/` and `/login/` responses carry it.
+`POST /api/accounts/change-password/` (`ChangePasswordSerializer` +
+`ChangePasswordView`) lets a logged-in user set their own password:
+`current_password` must check out via `check_password`, `new_password`
+runs through Django's `AUTH_PASSWORD_VALIDATORS`, and a successful change
+clears the flag and calls `update_session_auth_hash()` so the session
+survives.
+
+The flag is forced to `True` whenever *staff* set a password through the
+Django admin -- both "add user" and "reset password" funnel through
+`SetPasswordMixin.set_password_and_save()` (Django 5.2), so
+`ForcePasswordChangeMixin` in `accounts/admin.py` overrides that one method,
+delegates with `commit=False`, and only forces the flag if
+`user.has_usable_password()` (so an admin explicitly leaving a user
+passwordless -- SSO-only -- isn't wrongly flagged). `createsuperuser` never
+touches these admin forms, so the bootstrap superuser is never gated.
+
+`Layout.jsx` centralizes the frontend gate: when the logged-in user's
+`must_change_password` is true, it renders `<ChangePasswordForm forced />`
+in place of `<Outlet/>` (navbar/logout stay usable) rather than repeating
+the per-page auth-guard pattern used elsewhere. This is a frontend-only
+gate -- the API itself doesn't block other endpoints for a flagged user,
+an accepted tradeoff at this app's few-trusted-staff scale.
