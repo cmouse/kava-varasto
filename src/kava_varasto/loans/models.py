@@ -69,6 +69,11 @@ class LoanItem(models.Model):
     )
     quantity = models.PositiveIntegerField(_("quantity"), validators=[MinValueValidator(1)])
     quantity_returned = models.PositiveIntegerField(_("quantity returned"), default=0)
+    quantity_broken = models.PositiveIntegerField(
+        _("quantity broken"),
+        default=0,
+        help_text=_("How many of the returned quantity came back broken."),
+    )
 
     class Meta:
         verbose_name = _("loan item")
@@ -78,6 +83,10 @@ class LoanItem(models.Model):
             models.CheckConstraint(
                 condition=models.Q(quantity_returned__lte=models.F("quantity")),
                 name="loanitem_quantity_returned_lte_quantity",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(quantity_broken__lte=models.F("quantity_returned")),
+                name="loanitem_quantity_broken_lte_quantity_returned",
             ),
             models.UniqueConstraint(fields=["loan", "equipment"], name="loanitem_unique_loan_equipment"),
         ]
@@ -93,3 +102,5 @@ class LoanItem(models.Model):
         super().clean()
         if self.quantity_returned > self.quantity:
             raise ValidationError({"quantity_returned": _("Returned quantity cannot exceed borrowed quantity.")})
+        if self.quantity_broken > self.quantity_returned:
+            raise ValidationError({"quantity_broken": _("Broken quantity cannot exceed returned quantity.")})

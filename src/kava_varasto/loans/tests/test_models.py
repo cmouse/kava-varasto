@@ -129,3 +129,28 @@ def test_loanitem_duplicate_equipment_on_same_loan_rejected(staff_user, equipmen
     LoanItem.objects.create(loan=loan, equipment=equipment, quantity=1)
     with pytest.raises(IntegrityError):
         LoanItem.objects.create(loan=loan, equipment=equipment, quantity=1)
+
+
+@pytest.mark.django_db
+def test_loanitem_quantity_broken_over_quantity_returned_rejected_by_clean(staff_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti",
+        borrower_phone="0401234567",
+        due_date="2026-08-01",
+        responsible=staff_user,
+    )
+    item = LoanItem(loan=loan, equipment=equipment, quantity=2, quantity_returned=1, quantity_broken=2)
+    with pytest.raises(ValidationError):
+        item.full_clean()
+
+
+@pytest.mark.django_db
+def test_loanitem_quantity_broken_over_quantity_returned_rejected_by_db_constraint(staff_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti",
+        borrower_phone="0401234567",
+        due_date="2026-08-01",
+        responsible=staff_user,
+    )
+    with pytest.raises(IntegrityError):
+        LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2, quantity_returned=1, quantity_broken=2)
