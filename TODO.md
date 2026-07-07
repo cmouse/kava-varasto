@@ -50,7 +50,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] SECURE_HSTS_SECONDS, SESSION/CSRF_COOKIE_SECURE, logging config — `kava_varasto.settings.prod`, confirmed via `manage.py check --deploy`
 - [x] Real SECRET_KEY generation/storage docs — see README's "Generating a SECRET_KEY" section
 - [ ] psycopg2-binary/mysqlclient only if/when Postgres/MySQL chosen
-- [ ] pyproject.toml license field
+- [x] pyproject.toml license field — AGPL-3.0-or-later, see `LICENSE`
 
 ## Sub-path mounting follow-ups (base mechanism already works)
 - [ ] Consider dynamic SCRIPT_NAME via uwsgi native protocol (no-restart relocation) if the static env-var approach proves too rigid
@@ -61,5 +61,5 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 
 ## Repository / GitHub publishing (future)
 - [ ] Create SECURITY.md
-- [ ] Create LICENSE.md
-- [ ] Add .github/workflows for when this is pushed to GitHub — we publish packages only (no container images/deploy targets)
+- [x] Create LICENSE.md — `LICENSE` (AGPL-3.0-or-later)
+- [ ] Add .github/workflows for when this is pushed to GitHub — we publish packages only (no container images/deploy targets) (note: `.github/workflows/ci.yml` already exists for test/lint CI, this item is about a package-publish workflow specifically)
