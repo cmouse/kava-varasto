@@ -30,6 +30,13 @@ Short codes
 
 Most equipment has short codes likes X75, or M96. But some equipment does not.
 
+A short code identifies one specific physical item, so equipment with a short
+code always has quantity 1. Equipment with no short code (e.g. "Trangia
+stove") is tracked as a stock count instead -- quantity can be more than one,
+so we know how many are in storage vs. borrowed. Enforced by
+`Equipment.clean()` and a DB check constraint
+(`kava_varasto.inventory.models.Equipment`).
+
 Categorization
 --------------
 To make it easier to find equipment, there should be categories of equipment when borrowing, so that equipment with no short code is discoverable.
