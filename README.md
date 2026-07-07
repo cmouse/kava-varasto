@@ -129,6 +129,7 @@ npm ci
 npm run build
 cd ..
 DJANGO_SETTINGS_MODULE=kava_varasto.settings.prod python manage.py collectstatic --noinput
+DJANGO_SETTINGS_MODULE=kava_varasto.settings.prod python manage.py compilemessages
 ```
 
 The trailing slashes on
