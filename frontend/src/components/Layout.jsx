@@ -43,8 +43,8 @@ function Layout() {
               ) : null}
               {data?.authenticated ? (
                 <li className="nav-item">
-                  <NavLink className="nav-link" to="/loans/new">
-                    {t("layout.newLoan")}
+                  <NavLink className="nav-link" to="/loans">
+                    {t("layout.loans")}
                   </NavLink>
                 </li>
               ) : null}

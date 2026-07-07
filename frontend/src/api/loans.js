@@ -2,6 +2,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import apiClient from "./client";
 
+export function useLoans({ enabled = true } = {}) {
+  return useQuery({
+    queryKey: ["loans"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("loans/");
+      return data;
+    },
+    enabled,
+  });
+}
+
 export function useLoanableEquipment({ enabled = true } = {}) {
   return useQuery({
     queryKey: ["loanableEquipment"],
@@ -20,6 +31,9 @@ export function useCreateLoan() {
       const { data } = await apiClient.post("loans/", loan);
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["loanableEquipment"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loanableEquipment"] });
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+    },
   });
 }

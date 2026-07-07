@@ -13,7 +13,7 @@
   "layout": {
     "home": "Home",
     "storage": "Storage",
-    "newLoan": "New loan",
+    "loans": "Loans",
     "logout": "Log out",
     "toggleNav": "Toggle navigation"
   },
@@ -25,6 +25,9 @@
     "quantity": "Quantity",
     "broken": "Broken",
     "available": "Available",
+    "status": "Status",
+    "availableBadge": "Available",
+    "unavailableBadge": "Not available",
     "externalLoanable": "External loanable",
     "yes": "Yes",
     "no": "No",
@@ -44,5 +47,22 @@
     "submit": "Create loan",
     "success": "Loan created.",
     "error": "Failed to create loan."
+  },
+  "loanList": {
+    "title": "Loans",
+    "newLoan": "New loan",
+    "active": "Active",
+    "historical": "Returned",
+    "borrower": "Borrower",
+    "phone": "Phone",
+    "dueDate": "Due date",
+    "items": "Equipment",
+    "details": "Details",
+    "responsible": "Handed out by",
+    "returnedBy": "Returned by",
+    "returnedAt": "Returned at",
+    "noActive": "No active loans.",
+    "noHistorical": "No returned loans yet.",
+    "error": "Failed to load loans."
   }
 }

@@ -13,7 +13,7 @@
   "layout": {
     "home": "Etusivu",
     "storage": "Varasto",
-    "newLoan": "Uusi laina",
+    "loans": "Lainat",
     "logout": "Kirjaudu ulos",
     "toggleNav": "Valikko"
   },
@@ -25,6 +25,9 @@
     "quantity": "Määrä",
     "broken": "Rikki",
     "available": "Vapaana",
+    "status": "Tila",
+    "availableBadge": "Saatavilla",
+    "unavailableBadge": "Ei saatavilla",
     "externalLoanable": "Lainattavissa ulos",
     "yes": "Kyllä",
     "no": "Ei",
@@ -44,5 +47,22 @@
     "submit": "Luo laina",
     "success": "Laina luotu.",
     "error": "Lainan luonti epäonnistui."
+  },
+  "loanList": {
+    "title": "Lainat",
+    "newLoan": "Uusi laina",
+    "active": "Aktiiviset",
+    "historical": "Palautetut",
+    "borrower": "Lainaaja",
+    "phone": "Puhelin",
+    "dueDate": "Eräpäivä",
+    "items": "Varusteet",
+    "details": "Lisätiedot",
+    "responsible": "Luovuttaja",
+    "returnedBy": "Vastaanottaja",
+    "returnedAt": "Palautettu",
+    "noActive": "Ei aktiivisia lainoja.",
+    "noHistorical": "Ei vielä palautettuja lainoja.",
+    "error": "Lainojen lataus epäonnistui."
   }
 }

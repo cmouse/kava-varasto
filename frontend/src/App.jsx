@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
+import LoanList from "./pages/LoanList";
 import LoanNew from "./pages/LoanNew";
 import Storage from "./pages/Storage";
 
@@ -17,6 +18,7 @@ function App() {
           <Route element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="storage" element={<Storage />} />
+            <Route path="loans" element={<LoanList />} />
             <Route path="loans/new" element={<LoanNew />} />
           </Route>
         </Routes>
