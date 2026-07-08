@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { useCurrentUser } from "../api/auth";
-import { useLoans, useReturnLoan } from "../api/loans";
+import { useLoan, useReturnLoan } from "../api/loans";
 import LoginForm from "../components/LoginForm";
 
 function LoanReturn() {
@@ -11,7 +11,12 @@ function LoanReturn() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
-  const { data: loans, isLoading: isLoansLoading } = useLoans({ enabled: user?.authenticated });
+  const {
+    data: loan,
+    isLoading: isLoanLoading,
+    isError,
+    error,
+  } = useLoan(id, { enabled: user?.authenticated });
   const returnLoan = useReturnLoan();
   const [quantities, setQuantities] = useState({});
   const [brokenQuantities, setBrokenQuantities] = useState({});
@@ -24,16 +29,15 @@ function LoanReturn() {
     return <LoginForm />;
   }
 
-  if (isLoansLoading) {
+  if (isLoanLoading) {
     return null;
   }
 
-  const loan = loans?.find((entry) => entry.id === Number(id));
-
-  if (!loan) {
+  if (isError) {
+    const notFound = error?.response?.status === 404;
     return (
       <div>
-        <p className="text-danger">{t("loanReturn.notFound")}</p>
+        <p className="text-danger">{t(notFound ? "loanReturn.notFound" : "loanReturn.loadError")}</p>
         <Link to="/loans">{t("loanReturn.backToList")}</Link>
       </div>
     );
