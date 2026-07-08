@@ -1,4 +1,5 @@
 import pytest
+from django.test import Client
 from django.urls import reverse
 
 
@@ -40,6 +41,37 @@ def test_login_then_me_then_logout(client, django_user_model):
 
     response = client.get("/api/accounts/me/")
     assert response.json()["authenticated"] is False
+
+
+@pytest.mark.django_db
+def test_login_rejects_request_without_csrf_token(django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    csrf_client = Client(enforce_csrf_checks=True)
+
+    response = csrf_client.post(
+        "/api/accounts/login/",
+        {"username": "alice", "password": "s3cret-pw"},
+        content_type="application/json",
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_login_succeeds_with_csrf_token(django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    csrf_client = Client(enforce_csrf_checks=True)
+    # GET /me/ primes the csrftoken cookie the SPA sends back as X-CSRFToken.
+    csrf_client.get("/api/accounts/me/")
+    token = csrf_client.cookies["csrftoken"].value
+
+    response = csrf_client.post(
+        "/api/accounts/login/",
+        {"username": "alice", "password": "s3cret-pw"},
+        content_type="application/json",
+        HTTP_X_CSRFTOKEN=token,
+    )
+    assert response.status_code == 200, response.json()
+    assert response.json()["authenticated"] is True
 
 
 @pytest.mark.django_db
