@@ -13,6 +13,17 @@ export function useLoans({ enabled = true } = {}) {
   });
 }
 
+export function useLoan(id, { enabled = true } = {}) {
+  return useQuery({
+    queryKey: ["loans", id],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`loans/${id}/`);
+      return data;
+    },
+    enabled,
+  });
+}
+
 export function useLoanableEquipment({ enabled = true } = {}) {
   return useQuery({
     queryKey: ["loanableEquipment"],
