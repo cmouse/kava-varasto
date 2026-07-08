@@ -21,6 +21,7 @@ export function useLoan(id, { enabled = true } = {}) {
       return data;
     },
     enabled,
+    retry: (failureCount, error) => error?.response?.status !== 404 && failureCount < 3,
   });
 }
 
