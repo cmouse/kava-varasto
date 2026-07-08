@@ -2,7 +2,8 @@ from datetime import date, timedelta
 from types import SimpleNamespace
 
 import pytest
-from django.db import IntegrityError
+from django.db import IntegrityError, connection
+from django.test.utils import CaptureQueriesContext
 
 from kava_varasto.inventory.models import Category, Equipment
 from kava_varasto.loans.models import Loan, LoanItem
@@ -98,6 +99,35 @@ def test_loan_create_rolls_back_loan_if_items_fail(admin_user, equipment):
         serializer.create(validated_data)
 
     assert Loan.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_loan_create_availability_check_uses_single_aggregate(admin_client, equipment):
+    category = equipment.category
+    extra = [Equipment.objects.create(name=f"Item {i}", quantity=5, category=category) for i in range(4)]
+    items = [{"equipment": e.pk, "quantity": 1} for e in [equipment, *extra]]
+
+    with CaptureQueriesContext(connection) as ctx:
+        response = admin_client.post(
+            "/api/loans/",
+            {
+                "borrower_name": "Matti Meikäläinen",
+                "borrower_phone": "0401234567",
+                "due_date": FUTURE_DUE_DATE,
+                "details": "",
+                "items": items,
+            },
+            content_type="application/json",
+        )
+
+    assert response.status_code == 201, response.json()
+    # The per-equipment availability check must be one grouped query, not one
+    # aggregate per item (f005 N+1). Count the SUM-over-loanitem statements.
+    aggregate_queries = [
+        q for q in ctx.captured_queries
+        if "loans_loanitem" in q["sql"].lower() and "sum(" in q["sql"].lower()
+    ]
+    assert len(aggregate_queries) == 1, [q["sql"] for q in aggregate_queries]
 
 
 @pytest.mark.django_db
