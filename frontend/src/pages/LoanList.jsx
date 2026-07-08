@@ -5,19 +5,6 @@ import { useCurrentUser } from "../api/auth";
 import { useLoans } from "../api/loans";
 import LoginForm from "../components/LoginForm";
 
-function ItemsList({ items }) {
-  return (
-    <ul className="list-unstyled mb-0 small">
-      {items.map((item, index) => (
-        <li key={index}>
-          {item.equipment} &times;{item.quantity}
-          {item.quantity_returned > 0 ? ` (${item.quantity_returned})` : ""}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 function LoanList() {
   const { t } = useTranslation();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
@@ -59,6 +46,7 @@ function LoanList() {
           <table className="table table-striped align-middle">
             <thead>
               <tr>
+                <th>#</th>
                 <th>{t("loanList.borrower")}</th>
                 <th>{t("loanList.phone")}</th>
                 <th>{t("loanList.dueDate")}</th>
@@ -71,12 +59,13 @@ function LoanList() {
             <tbody>
               {activeLoans.map((loan) => (
                 <tr key={loan.id}>
+                  <td>
+                    <Link to={`/loans/${loan.id}`}>#{loan.id}</Link>
+                  </td>
                   <td>{loan.borrower_name}</td>
                   <td>{loan.borrower_phone}</td>
                   <td>{loan.due_date}</td>
-                  <td>
-                    <ItemsList items={loan.items} />
-                  </td>
+                  <td>{loan.items.length}</td>
                   <td>{loan.details}</td>
                   <td>{loan.responsible}</td>
                   <td>
@@ -99,6 +88,7 @@ function LoanList() {
           <table className="table table-striped align-middle">
             <thead>
               <tr>
+                <th>#</th>
                 <th>{t("loanList.borrower")}</th>
                 <th>{t("loanList.phone")}</th>
                 <th>{t("loanList.dueDate")}</th>
@@ -110,12 +100,13 @@ function LoanList() {
             <tbody>
               {historicalLoans.map((loan) => (
                 <tr key={loan.id}>
+                  <td>
+                    <Link to={`/loans/${loan.id}`}>#{loan.id}</Link>
+                  </td>
                   <td>{loan.borrower_name}</td>
                   <td>{loan.borrower_phone}</td>
                   <td>{loan.due_date}</td>
-                  <td>
-                    <ItemsList items={loan.items} />
-                  </td>
+                  <td>{loan.items.length}</td>
                   <td>{loan.returned_by}</td>
                   <td>{new Date(loan.returned_at).toLocaleString()}</td>
                 </tr>
