@@ -286,6 +286,45 @@ def test_loan_list_reports_active_and_returned(admin_client, admin_user, equipme
 
 
 @pytest.mark.django_db
+def test_loan_detail_requires_auth(client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
+
+    response = client.get(f"/api/loans/{loan.pk}/")
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_loan_detail_returns_loan_with_items(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
+
+    response = admin_client.get(f"/api/loans/{loan.pk}/")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == loan.pk
+    assert data["borrower_name"] == "Matti"
+    assert data["is_returned"] is False
+    assert len(data["items"]) == 1
+    item = data["items"][0]
+    assert equipment.name in item["equipment"]
+    assert item["quantity"] == 2
+    assert item["quantity_returned"] == 0
+    assert item["quantity_broken"] == 0
+
+
+@pytest.mark.django_db
+def test_loan_detail_unknown_id_returns_404(admin_client):
+    response = admin_client.get("/api/loans/9999/")
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
 def test_loanable_equipment_requires_auth(client):
     response = client.get("/api/loans/loanable-equipment/")
     assert response.status_code == 403

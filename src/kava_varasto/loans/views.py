@@ -4,7 +4,7 @@ from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.generics import ListAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -27,6 +27,11 @@ class LoanListCreateView(ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         loan = serializer.save()
         return Response(LoanSerializer(loan).data, status=status.HTTP_201_CREATED)
+
+
+class LoanDetailView(RetrieveAPIView):
+    queryset = Loan.objects.prefetch_related("items__equipment__category").all()
+    serializer_class = LoanSerializer
 
 
 class LoanReturnView(APIView):
