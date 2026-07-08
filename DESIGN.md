@@ -62,9 +62,12 @@ Loans
 
 A loan (`kava_varasto.loans.models.Loan`) records one borrower taking out
 equipment: freeform `borrower_name` and `borrower_phone` (so the borrower can
-be reached, no User mapping yet), a `due_date`, and a freeform `details`
-field. Each piece of equipment on the loan is a `LoanItem` (equipment FK +
-quantity), so a loan can cover several pieces of equipment at once.
+be reached -- borrowers never have `User` accounts, see "Borrower name/phone
+autofill"), a `due_date`, and a freeform `details` field. Each piece of
+equipment on the loan is a `LoanItem` (equipment FK + quantity), so a loan
+can cover several pieces of equipment at once; the same equipment can appear
+only once per loan (`loanitem_unique_loan_equipment` DB constraint, also
+validated by `LoanCreateSerializer`).
 
 `responsible` is the staff member who handed out the loan -- always the
 logged-in user, set automatically (admin's `save_model`, not user-editable).
@@ -88,7 +91,9 @@ Staff create loans via the SPA (`frontend/src/pages/LoanNew.jsx`, `POST
 /api/loans/`), picking any number of equipment rows to add/remove on one
 form. Creating a loan sets `responsible` to the logged-in user automatically
 (same rule as the admin), and rejects (400) if any requested quantity
-exceeds what's actually free right now.
+exceeds what's actually free right now. The `Loan` and its `LoanItem` rows
+are created inside one `transaction.atomic()` block, so a failure can't
+leave a half-created loan behind.
 
 "Currently out" for a piece of equipment is computed on the fly as the sum
 of `quantity - quantity_returned` across all its `LoanItem` rows (no need to
@@ -142,7 +147,9 @@ responsible, details, created date, status, and returned-by/at once
 returned) plus a table of every `LoanItem` with quantity/returned/broken,
 and a "Return" button linking to `/loans/:id/return` for loans that
 aren't fully returned yet. An unknown ID returns a real 404 from the
-API rather than a client-side lookup miss.
+API rather than a client-side lookup miss; `useLoan` (`frontend/src/api/
+loans.js`) skips react-query's retries on 404 so the not-found message
+shows immediately instead of after three doomed refetches.
 
 Loan check-in / return
 -----------------------
@@ -152,8 +159,10 @@ Each active loan on `LoanList.jsx` (and the loan detail page) has a
 that posts to `POST /api/loans/<id>/return/`
 (`kava_varasto.loans.views.LoanReturnView`). The page fetches the loan
 via `useLoan(id)` (`GET /api/loans/<pk>/`) and shows one row per
-`LoanItem`: a number input (defaulting to full quantity) for items not
-yet fully returned, or a "fully returned" badge for items that are.
+`LoanItem`: for items not yet fully returned, two number inputs --
+returned quantity (defaulting to full quantity) and broken quantity
+(defaulting to the stored `quantity_broken`) -- or a "fully returned"
+badge for items that are.
 
 The request body is `{"items": [{"item": <LoanItem id>, "quantity_returned":
 <int>}, ...]}` -- an absolute new total per item, same semantics as the
@@ -174,7 +183,9 @@ bounded the same way as `quantity_returned`: cannot decrease from what's
 already stored, and cannot exceed the *new* `quantity_returned` in the same
 request. If omitted, the existing stored value carries over unchanged --
 it is never implicitly reset to 0, which would otherwise clobber a broken
-count recorded in an earlier partial return.
+count recorded in an earlier partial return. (`LoanReturn.jsx` always sends
+it, prefilled with the stored value, so the omission case only matters for
+direct API callers.)
 
 Marking something broken updates `Equipment.broken_quantity` inside the
 same `transaction.atomic()` block as the `quantity_returned` update: only
@@ -328,3 +339,17 @@ instead (e.g. `t("loanForm.error")`) -- so the serializer/view message
 translations above are real and correct but currently unreachable from the
 SPA's own UI. The model/admin-label translations are the part with actual
 visible impact right now.
+
+SPA translations
+------------------
+
+The frontend has its own translation layer: `react-i18next` with bundled
+JSON catalogs (`frontend/src/i18n/locales/{fi,en}.json`), Finnish as both
+default and fallback language. The initial language comes from the `lang`
+attribute on `templates/spa.html`'s `<html>` element, which Django's
+`LocaleMiddleware` sets per request -- so the SPA and Django agree on the
+active language. `LanguageSwitcher.jsx` (FI/EN buttons in the navbar) posts
+to Django's stock `i18n/setlang/` view (`django.conf.urls.i18n`), which
+stores the choice in the language cookie and reloads the page -- one
+language state shared by the SPA, DRF, and the admin, instead of a separate
+frontend-only preference.
