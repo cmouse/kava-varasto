@@ -12,12 +12,7 @@ from .models import Loan, LoanItem
 
 PHONE_RE = re.compile(r"^(\+358\d{6,12}|0\d{6,12})$")
 
-
-def outstanding_quantity(equipment):
-    total = LoanItem.objects.filter(equipment=equipment).aggregate(
-        out=Sum(F("quantity") - F("quantity_returned"))
-    )["out"]
-    return total or 0
+MAX_LOAN_ITEMS = 100
 
 
 class LoanItemWriteSerializer(serializers.Serializer):
@@ -82,13 +77,21 @@ class LoanCreateSerializer(serializers.ModelSerializer):
     def validate_items(self, items):
         if not items:
             raise serializers.ValidationError(_("At least one item is required."))
+        if len(items) > MAX_LOAN_ITEMS:
+            raise serializers.ValidationError(_("Too many items in a single loan."))
         equipment_ids = [item["equipment"].pk for item in items]
         if len(equipment_ids) != len(set(equipment_ids)):
             raise serializers.ValidationError(_("Each piece of equipment can only appear once per loan."))
+        outstanding = {
+            row["equipment_id"]: row["out"]
+            for row in LoanItem.objects.filter(equipment_id__in=equipment_ids)
+            .values("equipment_id")
+            .annotate(out=Sum(F("quantity") - F("quantity_returned")))
+        }
         errors = []
         for item in items:
             equipment = item["equipment"]
-            loanable = equipment.available_quantity - outstanding_quantity(equipment)
+            loanable = equipment.available_quantity - (outstanding.get(equipment.pk) or 0)
             if item["quantity"] > loanable:
                 errors.append(
                     _("Only %(loanable)d of %(name)s available to loan right now.")
