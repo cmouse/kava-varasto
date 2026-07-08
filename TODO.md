@@ -58,14 +58,14 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 ## Testing / CI
 - [x] Real model + workflow tests once models exist — `src/kava_varasto/{inventory,loans}/tests/test_models.py`, `tests/test_{accounts,inventory,loans}_api.py`
 - [x] CI running pytest + `manage.py check --deploy` — `.github/workflows/ci.yml`
-- [ ] Fix 2 pre-existing failing tests in `tests/test_accounts_api.py`:
-      `test_admin_add_user_sets_must_change_password` and
-      `test_admin_reset_password_sets_must_change_password`. Both POST to Django
-      admin URLs (`admin:accounts_user_add`, `admin:auth_user_password_change`) but
-      get the SPA HTML shell back (200) instead of the expected admin 302 redirect —
-      the SPA catch-all route appears to swallow admin POSTs under the test
-      SCRIPT_NAME config. Unrelated to the f001/f002/f003/f005 fixes (fail on a
-      pristine tree too).
+- [x] Fix 2 pre-existing failing tests in `tests/test_accounts_api.py`
+      (`test_admin_add_user_sets_must_change_password`,
+      `test_admin_reset_password_sets_must_change_password`). Root cause: a local
+      `.env` `DJANGO_FORCE_SCRIPT_NAME=/varasto` leaked into `reverse()` (the test
+      `ClientHandler` never calls `set_script_prefix()`), so admin URLs got the
+      `/varasto` prefix and the SPA catch-all swallowed the POSTs. Fixed with an
+      autouse fixture in `tests/conftest.py` that neutralizes the ambient script
+      name for the whole suite; prefix-dependent tests opt back in explicitly.
 
 ## Repository / GitHub publishing (future)
 - [x] Create SECURITY.md
