@@ -69,6 +69,29 @@
     "error": "Lainojen lataus epäonnistui.",
     "returnAction": "Palautus"
   },
+  "loanDetail": {
+    "title": "Laina #{{id}}",
+    "borrower": "Lainaaja",
+    "phone": "Puhelin",
+    "dueDate": "Eräpäivä",
+    "responsible": "Luovuttaja",
+    "details": "Lisätiedot",
+    "createdAt": "Luotu",
+    "status": "Tila",
+    "active": "Aktiivinen",
+    "returned": "Palautettu",
+    "returnedBy": "Vastaanottaja",
+    "returnedAt": "Palautettu",
+    "items": "Varusteet",
+    "equipment": "Varuste",
+    "quantity": "Määrä",
+    "returnedQuantity": "Palautettu",
+    "brokenQuantity": "Rikki",
+    "returnAction": "Palautus",
+    "backToList": "Takaisin lainoihin",
+    "notFound": "Lainaa ei löytynyt.",
+    "error": "Lainan lataus epäonnistui."
+  },
   "loanReturn": {
     "title": "Palauta varusteet",
     "backToList": "Takaisin lainoihin",
@@ -79,6 +102,7 @@
     "fullyReturned": "Palautettu kokonaan",
     "alreadyReturned": "Tämä laina on jo palautettu.",
     "notFound": "Lainaa ei löytynyt.",
+    "loadError": "Lainan lataus epäonnistui.",
     "submit": "Merkitse palautetuksi",
     "success": "Palautus tallennettu.",
     "error": "Palautuksen tallennus epäonnistui."

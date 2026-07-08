@@ -69,6 +69,29 @@
     "error": "Failed to load loans.",
     "returnAction": "Return"
   },
+  "loanDetail": {
+    "title": "Loan #{{id}}",
+    "borrower": "Borrower",
+    "phone": "Phone",
+    "dueDate": "Due date",
+    "responsible": "Handed out by",
+    "details": "Details",
+    "createdAt": "Created",
+    "status": "Status",
+    "active": "Active",
+    "returned": "Returned",
+    "returnedBy": "Returned by",
+    "returnedAt": "Returned at",
+    "items": "Equipment",
+    "equipment": "Equipment",
+    "quantity": "Quantity",
+    "returnedQuantity": "Returned",
+    "brokenQuantity": "Broken",
+    "returnAction": "Return",
+    "backToList": "Back to loans",
+    "notFound": "Loan not found.",
+    "error": "Failed to load loan."
+  },
   "loanReturn": {
     "title": "Return equipment",
     "backToList": "Back to loans",
@@ -79,6 +102,7 @@
     "fullyReturned": "Fully returned",
     "alreadyReturned": "This loan has already been returned.",
     "notFound": "Loan not found.",
+    "loadError": "Failed to load loan.",
     "submit": "Mark returned",
     "success": "Return recorded.",
     "error": "Failed to record return."
