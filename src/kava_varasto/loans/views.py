@@ -36,13 +36,15 @@ class LoanDetailView(RetrieveAPIView):
 
 class LoanReturnView(APIView):
     def post(self, request, pk):
-        loan = get_object_or_404(Loan, pk=pk)
-        if loan.is_returned:
-            return Response({"detail": _("This loan has already been returned.")}, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = LoanReturnSerializer(data=request.data, context={"loan": loan, "request": request})
-        serializer.is_valid(raise_exception=True)
         with transaction.atomic():
+            loan = get_object_or_404(Loan.objects.select_for_update(), pk=pk)
+            if loan.is_returned:
+                return Response(
+                    {"detail": _("This loan has already been returned.")}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+            serializer = LoanReturnSerializer(data=request.data, context={"loan": loan, "request": request})
+            serializer.is_valid(raise_exception=True)
             serializer.save()
 
         return Response(LoanSerializer(loan).data, status=status.HTTP_200_OK)
