@@ -7,6 +7,7 @@ from .models import Loan, LoanItem
 class LoanItemInline(admin.TabularInline):
     model = LoanItem
     extra = 1
+    can_delete = False
     fields = ["equipment", "quantity", "quantity_returned", "quantity_broken"]
     readonly_fields = ["quantity_broken"]
 
