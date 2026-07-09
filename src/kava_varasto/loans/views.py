@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.db import transaction
-from django.db.models import F, Q, Sum, Value
+from django.db.models import F, Prefetch, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 
 from kava_varasto.inventory.models import Equipment
 
-from .models import Loan
+from .models import Loan, LoanItem
 from .serializers import LoanableEquipmentSerializer, LoanCreateSerializer, LoanReturnSerializer, LoanSerializer
 
 
@@ -71,5 +71,15 @@ class LoanableEquipmentListView(ListAPIView):
             out_quantity=Coalesce(Sum(F("loan_items__quantity") - F("loan_items__quantity_returned")), Value(0))
         )
         .annotate(loanable_quantity=F("quantity") - F("broken_quantity") - F("out_quantity"))
+        .prefetch_related(
+            Prefetch(
+                "loan_items",
+                queryset=LoanItem.objects.filter(
+                    loan__returned_at__isnull=True,
+                    quantity_returned__lt=F("quantity"),
+                ),
+                to_attr="active_loan_items",
+            )
+        )
         .order_by("category__name", "name")
     )

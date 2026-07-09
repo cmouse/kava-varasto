@@ -452,6 +452,44 @@ def test_loanable_equipment_reflects_stock_already_out(admin_client, admin_user,
 
 
 @pytest.mark.django_db
+def test_loanable_equipment_lists_active_loan_ids(admin_client, admin_user, equipment):
+    active_loan = Loan.objects.create(
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    LoanItem.objects.create(loan=active_loan, equipment=equipment, quantity=2)
+
+    returned_loan = Loan.objects.create(
+        borrower_name="Liisa Virtanen", borrower_phone="0407654321", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    LoanItem.objects.create(loan=returned_loan, equipment=equipment, quantity=1, quantity_returned=1)
+    returned_loan.mark_returned_if_complete(admin_user)
+
+    # Loan still open because of other equipment, but this equipment fully
+    # handed back — must not be listed for it.
+    other_equipment = Equipment.objects.create(name="Lantern", quantity=3, category=equipment.category)
+    partial_loan = Loan.objects.create(
+        borrower_name="Kalle Korhonen", borrower_phone="0409876543", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    LoanItem.objects.create(loan=partial_loan, equipment=equipment, quantity=1, quantity_returned=1)
+    LoanItem.objects.create(loan=partial_loan, equipment=other_equipment, quantity=1)
+
+    response = admin_client.get("/api/loans/loanable-equipment/")
+
+    assert response.status_code == 200
+    by_name = {entry["name"]: entry for entry in response.json()}
+    assert by_name[equipment.name]["active_loan_ids"] == [active_loan.pk]
+    assert by_name[other_equipment.name]["active_loan_ids"] == [partial_loan.pk]
+
+
+@pytest.mark.django_db
+def test_loanable_equipment_active_loan_ids_empty_without_loans(admin_client, equipment):
+    response = admin_client.get("/api/loans/loanable-equipment/")
+
+    assert response.status_code == 200
+    assert response.json()[0]["active_loan_ids"] == []
+
+
+@pytest.mark.django_db
 def test_loan_return_requires_auth(client, admin_user, equipment):
     loan = Loan.objects.create(
         borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
