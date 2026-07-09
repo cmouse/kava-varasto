@@ -38,6 +38,12 @@ function LoanDetail() {
     );
   }
 
+  const itemsByCategory = {};
+  for (const item of loan.items) {
+    (itemsByCategory[item.category] ??= []).push(item);
+  }
+  const categories = Object.keys(itemsByCategory).sort((a, b) => a.localeCompare(b));
+
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -89,28 +95,33 @@ function LoanDetail() {
       </dl>
 
       <h2 className="h6">{t("loanDetail.items")}</h2>
-      <div className="table-responsive mb-4">
-        <table className="table table-striped align-middle">
-          <thead>
-            <tr>
-              <th>{t("loanDetail.equipment")}</th>
-              <th>{t("loanDetail.quantity")}</th>
-              <th>{t("loanDetail.returnedQuantity")}</th>
-              <th>{t("loanDetail.brokenQuantity")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loan.items.map((item) => (
-              <tr key={item.id}>
-                <td>{item.equipment}</td>
-                <td>{item.quantity}</td>
-                <td>{item.quantity_returned}</td>
-                <td>{item.quantity_broken}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {categories.map((category) => (
+        <div key={category}>
+          <h3 className="h6 text-muted mt-3">{category}</h3>
+          <div className="table-responsive mb-4">
+            <table className="table table-striped align-middle">
+              <thead>
+                <tr>
+                  <th>{t("loanDetail.equipment")}</th>
+                  <th>{t("loanDetail.quantity")}</th>
+                  <th>{t("loanDetail.returnedQuantity")}</th>
+                  <th>{t("loanDetail.brokenQuantity")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {itemsByCategory[category].map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.equipment}</td>
+                    <td>{item.quantity}</td>
+                    <td>{item.quantity_returned}</td>
+                    <td>{item.quantity_broken}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
 
       <Link to="/loans">{t("loanDetail.backToList")}</Link>
     </div>
