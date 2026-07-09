@@ -172,7 +172,7 @@ msgstr ""
 
 #: src/kava_varasto/loans/models.py:78
 msgid "Returned-at and returned-by must be set together."
-msgstr "Returned-at and returned-by must be set together."
+msgstr ""
 
 #: src/kava_varasto/loans/models.py:99
 msgid "Loans cannot be deleted once created."
