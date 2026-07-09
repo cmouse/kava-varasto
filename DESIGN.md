@@ -252,9 +252,18 @@ creation, in addition to the existing item/quantity checks:
   and `USE_TZ = True` -- comparing against the UTC date would reject valid
   dates or accept a past one near local midnight.
 
-This is enforced only in the serializer (the SPA's one creation path), not
-as a model-level `clean()`/DB constraint -- admin-created loans are trusted
-staff input and out of scope. `LoanNew.jsx` mirrors the same rules
+These rules are enforced in the serializer (per-field API errors) and again
+at the model level: `Loan.clean()` checks the two-word name, the phone
+regex lives in a `RegexValidator` on `borrower_phone` (shared `PHONE_RE`
+constant in `loans/models.py`), and the past-due-date check runs only on
+creation (`self._state.adding`) so admin edits of loans whose due date has
+since passed still save. `clean()` also requires `returned_at`/`returned_by`
+to be set together. Two portable `CheckConstraint`s back this at the DB
+level (`loan_borrower_name_has_space`, `loan_returned_fields_consistent`);
+a phone-regex CHECK is skipped as it is not portable to SQLite and a
+due-date CHECK is impossible (time-dependent). Admin forms run `clean()`
+via ModelForm validation, so admin-created loans are validated too.
+`LoanNew.jsx` mirrors the same rules
 client-side via native HTML5 `pattern`/`min` attributes (no new per-field
 error UI -- the app has none anywhere), and defaults the due-date field to
 today+7 days.
