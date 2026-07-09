@@ -18,6 +18,7 @@ function ReturnedLoansTable({ loans, emptyMessage }) {
             <th>{t("loanList.phone")}</th>
             <th>{t("loanList.dueDate")}</th>
             <th>{t("loanList.items")}</th>
+            <th>{t("loanList.responsible")}</th>
             <th>{t("loanList.returnedBy")}</th>
             <th>{t("loanList.returnedAt")}</th>
           </tr>
@@ -32,6 +33,7 @@ function ReturnedLoansTable({ loans, emptyMessage }) {
               <td>{loan.borrower_phone}</td>
               <td>{loan.due_date}</td>
               <td>{loan.items.length}</td>
+              <td>{loan.responsible}</td>
               <td>{loan.returned_by}</td>
               <td>{new Date(loan.returned_at).toLocaleString()}</td>
             </tr>
