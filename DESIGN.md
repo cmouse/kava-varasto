@@ -125,7 +125,7 @@ display.
 Loan overview page
 -------------------
 
-Staff view all loans via the SPA (`frontend/src/pages/LoanList.jsx`,
+Staff view loans via the SPA (`frontend/src/pages/LoanList.jsx`,
 `GET /api/loans/` -- the same URL as loan creation, `POST`; DRF's
 `ListCreateAPIView` dispatches by method), split into active (not yet
 fully returned) and returned/historical sections client-side using the
@@ -133,6 +133,20 @@ fully returned) and returned/historical sections client-side using the
 loan's items (that broke down for loans with many items) -- instead
 each row shows an item count and the loan ID links to the loan detail
 page.
+
+The main list no longer shows the full loan history: the list endpoint
+filters server-side (`LoanListCreateView.get_queryset`) so the default
+response contains every active loan plus loans returned within the
+last ~2 months (`ARCHIVE_AFTER = timedelta(days=61)`, compared against
+`returned_at`). Older returned loans are reachable via
+`GET /api/loans/?archived=true` and shown on a separate archive page
+(`frontend/src/pages/LoanArchive.jsx` at `/loans/archive`, linked from
+the navbar). Active loans never move to the archive regardless of age
+-- the cutoff only applies to `returned_at`. Both pages render the
+returned-loans table through the shared
+`frontend/src/components/ReturnedLoansTable.jsx` component, and the
+archived query uses the react-query key `["loans", "archived"]`, which
+the existing `["loans"]` mutation invalidations prefix-match.
 
 Loan detail page
 ------------------
