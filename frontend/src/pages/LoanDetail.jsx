@@ -95,33 +95,33 @@ function LoanDetail() {
       </dl>
 
       <h2 className="h6">{t("loanDetail.items")}</h2>
-      {categories.map((category) => (
-        <div key={category}>
-          <h3 className="h6 text-muted mt-3">{category}</h3>
-          <div className="table-responsive mb-4">
-            <table className="table table-striped align-middle">
-              <thead>
-                <tr>
-                  <th>{t("loanDetail.equipment")}</th>
-                  <th>{t("loanDetail.quantity")}</th>
-                  <th>{t("loanDetail.returnedQuantity")}</th>
-                  <th>{t("loanDetail.brokenQuantity")}</th>
+      <div className="table-responsive mb-4">
+        <table className="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>{t("loanDetail.equipment")}</th>
+              <th>{t("loanDetail.quantity")}</th>
+              <th>{t("loanDetail.returnedQuantity")}</th>
+              <th>{t("loanDetail.brokenQuantity")}</th>
+            </tr>
+          </thead>
+          {categories.map((category) => (
+            <tbody key={category} className="table-group-divider">
+              <tr className="table-light">
+                <th colSpan={4}>{category}</th>
+              </tr>
+              {itemsByCategory[category].map((item) => (
+                <tr key={item.id}>
+                  <td>{item.equipment}</td>
+                  <td>{item.quantity}</td>
+                  <td>{item.quantity_returned}</td>
+                  <td>{item.quantity_broken}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {itemsByCategory[category].map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.equipment}</td>
-                    <td>{item.quantity}</td>
-                    <td>{item.quantity_returned}</td>
-                    <td>{item.quantity_broken}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ))}
+              ))}
+            </tbody>
+          ))}
+        </table>
+      </div>
 
       <Link to="/loans">{t("loanDetail.backToList")}</Link>
     </div>
