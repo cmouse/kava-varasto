@@ -171,6 +171,7 @@ class LoanableEquipmentSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
     category_id = serializers.PrimaryKeyRelatedField(source="category", read_only=True)
     loanable_quantity = serializers.IntegerField(read_only=True)
+    active_loan_ids = serializers.SerializerMethodField()
 
     class Meta:
         model = Equipment
@@ -185,4 +186,10 @@ class LoanableEquipmentSerializer(serializers.ModelSerializer):
             "available_quantity",
             "is_external_loanable",
             "loanable_quantity",
+            "active_loan_ids",
         ]
+
+    def get_active_loan_ids(self, obj):
+        # Populated by the Prefetch(to_attr="active_loan_items") in
+        # LoanableEquipmentListView; loans with this equipment still out.
+        return sorted({item.loan_id for item in getattr(obj, "active_loan_items", [])})
