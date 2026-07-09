@@ -94,6 +94,7 @@
   },
   "loanReturn": {
     "title": "Palauta varusteet",
+    "partialHelp": "Voit palauttaa lainan osittain — syötä nyt palautettavien määrä. Laina pysyy avoimena, kunnes kaikki on palautettu.",
     "backToList": "Takaisin lainoihin",
     "equipment": "Varuste",
     "quantity": "Määrä",

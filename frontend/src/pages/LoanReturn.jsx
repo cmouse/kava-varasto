@@ -86,6 +86,7 @@ function LoanReturn() {
       <p className="mb-3">
         {loan.borrower_name} &middot; {loan.due_date}
       </p>
+      <p className="form-text mb-3">{t("loanReturn.partialHelp")}</p>
 
       <div className="mb-3">
         {loan.items.map((item) => {
