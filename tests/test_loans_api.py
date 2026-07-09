@@ -53,7 +53,7 @@ def test_loan_create_requires_at_least_one_item(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
         {
-            "borrower_name": "Matti",
+            "borrower_name": "Matti Meikäläinen",
             "borrower_phone": "0401234567",
             "due_date": FUTURE_DUE_DATE,
             "details": "",
@@ -69,7 +69,7 @@ def test_loan_create_rejects_duplicate_equipment(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
         {
-            "borrower_name": "Matti",
+            "borrower_name": "Matti Meikäläinen",
             "borrower_phone": "0401234567",
             "due_date": FUTURE_DUE_DATE,
             "details": "",
@@ -136,7 +136,7 @@ def test_loan_create_rejects_quantity_over_available(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
         {
-            "borrower_name": "Matti",
+            "borrower_name": "Matti Meikäläinen",
             "borrower_phone": "0401234567",
             "due_date": FUTURE_DUE_DATE,
             "details": "",
@@ -217,7 +217,7 @@ def test_loan_create_rejects_past_due_date(admin_client, equipment):
 @pytest.mark.django_db
 def test_loan_create_accounts_for_stock_already_out_on_other_loans(admin_client, admin_user, equipment):
     first_loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     LoanItem.objects.create(loan=first_loan, equipment=equipment, quantity=3)
 
@@ -237,7 +237,7 @@ def test_loan_create_accounts_for_stock_already_out_on_other_loans(admin_client,
     response = admin_client.post(
         "/api/loans/",
         {
-            "borrower_name": "Kalle",
+            "borrower_name": "Kalle Korhonen",
             "borrower_phone": "0409876543",
             "due_date": FUTURE_DUE_DATE,
             "details": "",
@@ -251,14 +251,14 @@ def test_loan_create_accounts_for_stock_already_out_on_other_loans(admin_client,
 @pytest.mark.django_db
 def test_loan_create_allows_stock_freed_by_a_return(admin_client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=5)
 
     response = admin_client.post(
         "/api/loans/",
         {
-            "borrower_name": "Liisa",
+            "borrower_name": "Liisa Virtanen",
             "borrower_phone": "0407654321",
             "due_date": FUTURE_DUE_DATE,
             "details": "",
@@ -294,12 +294,12 @@ def test_loan_list_requires_auth(client):
 @pytest.mark.django_db
 def test_loan_list_reports_active_and_returned(admin_client, admin_user, equipment):
     active_loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     LoanItem.objects.create(loan=active_loan, equipment=equipment, quantity=2)
 
     returned_loan = Loan.objects.create(
-        borrower_name="Liisa", borrower_phone="0407654321", due_date="2026-07-01", responsible=admin_user
+        borrower_name="Liisa Virtanen", borrower_phone="0407654321", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     item = LoanItem.objects.create(loan=returned_loan, equipment=equipment, quantity=1)
     item.quantity_returned = 1
@@ -311,9 +311,9 @@ def test_loan_list_reports_active_and_returned(admin_client, admin_user, equipme
     assert response.status_code == 200
     data = response.json()
     by_borrower = {loan["borrower_name"]: loan for loan in data}
-    assert by_borrower["Matti"]["is_returned"] is False
-    assert by_borrower["Liisa"]["is_returned"] is True
-    assert by_borrower["Liisa"]["returned_by"] == admin_user.username
+    assert by_borrower["Matti Meikäläinen"]["is_returned"] is False
+    assert by_borrower["Liisa Virtanen"]["is_returned"] is True
+    assert by_borrower["Liisa Virtanen"]["returned_by"] == admin_user.username
 
 
 def _returned_loan(admin_user, equipment, borrower_name, returned_days_ago):
@@ -400,7 +400,7 @@ def test_loan_detail_requires_auth(client, admin_user, equipment):
 @pytest.mark.django_db
 def test_loan_detail_returns_loan_with_items(admin_client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
 
@@ -409,7 +409,7 @@ def test_loan_detail_returns_loan_with_items(admin_client, admin_user, equipment
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == loan.pk
-    assert data["borrower_name"] == "Matti"
+    assert data["borrower_name"] == "Matti Meikäläinen"
     assert data["is_returned"] is False
     assert len(data["items"]) == 1
     item = data["items"][0]
@@ -435,7 +435,7 @@ def test_loanable_equipment_requires_auth(client):
 @pytest.mark.django_db
 def test_loanable_equipment_reflects_stock_already_out(admin_client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
 
@@ -454,7 +454,7 @@ def test_loanable_equipment_reflects_stock_already_out(admin_client, admin_user,
 @pytest.mark.django_db
 def test_loan_return_requires_auth(client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
 
@@ -469,7 +469,7 @@ def test_loan_return_requires_auth(client, admin_user, equipment):
 @pytest.mark.django_db
 def test_loan_return_full_marks_loan_returned(admin_client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
 
@@ -493,7 +493,7 @@ def test_loan_return_full_marks_loan_returned(admin_client, admin_user, equipmen
 @pytest.mark.django_db
 def test_loan_return_partial_keeps_loan_active(admin_client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     item_a = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
     category = item_a.equipment.category
@@ -525,7 +525,7 @@ def test_loan_return_partial_keeps_loan_active(admin_client, admin_user, equipme
 @pytest.mark.django_db
 def test_loan_return_rejects_decreasing_quantity(admin_client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2, quantity_returned=1)
 
@@ -540,7 +540,7 @@ def test_loan_return_rejects_decreasing_quantity(admin_client, admin_user, equip
 @pytest.mark.django_db
 def test_loan_return_rejects_quantity_over_borrowed(admin_client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
 
@@ -555,10 +555,10 @@ def test_loan_return_rejects_quantity_over_borrowed(admin_client, admin_user, eq
 @pytest.mark.django_db
 def test_loan_return_rejects_item_from_another_loan(admin_client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     other_loan = Loan.objects.create(
-        borrower_name="Liisa", borrower_phone="0407654321", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Liisa Virtanen", borrower_phone="0407654321", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     other_item = LoanItem.objects.create(loan=other_loan, equipment=equipment, quantity=1)
 
@@ -573,7 +573,7 @@ def test_loan_return_rejects_item_from_another_loan(admin_client, admin_user, eq
 @pytest.mark.django_db
 def test_loan_return_rejects_already_returned_loan(admin_client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2, quantity_returned=2)
     loan.mark_returned_if_complete(admin_user)
@@ -589,7 +589,7 @@ def test_loan_return_rejects_already_returned_loan(admin_client, admin_user, equ
 @pytest.mark.django_db
 def test_loan_return_frees_stock_for_new_loan(admin_client, admin_user, equipment):
     loan = Loan.objects.create(
-        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
     item = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=5)
 
