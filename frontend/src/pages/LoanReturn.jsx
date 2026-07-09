@@ -100,7 +100,7 @@ function LoanReturn() {
                 <span className="badge text-bg-success align-self-start">{t("loanReturn.fullyReturned")}</span>
               ) : (
                 <div className="d-flex align-items-center gap-2">
-                  <label className="form-label mb-0 small" htmlFor={`return-item-${item.id}`}>
+                  <label className="form-label mb-0 small required" htmlFor={`return-item-${item.id}`}>
                     {t("loanReturn.returnedQuantity")}
                   </label>
                   <input
@@ -115,7 +115,7 @@ function LoanReturn() {
                     required
                   />
                   <span className="text-muted small">/ {item.quantity}</span>
-                  <label className="form-label mb-0 small" htmlFor={`broken-item-${item.id}`}>
+                  <label className="form-label mb-0 small required" htmlFor={`broken-item-${item.id}`}>
                     {t("loanReturn.brokenQuantity")}
                   </label>
                   <input

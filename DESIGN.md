@@ -353,3 +353,12 @@ to Django's stock `i18n/setlang/` view (`django.conf.urls.i18n`), which
 stores the choice in the language cookie and reloads the page -- one
 language state shared by the SPA, DRF, and the admin, instead of a separate
 frontend-only preference.
+
+Form field conventions
+----------------------
+
+Mandatory form fields are marked with a red asterisk via the `required`
+class on the Bootstrap `form-label` (CSS `::after` rule in
+`frontend/src/index.css`) -- purely visual, actual enforcement stays in the
+inputs' `required` attributes and the serializers. Currently applied to the
+loan forms (`LoanNew.jsx`, `LoanReturn.jsx`).
