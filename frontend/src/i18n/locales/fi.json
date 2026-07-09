@@ -9,6 +9,7 @@
   "layout": {
     "storage": "Varasto",
     "loans": "Lainat",
+    "archive": "Arkisto",
     "logout": "Kirjaudu ulos",
     "toggleNav": "Valikko",
     "changePassword": "Vaihda salasana"
@@ -55,7 +56,7 @@
     "title": "Lainat",
     "newLoan": "Uusi laina",
     "active": "Aktiiviset",
-    "historical": "Palautetut",
+    "historical": "Palautetut (viimeiset 2 kuukautta)",
     "borrower": "Lainaaja",
     "phone": "Puhelin",
     "dueDate": "Eräpäivä",
@@ -68,6 +69,11 @@
     "noHistorical": "Ei vielä palautettuja lainoja.",
     "error": "Lainojen lataus epäonnistui.",
     "returnAction": "Palautus"
+  },
+  "loanArchive": {
+    "title": "Lainojen arkisto",
+    "empty": "Ei arkistoituja lainoja.",
+    "error": "Arkiston lataus epäonnistui."
   },
   "loanDetail": {
     "title": "Laina #{{id}}",

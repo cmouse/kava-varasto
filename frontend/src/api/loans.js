@@ -2,11 +2,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import apiClient from "./client";
 
-export function useLoans({ enabled = true } = {}) {
+export function useLoans({ enabled = true, archived = false } = {}) {
   return useQuery({
-    queryKey: ["loans"],
+    queryKey: archived ? ["loans", "archived"] : ["loans"],
     queryFn: async () => {
-      const { data } = await apiClient.get("loans/");
+      const { data } = await apiClient.get("loans/", {
+        params: archived ? { archived: "true" } : undefined,
+      });
       return data;
     },
     enabled,
