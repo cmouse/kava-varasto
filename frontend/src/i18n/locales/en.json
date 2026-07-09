@@ -9,6 +9,7 @@
   "layout": {
     "storage": "Storage",
     "loans": "Loans",
+    "archive": "Archive",
     "logout": "Log out",
     "toggleNav": "Toggle navigation",
     "changePassword": "Change password"
@@ -55,7 +56,7 @@
     "title": "Loans",
     "newLoan": "New loan",
     "active": "Active",
-    "historical": "Returned",
+    "historical": "Returned (last 2 months)",
     "borrower": "Borrower",
     "phone": "Phone",
     "dueDate": "Due date",
@@ -68,6 +69,11 @@
     "noHistorical": "No returned loans yet.",
     "error": "Failed to load loans.",
     "returnAction": "Return"
+  },
+  "loanArchive": {
+    "title": "Loan archive",
+    "empty": "No archived loans.",
+    "error": "Failed to load archive."
   },
   "loanDetail": {
     "title": "Loan #{{id}}",

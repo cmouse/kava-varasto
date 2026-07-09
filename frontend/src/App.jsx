@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout";
 import ChangePassword from "./pages/ChangePassword";
+import LoanArchive from "./pages/LoanArchive";
 import LoanDetail from "./pages/LoanDetail";
 import LoanList from "./pages/LoanList";
 import LoanNew from "./pages/LoanNew";
@@ -22,6 +23,7 @@ function App() {
             <Route path="storage" element={<Storage />} />
             <Route path="loans" element={<LoanList />} />
             <Route path="loans/new" element={<LoanNew />} />
+            <Route path="loans/archive" element={<LoanArchive />} />
             <Route path="loans/:id" element={<LoanDetail />} />
             <Route path="loans/:id/return" element={<LoanReturn />} />
             <Route path="account/password" element={<ChangePassword />} />
