@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 from django.db import transaction
-from django.db.models import F, Sum, Value
+from django.db.models import F, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView
@@ -14,8 +17,18 @@ from .models import Loan
 from .serializers import LoanableEquipmentSerializer, LoanCreateSerializer, LoanReturnSerializer, LoanSerializer
 
 
+ARCHIVE_AFTER = timedelta(days=61)  # ~2 months
+
+
 class LoanListCreateView(ListCreateAPIView):
     queryset = Loan.objects.prefetch_related("items__equipment__category").all()
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        cutoff = timezone.now() - ARCHIVE_AFTER
+        if self.request.query_params.get("archived") == "true":
+            return qs.filter(returned_at__lt=cutoff)
+        return qs.filter(Q(returned_at__isnull=True) | Q(returned_at__gte=cutoff))
 
     def get_serializer_class(self):
         if self.request.method == "POST":

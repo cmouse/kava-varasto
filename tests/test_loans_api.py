@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import pytest
 from django.db import IntegrityError, connection
 from django.test.utils import CaptureQueriesContext
+from django.utils import timezone
 
 from kava_varasto.inventory.models import Category, Equipment
 from kava_varasto.loans.models import Loan, LoanItem
@@ -313,6 +314,67 @@ def test_loan_list_reports_active_and_returned(admin_client, admin_user, equipme
     assert by_borrower["Matti"]["is_returned"] is False
     assert by_borrower["Liisa"]["is_returned"] is True
     assert by_borrower["Liisa"]["returned_by"] == admin_user.username
+
+
+def _returned_loan(admin_user, equipment, borrower_name, returned_days_ago):
+    loan = Loan.objects.create(
+        borrower_name=borrower_name, borrower_phone="0401234567", due_date="2026-07-01", responsible=admin_user
+    )
+    LoanItem.objects.create(loan=loan, equipment=equipment, quantity=1, quantity_returned=1)
+    loan.returned_at = timezone.now() - timedelta(days=returned_days_ago)
+    loan.returned_by = admin_user
+    loan.save()
+    return loan
+
+
+@pytest.mark.django_db
+def test_loan_list_excludes_archived_returned_loans(admin_client, admin_user, equipment):
+    _returned_loan(admin_user, equipment, "Vanha", returned_days_ago=90)
+    _returned_loan(admin_user, equipment, "Tuore", returned_days_ago=60)
+
+    response = admin_client.get("/api/loans/")
+
+    assert response.status_code == 200
+    names = [loan["borrower_name"] for loan in response.json()]
+    assert "Tuore" in names
+    assert "Vanha" not in names
+
+
+@pytest.mark.django_db
+def test_loan_list_archived_returns_only_old_returned(admin_client, admin_user, equipment):
+    active_loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    LoanItem.objects.create(loan=active_loan, equipment=equipment, quantity=2)
+    _returned_loan(admin_user, equipment, "Vanha", returned_days_ago=90)
+    _returned_loan(admin_user, equipment, "Tuore", returned_days_ago=60)
+
+    response = admin_client.get("/api/loans/?archived=true")
+
+    assert response.status_code == 200
+    names = [loan["borrower_name"] for loan in response.json()]
+    assert names == ["Vanha"]
+
+
+@pytest.mark.django_db
+def test_old_active_loan_never_archived(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti", borrower_phone="0401234567", due_date="2026-08-01", responsible=admin_user
+    )
+    LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
+    Loan.objects.filter(pk=loan.pk).update(created_at=timezone.now() - timedelta(days=180))
+
+    default_names = [entry["borrower_name"] for entry in admin_client.get("/api/loans/").json()]
+    archived_names = [entry["borrower_name"] for entry in admin_client.get("/api/loans/?archived=true").json()]
+
+    assert "Matti" in default_names
+    assert "Matti" not in archived_names
+
+
+@pytest.mark.django_db
+def test_loan_list_archived_requires_auth(client):
+    response = client.get("/api/loans/?archived=true")
+    assert response.status_code == 403
 
 
 @pytest.mark.django_db
