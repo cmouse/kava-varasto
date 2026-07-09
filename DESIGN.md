@@ -122,6 +122,19 @@ supersedes the earlier "no out column" scope decision. The
 (own test coverage), just no longer the SPA's source for stock
 display.
 
+The endpoint also reports `active_loan_ids` per equipment: ids of
+non-returned loans on which the equipment is still out (a filtered
+`Prefetch` on `loan_items` -- `loan.returned_at IS NULL` and
+`quantity_returned < quantity`, so an item already fully handed back
+on a still-open loan doesn't count). The Storage view renders these
+as `#nnn` links to the loan detail page (`/loans/:id`), and lays the
+table out like the loan detail items table: one table, a
+`table-group-divider` `<tbody>` per category with a header row
+(shared `groupByCategory` helper in `frontend/src/utils/`, also used
+by the new-loan equipment picker). Grouping happens after the
+client-side search/category filter, so filtered-out categories show
+no header row.
+
 Loan overview page
 -------------------
 
