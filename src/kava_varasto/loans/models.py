@@ -1,16 +1,29 @@
+import re
+
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from kava_varasto.inventory.models import Equipment
 
+PHONE_RE = re.compile(r"^(\+358\d{6,12}|0\d{6,12})$")
+
 
 class Loan(models.Model):
     borrower_name = models.CharField(_("borrower name"), max_length=200)
-    borrower_phone = models.CharField(_("borrower phone"), max_length=30)
+    borrower_phone = models.CharField(
+        _("borrower phone"),
+        max_length=30,
+        validators=[
+            RegexValidator(
+                PHONE_RE,
+                _("Enter a valid phone number, e.g. 0401234567 or +358401234567."),
+            )
+        ],
+    )
     due_date = models.DateField(_("due date"))
     details = models.TextField(_("details"), blank=True)
     responsible = models.ForeignKey(
@@ -36,9 +49,33 @@ class Loan(models.Model):
         verbose_name = _("loan")
         verbose_name_plural = _("loans")
         ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(borrower_name__contains=" "),
+                name="loan_borrower_name_has_space",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(returned_at__isnull=True, returned_by__isnull=True)
+                    | models.Q(returned_at__isnull=False, returned_by__isnull=False)
+                ),
+                name="loan_returned_fields_consistent",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.borrower_name} ({self.due_date})"
+
+    def clean(self):
+        super().clean()
+        # Strict superset of the loan_borrower_name_has_space constraint so
+        # bad input fails as ValidationError, not IntegrityError.
+        if " " not in self.borrower_name or len(self.borrower_name.split()) < 2:
+            raise ValidationError({"borrower_name": _("Enter both first and last name.")})
+        if self._state.adding and self.due_date and self.due_date < timezone.localdate():
+            raise ValidationError({"due_date": _("Due date cannot be in the past.")})
+        if (self.returned_at is None) != (self.returned_by is None):
+            raise ValidationError({"returned_by": _("Returned-at and returned-by must be set together.")})
 
     @property
     def is_returned(self):
