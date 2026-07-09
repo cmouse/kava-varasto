@@ -19,6 +19,11 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Loan form input validation: phone number in `+358xxx` or `0xxx` format, borrower name must have at least two parts, due date defaults to +1 week and can't be in the past — `LoanCreateSerializer` in `kava_varasto.loans.serializers`, mirrored client-side in `frontend/src/pages/LoanNew.jsx`
 - [x] Check-in view — `POST /api/loans/<id>/return/` (`kava_varasto.loans.views.LoanReturnView`), `frontend/src/pages/LoanReturn.jsx`, supports partial returns
 - [x] Active vs historical loan listings — `GET /api/loans/`, `frontend/src/pages/LoanList.jsx`
+- [ ] Spec deviation: show "loaned by" (`responsible`, who gave the loan out) alongside
+      "returned by" in the returned-loan views — currently only the active table shows
+      `responsible`; the returned/archive tables (`frontend/src/components/ReturnedLoansTable.jsx`)
+      and the detail view only show `returned_by`. Data already in the API
+      (`LoanSerializer.responsible`), so frontend-only column/label addition.
 
 ## Search & browsing
 - [x] Search by name/short code, category filter buttons — client-side filtering in `Storage.jsx` and `LoanNew.jsx` via `useEquipmentFilter`
