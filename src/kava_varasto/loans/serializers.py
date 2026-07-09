@@ -22,10 +22,11 @@ class LoanItemWriteSerializer(serializers.Serializer):
 
 class LoanItemReadSerializer(serializers.ModelSerializer):
     equipment = serializers.StringRelatedField()
+    category = serializers.CharField(source="equipment.category.name", read_only=True)
 
     class Meta:
         model = LoanItem
-        fields = ["id", "equipment", "quantity", "quantity_returned", "quantity_broken"]
+        fields = ["id", "equipment", "category", "quantity", "quantity_returned", "quantity_broken"]
 
 
 class LoanSerializer(serializers.ModelSerializer):

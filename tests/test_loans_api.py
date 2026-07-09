@@ -414,6 +414,7 @@ def test_loan_detail_returns_loan_with_items(admin_client, admin_user, equipment
     assert len(data["items"]) == 1
     item = data["items"][0]
     assert equipment.name in item["equipment"]
+    assert item["category"] == equipment.category.name
     assert item["quantity"] == 2
     assert item["quantity_returned"] == 0
     assert item["quantity_broken"] == 0
