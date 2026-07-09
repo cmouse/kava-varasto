@@ -138,7 +138,7 @@ function LoanNew() {
       <h1 className="h4 mb-3">{t("loanForm.title")}</h1>
 
       <div className="mb-3">
-        <label className="form-label" htmlFor="borrowerName">
+        <label className="form-label required" htmlFor="borrowerName">
           {t("loanForm.borrowerName")}
         </label>
         <input
@@ -159,7 +159,7 @@ function LoanNew() {
       </div>
 
       <div className="mb-3">
-        <label className="form-label" htmlFor="borrowerPhone">
+        <label className="form-label required" htmlFor="borrowerPhone">
           {t("loanForm.borrowerPhone")}
         </label>
         <input
@@ -175,7 +175,7 @@ function LoanNew() {
       </div>
 
       <div className="mb-3">
-        <label className="form-label" htmlFor="dueDate">
+        <label className="form-label required" htmlFor="dueDate">
           {t("loanForm.dueDate")}
         </label>
         <input
@@ -203,7 +203,7 @@ function LoanNew() {
       </div>
 
       <div className="mb-3">
-        <label className="form-label">{t("loanForm.items")}</label>
+        <label className="form-label required">{t("loanForm.items")}</label>
         <input
           type="search"
           className="form-control mb-2"
