@@ -158,9 +158,11 @@ Clicking a loan ID anywhere in `LoanList.jsx` opens
 `prefetch_related("items__equipment__category")` queryset as the list
 view). It shows the loan's metadata (borrower, phone, due date,
 responsible, details, created date, status, and returned-by/at once
-returned) plus a table of every `LoanItem` with quantity/returned/broken,
-and a "Return" button linking to `/loans/:id/return` for loans that
-aren't fully returned yet. An unknown ID returns a real 404 from the
+returned) plus the loan's items grouped by equipment category: loan item
+JSON includes a `category` name (`LoanItemReadSerializer`), and the page
+renders one quantity/returned/broken table per category, categories
+sorted alphabetically, with a "Return" button linking to
+`/loans/:id/return` for loans that aren't fully returned yet. An unknown ID returns a real 404 from the
 API rather than a client-side lookup miss; `useLoan` (`frontend/src/api/
 loans.js`) skips react-query's retries on 404 so the not-found message
 shows immediately instead of after three doomed refetches.
