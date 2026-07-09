@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useCurrentUser } from "../api/auth";
 import { useLoans } from "../api/loans";
 import LoginForm from "../components/LoginForm";
+import ReturnedLoansTable from "../components/ReturnedLoansTable";
 
 function LoanList() {
   const { t } = useTranslation();
@@ -81,40 +82,7 @@ function LoanList() {
       )}
 
       <h2 className="h6">{t("loanList.historical")}</h2>
-      {historicalLoans.length === 0 ? (
-        <p className="text-muted">{t("loanList.noHistorical")}</p>
-      ) : (
-        <div className="table-responsive">
-          <table className="table table-striped align-middle">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>{t("loanList.borrower")}</th>
-                <th>{t("loanList.phone")}</th>
-                <th>{t("loanList.dueDate")}</th>
-                <th>{t("loanList.items")}</th>
-                <th>{t("loanList.returnedBy")}</th>
-                <th>{t("loanList.returnedAt")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {historicalLoans.map((loan) => (
-                <tr key={loan.id}>
-                  <td>
-                    <Link to={`/loans/${loan.id}`}>#{loan.id}</Link>
-                  </td>
-                  <td>{loan.borrower_name}</td>
-                  <td>{loan.borrower_phone}</td>
-                  <td>{loan.due_date}</td>
-                  <td>{loan.items.length}</td>
-                  <td>{loan.returned_by}</td>
-                  <td>{new Date(loan.returned_at).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <ReturnedLoansTable loans={historicalLoans} emptyMessage={t("loanList.noHistorical")} />
     </div>
   );
 }
