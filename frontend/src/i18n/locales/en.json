@@ -94,6 +94,7 @@
   },
   "loanReturn": {
     "title": "Return equipment",
+    "partialHelp": "You can return items partially — enter how many are being returned now. The loan stays open until everything is returned.",
     "backToList": "Back to loans",
     "equipment": "Equipment",
     "quantity": "Quantity",
