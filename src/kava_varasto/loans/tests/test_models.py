@@ -3,6 +3,7 @@ from datetime import date, timedelta
 import pytest
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
+from django.utils import timezone
 
 from kava_varasto.accounts.models import User
 from kava_varasto.inventory.models import Category, Equipment
@@ -133,6 +134,105 @@ def test_loanitem_duplicate_equipment_on_same_loan_rejected(staff_user, equipmen
     LoanItem.objects.create(loan=loan, equipment=equipment, quantity=1)
     with pytest.raises(IntegrityError):
         LoanItem.objects.create(loan=loan, equipment=equipment, quantity=1)
+
+
+@pytest.mark.django_db
+def test_loan_valid_data_passes_full_clean(staff_user):
+    loan = Loan(
+        borrower_name="Matti Meikäläinen",
+        borrower_phone="0401234567",
+        due_date=FUTURE_DUE_DATE,
+        responsible=staff_user,
+    )
+    loan.full_clean()
+
+
+@pytest.mark.django_db
+def test_loan_one_word_name_rejected_by_clean(staff_user):
+    loan = Loan(
+        borrower_name="Matti",
+        borrower_phone="0401234567",
+        due_date=FUTURE_DUE_DATE,
+        responsible=staff_user,
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        loan.full_clean()
+    assert "borrower_name" in excinfo.value.error_dict
+
+
+@pytest.mark.django_db
+def test_loan_one_word_name_rejected_by_db_constraint(staff_user):
+    with pytest.raises(IntegrityError):
+        Loan.objects.create(
+            borrower_name="Matti",
+            borrower_phone="0401234567",
+            due_date=FUTURE_DUE_DATE,
+            responsible=staff_user,
+        )
+
+
+@pytest.mark.django_db
+def test_loan_invalid_phone_rejected_by_clean(staff_user):
+    loan = Loan(
+        borrower_name="Matti Meikäläinen",
+        borrower_phone="12345",
+        due_date=FUTURE_DUE_DATE,
+        responsible=staff_user,
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        loan.full_clean()
+    assert "borrower_phone" in excinfo.value.error_dict
+
+
+@pytest.mark.django_db
+def test_loan_past_due_date_rejected_on_new_instance(staff_user):
+    loan = Loan(
+        borrower_name="Matti Meikäläinen",
+        borrower_phone="0401234567",
+        due_date=date.today() - timedelta(days=1),
+        responsible=staff_user,
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        loan.full_clean()
+    assert "due_date" in excinfo.value.error_dict
+
+
+@pytest.mark.django_db
+def test_loan_past_due_date_allowed_on_saved_loan(staff_user):
+    loan = Loan.objects.create(
+        borrower_name="Matti Meikäläinen",
+        borrower_phone="0401234567",
+        due_date=date.today() - timedelta(days=1),
+        responsible=staff_user,
+    )
+    loan = Loan.objects.get(pk=loan.pk)
+    loan.full_clean()
+
+
+@pytest.mark.django_db
+def test_loan_returned_fields_mismatch_rejected_by_clean(staff_user):
+    loan = Loan(
+        borrower_name="Matti Meikäläinen",
+        borrower_phone="0401234567",
+        due_date=FUTURE_DUE_DATE,
+        responsible=staff_user,
+        returned_at=timezone.now(),
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        loan.full_clean()
+    assert "returned_by" in excinfo.value.error_dict
+
+
+@pytest.mark.django_db
+def test_loan_returned_fields_mismatch_rejected_by_db_constraint(staff_user):
+    with pytest.raises(IntegrityError):
+        Loan.objects.create(
+            borrower_name="Matti Meikäläinen",
+            borrower_phone="0401234567",
+            due_date=FUTURE_DUE_DATE,
+            responsible=staff_user,
+            returned_at=timezone.now(),
+        )
 
 
 @pytest.mark.django_db
