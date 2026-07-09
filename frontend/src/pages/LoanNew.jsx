@@ -6,6 +6,7 @@ import { useCurrentUser } from "../api/auth";
 import { useCreateLoan, useLoanableEquipment, useLoans } from "../api/loans";
 import LoginForm from "../components/LoginForm";
 import { useEquipmentFilter } from "../hooks/useEquipmentFilter";
+import { groupByCategory } from "../utils/groupByCategory";
 
 function emptyItem(key) {
   return { key, equipmentId: "", quantity: 1 };
@@ -34,17 +35,6 @@ function defaultDueDateValue() {
 
 const PHONE_PATTERN = "\\+358\\d{6,12}|0\\d{6,12}";
 const NAME_PATTERN = "\\S+(\\s+\\S+)+";
-
-function groupByCategory(list) {
-  const groups = new Map();
-  for (const item of list) {
-    if (!groups.has(item.category)) {
-      groups.set(item.category, []);
-    }
-    groups.get(item.category).push(item);
-  }
-  return Array.from(groups, ([category, items]) => ({ category, items }));
-}
 
 function LoanNew() {
   const { t } = useTranslation();
