@@ -1,5 +1,3 @@
-import re
-
 from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
@@ -8,9 +6,7 @@ from rest_framework import serializers
 
 from kava_varasto.inventory.models import Equipment
 
-from .models import Loan, LoanItem
-
-PHONE_RE = re.compile(r"^(\+358\d{6,12}|0\d{6,12})$")
+from .models import PHONE_RE, Loan, LoanItem
 
 MAX_LOAN_ITEMS = 100
 
