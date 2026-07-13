@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import { useCurrentUser } from "../api/auth";
 import { useLoanableEquipment } from "../api/loans";
+import EquipmentDetailModal from "../components/EquipmentDetailModal";
 import EquipmentFilterBar from "../components/EquipmentFilterBar";
 import LoginForm from "../components/LoginForm";
 import { useEquipmentFilter } from "../hooks/useEquipmentFilter";
@@ -10,9 +12,11 @@ import { groupByCategory } from "../utils/groupByCategory";
 
 function Storage() {
   const { t } = useTranslation();
+  const [selectedId, setSelectedId] = useState(null);
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
   const { data, isLoading, isError } = useLoanableEquipment({ enabled: user?.authenticated });
   const { search, setSearch, categoryId, setCategoryId, categories, filteredEquipment } = useEquipmentFilter(data);
+  const selectedItem = data?.find((item) => item.id === selectedId) ?? null;
 
   if (isUserLoading) {
     return null;
@@ -63,7 +67,24 @@ function Storage() {
                   <th colSpan={8}>{group.category}</th>
                 </tr>
                 {group.items.map((item) => (
-                  <tr key={item.id}>
+                  <tr
+                    key={item.id}
+                    style={{ cursor: "pointer" }}
+                    tabIndex={0}
+                    onClick={(event) => {
+                      // Let the active-loan links navigate instead of opening the modal.
+                      if (event.target.closest("a")) {
+                        return;
+                      }
+                      setSelectedId(item.id);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedId(item.id);
+                      }
+                    }}
+                  >
                     <td>{item.short_code || "–"}</td>
                     <td>{item.name}</td>
                     <td className="text-end">{item.quantity}</td>
@@ -100,6 +121,7 @@ function Storage() {
           </table>
         </div>
       )}
+      <EquipmentDetailModal item={selectedItem} onClose={() => setSelectedId(null)} />
     </div>
   );
 }

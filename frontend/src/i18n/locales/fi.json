@@ -31,6 +31,12 @@
     "error": "Varaston lataus epäonnistui.",
     "noResults": "Haku ei löytänyt varusteita."
   },
+  "equipmentDetail": {
+    "close": "Sulje",
+    "noImage": "Ei kuvaa",
+    "category": "Kategoria",
+    "loanable": "Lainattavissa nyt"
+  },
   "equipmentFilter": {
     "searchPlaceholder": "Hae nimellä tai koodilla…",
     "allCategories": "Kaikki kategoriat"
