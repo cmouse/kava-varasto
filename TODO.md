@@ -37,6 +37,9 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Cache-busting for frontend assets: `vite.config.js` emits hashed filenames + a manifest; `spa.html` resolves them via the `vite_asset`/`vite_css` template tags (`src/kava_varasto/templatetags/vite.py`)
 - [x] Add `npm ci && npm run build` (in `frontend/`) to the deploy steps in README, before `collectstatic`
 - [x] Business logo in the header — `frontend/src/assets/logo.png`, shown in `frontend/src/components/Layout.jsx`'s navbar brand
+- [ ] Equipment image upload in admin (`Equipment.image`, Pillow, dev media serving)
+- [ ] Equipment image exposed in API (relative URL honoring sub-path `MEDIA_URL`)
+- [ ] Equipment detail modal on the storage page (image + all item info, row click/keyboard)
 
 ## Localization
 - [x] Wire an i18n library into the React frontend (react-i18next) with FI/EN string
