@@ -50,6 +50,12 @@ class Equipment(models.Model):
         default=0,
         help_text=_("How many of this equipment are currently broken and unavailable for loan."),
     )
+    image = models.ImageField(
+        _("image"),
+        upload_to="equipment/",
+        blank=True,
+        help_text=_("Optional photo shown in the storage detail view."),
+    )
 
     class Meta:
         verbose_name = _("equipment")
