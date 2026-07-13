@@ -172,6 +172,7 @@ class LoanableEquipmentSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(source="category", read_only=True)
     loanable_quantity = serializers.IntegerField(read_only=True)
     active_loan_ids = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Equipment
@@ -187,7 +188,13 @@ class LoanableEquipmentSerializer(serializers.ModelSerializer):
             "is_external_loanable",
             "loanable_quantity",
             "active_loan_ids",
+            "image",
         ]
+
+    def get_image(self, obj):
+        # Relative URL: MEDIA_URL already carries the sub-path prefix, and a
+        # request-absolute URL would be fragile behind the reverse proxy.
+        return obj.image.url if obj.image else None
 
     def get_active_loan_ids(self, obj):
         # Populated by the Prefetch(to_attr="active_loan_items") in

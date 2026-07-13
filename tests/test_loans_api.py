@@ -452,6 +452,16 @@ def test_loanable_equipment_reflects_stock_already_out(admin_client, admin_user,
 
 
 @pytest.mark.django_db
+def test_loanable_equipment_includes_image_url(admin_client, equipment):
+    equipment.image = "equipment/stove.jpg"
+    equipment.save(update_fields=["image"])
+
+    response = admin_client.get("/api/loans/loanable-equipment/")
+
+    assert response.json()[0]["image"] == "/media/equipment/stove.jpg"
+
+
+@pytest.mark.django_db
 def test_loanable_equipment_lists_active_loan_ids(admin_client, admin_user, equipment):
     active_loan = Loan.objects.create(
         borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user

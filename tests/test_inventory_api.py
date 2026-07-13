@@ -1,4 +1,5 @@
 import pytest
+from django.test import override_settings
 
 from kava_varasto.inventory.models import Category, Equipment
 
@@ -25,6 +26,37 @@ def test_equipment_list_returns_stock_levels(admin_client):
     assert item["quantity"] == 5
     assert item["broken_quantity"] == 2
     assert item["available_quantity"] == 3
+
+
+@pytest.mark.django_db
+def test_equipment_without_image_serializes_none(admin_client):
+    category = Category.objects.create(name="Cooking")
+    Equipment.objects.create(name="Trangia stove", category=category)
+
+    response = admin_client.get("/api/inventory/equipment/")
+
+    assert response.json()[0]["image"] is None
+
+
+@pytest.mark.django_db
+def test_equipment_image_returns_media_url(admin_client):
+    category = Category.objects.create(name="Tents")
+    Equipment.objects.create(name="Dome tent", category=category, image="equipment/tent.jpg")
+
+    response = admin_client.get("/api/inventory/equipment/")
+
+    assert response.json()[0]["image"] == "/media/equipment/tent.jpg"
+
+
+@pytest.mark.django_db
+@override_settings(MEDIA_URL="/varasto/media/")
+def test_equipment_image_honors_media_url_prefix(admin_client):
+    category = Category.objects.create(name="Tents")
+    Equipment.objects.create(name="Dome tent", category=category, image="equipment/tent.jpg")
+
+    response = admin_client.get("/api/inventory/equipment/")
+
+    assert response.json()[0]["image"] == "/varasto/media/equipment/tent.jpg"
 
 
 @pytest.mark.django_db
