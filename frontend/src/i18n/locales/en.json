@@ -31,6 +31,12 @@
     "error": "Failed to load equipment.",
     "noResults": "No equipment matches your search."
   },
+  "equipmentDetail": {
+    "close": "Close",
+    "noImage": "No image",
+    "category": "Category",
+    "loanable": "Loanable now"
+  },
   "equipmentFilter": {
     "searchPlaceholder": "Search by name or code…",
     "allCategories": "All categories"
