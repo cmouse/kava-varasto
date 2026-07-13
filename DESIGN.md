@@ -135,6 +135,40 @@ by the new-loan equipment picker). Grouping happens after the
 client-side search/category filter, so filtered-out categories show
 no header row.
 
+Equipment detail view and images
+--------------------------------
+
+Equipment can carry an optional photo: `Equipment.image`, an
+`ImageField(upload_to="equipment/", blank=True)` (blank only, not
+null -- Django file fields store the empty string; requires Pillow).
+Staff set the image through the Django admin change form; `EquipmentAdmin`
+declares no explicit `fields`, so the field appears there automatically.
+
+The API serializers (`EquipmentSerializer` and
+`LoanableEquipmentSerializer`) expose the image as a *relative* URL via
+a `SerializerMethodField` (`obj.image.url` or `null`) rather than DRF's
+default request-absolute URL: `MEDIA_URL = f"{SCRIPT_NAME}/media/"`
+already bakes in the sub-path prefix, and an absolute URL would be
+fragile behind the reverse proxy. The SPA uses the value as-is -- never
+prepend `window.SCRIPT_NAME` or hardcode `/media/`.
+
+Clicking an equipment row on the Storage view opens
+`frontend/src/components/EquipmentDetailModal.jsx`: the image (or a
+"no image" placeholder) plus code, category, quantities, external-loanable
+badge and active-loan links. It is a React-controlled modal (conditional
+render of Bootstrap's modal markup with a manual backdrop, Escape and
+backdrop-click close) -- Bootstrap's Modal JS mutates the DOM
+imperatively and fights React, so it isn't used. Rows keep their native
+table semantics (no `role="button"` -- that would strip the row role for
+screen readers); they are made interactive with `tabIndex`,
+Enter/Space handling and a pointer cursor, and the row click handler
+ignores clicks that land on the active-loan `<a>` links so those still
+navigate.
+
+In production the reverse proxy serves `MEDIA_ROOT` at `media/`; in dev
+`urls.py` appends `static(settings.MEDIA_URL, ...)` when `DEBUG` (the
+SPA catch-all already excludes `media/`).
+
 Loan overview page
 -------------------
 
