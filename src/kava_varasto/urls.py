@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
 
@@ -13,3 +15,7 @@ urlpatterns = [
     # shadow admin/i18n/api/static/media.
     re_path(r"^(?!admin/|i18n/|api/|static/|media/).*$", views.spa, name="spa"),
 ]
+
+# In production the reverse proxy serves MEDIA_ROOT; static() is a no-op there.
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
