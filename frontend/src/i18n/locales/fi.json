@@ -74,7 +74,8 @@
     "noActive": "Ei aktiivisia lainoja.",
     "noHistorical": "Ei vielä palautettuja lainoja.",
     "error": "Lainojen lataus epäonnistui.",
-    "returnAction": "Palautus"
+    "returnAction": "Palautus",
+    "overdue": "Myöhässä"
   },
   "loanArchive": {
     "title": "Lainojen arkisto",
