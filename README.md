@@ -71,9 +71,11 @@ Settings are split into `kava_varasto.settings.dev` (used by `manage.py` and
 Both read from an optional `.env` file at the repo root via `django-environ`.
 Copy `env.example` to `.env` and adjust as needed. Relevant variables:
 
+The database is not configurable: SQLite at `varasto.sqlite3` in the repo
+root (WAL journal mode, `busy_timeout=5000`, immediate transactions).
+
 | Variable | Purpose | Default |
 |---|---|---|
-| `DATABASE_URL` | `django-environ` DB URL, e.g. `postgres://user:pass@host:5432/db` | `sqlite:///db.sqlite3` |
 | `DJANGO_SECRET_KEY` | Django secret key | insecure dev-only value (dev), required (prod) |
 | `DJANGO_ALLOWED_HOSTS` | comma-separated allowed hosts | `*` (dev), required (prod) |
 | `DJANGO_FORCE_SCRIPT_NAME` | sub-path this app is mounted under, e.g. `/varasto` (no trailing slash) | unset (serve from domain root) |
