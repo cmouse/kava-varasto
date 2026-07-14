@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useCurrentUser } from "../api/auth";
 import { useLoans } from "../api/loans";
 import LoginForm from "../components/LoginForm";
+import OverdueIcon from "../components/OverdueIcon";
 import ReturnedLoansTable from "../components/ReturnedLoansTable";
 
 function LoanList() {
@@ -65,7 +66,10 @@ function LoanList() {
                   </td>
                   <td>{loan.borrower_name}</td>
                   <td>{loan.borrower_phone}</td>
-                  <td>{loan.due_date}</td>
+                  <td>
+                    {loan.due_date}
+                    {loan.is_overdue ? <OverdueIcon /> : null}
+                  </td>
                   <td>{loan.items.length}</td>
                   <td>{loan.details}</td>
                   <td>{loan.responsible}</td>

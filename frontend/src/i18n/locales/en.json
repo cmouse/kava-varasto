@@ -74,7 +74,8 @@
     "noActive": "No active loans.",
     "noHistorical": "No returned loans yet.",
     "error": "Failed to load loans.",
-    "returnAction": "Return"
+    "returnAction": "Return",
+    "overdue": "Overdue"
   },
   "loanArchive": {
     "title": "Loan archive",

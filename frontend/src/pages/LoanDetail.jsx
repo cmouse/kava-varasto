@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { useCurrentUser } from "../api/auth";
 import { useLoan } from "../api/loans";
 import LoginForm from "../components/LoginForm";
+import OverdueIcon from "../components/OverdueIcon";
 
 function LoanDetail() {
   const { t } = useTranslation();
@@ -63,7 +64,10 @@ function LoanDetail() {
         <dd className="col-sm-9">{loan.borrower_phone}</dd>
 
         <dt className="col-sm-3">{t("loanDetail.dueDate")}</dt>
-        <dd className="col-sm-9">{loan.due_date}</dd>
+        <dd className="col-sm-9">
+          {loan.due_date}
+          {loan.is_overdue ? <OverdueIcon /> : null}
+        </dd>
 
         <dt className="col-sm-3">{t("loanDetail.responsible")}</dt>
         <dd className="col-sm-9">{loan.responsible}</dd>
