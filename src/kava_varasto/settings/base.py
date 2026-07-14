@@ -63,10 +63,20 @@ TEMPLATES = [
 WSGI_APPLICATION = "kava_varasto.wsgi.application"
 
 DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-    ),
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        # Absolute on purpose: a bare filename would resolve against the
+        # process cwd and silently create a second database.
+        "NAME": BASE_DIR / "varasto.sqlite3",
+        "OPTIONS": {
+            "init_command": (
+                "PRAGMA journal_mode = WAL;"
+                "PRAGMA synchronous = NORMAL;"
+                "PRAGMA busy_timeout = 5000;"
+            ),
+            "transaction_mode": "IMMEDIATE",
+        },
+    },
 }
 
 AUTH_PASSWORD_VALIDATORS = [
