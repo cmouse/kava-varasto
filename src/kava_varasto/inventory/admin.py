@@ -1,13 +1,27 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from .models import Category, Equipment
+from .models import Category, Equipment, EquipmentImage
 
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ["name"]
     search_fields = ["name"]
+
+
+@admin.register(EquipmentImage)
+class EquipmentImageAdmin(admin.ModelAdmin):
+    list_display = ["name", "thumbnail", "uploaded_at"]
+    search_fields = ["name"]
+    readonly_fields = ["uploaded_at"]
+
+    @admin.display(description=_("preview"))
+    def thumbnail(self, obj):
+        if not obj.image:
+            return ""
+        return format_html('<img src="{}" style="max-height: 60px">', obj.image.url)
 
 
 @admin.register(Equipment)

@@ -5,5 +5,5 @@ from .serializers import EquipmentSerializer
 
 
 class EquipmentListView(ListAPIView):
-    queryset = Equipment.objects.select_related("category").order_by("category__name", "name")
+    queryset = Equipment.objects.select_related("category", "image").order_by("category__name", "name")
     serializer_class = EquipmentSerializer

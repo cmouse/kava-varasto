@@ -6,7 +6,7 @@ from django.db import IntegrityError, connection
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
-from kava_varasto.inventory.models import Category, Equipment
+from kava_varasto.inventory.models import Category, Equipment, EquipmentImage
 from kava_varasto.loans.models import Loan, LoanItem
 from kava_varasto.loans.serializers import LoanCreateSerializer
 
@@ -453,7 +453,7 @@ def test_loanable_equipment_reflects_stock_already_out(admin_client, admin_user,
 
 @pytest.mark.django_db
 def test_loanable_equipment_includes_image_url(admin_client, equipment):
-    equipment.image = "equipment/stove.jpg"
+    equipment.image = EquipmentImage.objects.create(name="stove", image="equipment/stove.jpg")
     equipment.save(update_fields=["image"])
 
     response = admin_client.get("/api/loans/loanable-equipment/")

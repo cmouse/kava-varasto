@@ -15,6 +15,20 @@ class Category(models.Model):
         return self.name
 
 
+class EquipmentImage(models.Model):
+    name = models.CharField(_("name"), max_length=100)
+    image = models.ImageField(_("image"), upload_to="equipment/")
+    uploaded_at = models.DateTimeField(_("uploaded at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("equipment image")
+        verbose_name_plural = _("equipment images")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Equipment(models.Model):
     name = models.CharField(_("name"), max_length=200)
     # Most equipment has a short code (e.g. X75, M96); some doesn't. null=True
@@ -50,10 +64,15 @@ class Equipment(models.Model):
         default=0,
         help_text=_("How many of this equipment are currently broken and unavailable for loan."),
     )
-    image = models.ImageField(
-        _("image"),
-        upload_to="equipment/",
+    # Shared FK so one uploaded photo can be reused by several equipment
+    # entries (e.g. ten identical stoves).
+    image = models.ForeignKey(
+        EquipmentImage,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
+        related_name="equipment",
+        verbose_name=_("image"),
         help_text=_("Optional photo shown in the storage detail view."),
     )
 

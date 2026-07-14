@@ -194,7 +194,7 @@ class LoanableEquipmentSerializer(serializers.ModelSerializer):
     def get_image(self, obj):
         # Relative URL: MEDIA_URL already carries the sub-path prefix, and a
         # request-absolute URL would be fragile behind the reverse proxy.
-        return obj.image.url if obj.image else None
+        return obj.image.image.url if obj.image else None
 
     def get_active_loan_ids(self, obj):
         # Populated by the Prefetch(to_attr="active_loan_items") in

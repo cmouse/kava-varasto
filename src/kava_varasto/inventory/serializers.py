@@ -24,4 +24,4 @@ class EquipmentSerializer(serializers.ModelSerializer):
     def get_image(self, obj):
         # Relative URL: MEDIA_URL already carries the sub-path prefix, and a
         # request-absolute URL would be fragile behind the reverse proxy.
-        return obj.image.url if obj.image else None
+        return obj.image.image.url if obj.image else None
