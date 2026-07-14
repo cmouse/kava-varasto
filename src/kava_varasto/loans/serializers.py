@@ -29,6 +29,7 @@ class LoanSerializer(serializers.ModelSerializer):
     items = LoanItemReadSerializer(many=True, read_only=True)
     responsible = serializers.StringRelatedField()
     returned_by = serializers.StringRelatedField()
+    is_overdue = serializers.SerializerMethodField()
 
     class Meta:
         model = Loan
@@ -43,8 +44,14 @@ class LoanSerializer(serializers.ModelSerializer):
             "returned_at",
             "created_at",
             "is_returned",
+            "is_overdue",
             "items",
         ]
+
+    def get_is_overdue(self, obj):
+        # Server-side so the SPA never re-implements the local-date compare;
+        # due today is not yet overdue, matching validate_due_date below.
+        return not obj.is_returned and obj.due_date < timezone.localdate()
 
 
 class LoanCreateSerializer(serializers.ModelSerializer):
