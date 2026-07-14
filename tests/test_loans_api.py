@@ -316,6 +316,40 @@ def test_loan_list_reports_active_and_returned(admin_client, admin_user, equipme
     assert by_borrower["Liisa Virtanen"]["returned_by"] == admin_user.username
 
 
+@pytest.mark.django_db
+def test_loan_list_reports_overdue(admin_client, admin_user, equipment):
+    # The API rejects past due dates on creation, so build via the ORM.
+    past = timezone.localdate() - timedelta(days=1)
+    Loan.objects.create(
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=past, responsible=admin_user
+    )
+    Loan.objects.create(
+        borrower_name="Liisa Virtanen",
+        borrower_phone="0407654321",
+        due_date=timezone.localdate(),
+        responsible=admin_user,
+    )
+    Loan.objects.create(
+        borrower_name="Kalle Korhonen", borrower_phone="0409876543", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    Loan.objects.create(
+        borrower_name="Pekka Palautunut",
+        borrower_phone="0405555555",
+        due_date=past,
+        responsible=admin_user,
+        returned_at=timezone.now(),
+        returned_by=admin_user,
+    )
+
+    response = admin_client.get("/api/loans/")
+
+    by_borrower = {loan["borrower_name"]: loan for loan in response.json()}
+    assert by_borrower["Matti Meikäläinen"]["is_overdue"] is True
+    assert by_borrower["Liisa Virtanen"]["is_overdue"] is False
+    assert by_borrower["Kalle Korhonen"]["is_overdue"] is False
+    assert by_borrower["Pekka Palautunut"]["is_overdue"] is False
+
+
 def _returned_loan(admin_user, equipment, borrower_name, returned_days_ago):
     loan = Loan.objects.create(
         borrower_name=borrower_name, borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
