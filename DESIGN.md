@@ -189,6 +189,15 @@ loan's items (that broke down for loans with many items) -- instead
 each row shows an item count and the loan ID links to the loan detail
 page.
 
+`LoanSerializer` also exposes `is_overdue` (active and
+`due_date < timezone.localdate()` -- due today is not yet overdue,
+matching the create-time validation). It is computed server-side so the
+SPA never re-implements the Helsinki-timezone date compare. The list
+and detail pages render a red warning triangle next to an overdue due
+date via `frontend/src/components/OverdueIcon.jsx`, an inlined
+Bootstrap Icons SVG (the project ships no icon library) with tooltip
+and aria-label from the `loanList.overdue` i18n key.
+
 The main list no longer shows the full loan history: the list endpoint
 filters server-side (`LoanListCreateView.get_queryset`) so the default
 response contains every active loan plus loans returned within the
