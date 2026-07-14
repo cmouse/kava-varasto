@@ -138,15 +138,23 @@ no header row.
 Equipment detail view and images
 --------------------------------
 
-Equipment can carry an optional photo: `Equipment.image`, an
-`ImageField(upload_to="equipment/", blank=True)` (blank only, not
-null -- Django file fields store the empty string; requires Pillow).
-Staff set the image through the Django admin change form; `EquipmentAdmin`
-declares no explicit `fields`, so the field appears there automatically.
+Photos live in their own model so one upload can serve many equipment
+entries (e.g. ten identical Trangia stoves): `EquipmentImage` (`name`,
+`image` -- an `ImageField(upload_to="equipment/")`, requires Pillow --
+and `uploaded_at`). `Equipment.image` is a nullable FK to it with
+`on_delete=SET_NULL`, so deleting a shared photo just reverts the
+equipment to "no image". Staff upload photos in the `EquipmentImage`
+admin (list shows a thumbnail preview) and pick one on the Equipment
+change form via the FK select (plus the inline "+" popup);
+`EquipmentAdmin` declares no explicit `fields`, so the field appears
+there automatically. Migration `inventory/0006` converted the previous
+direct `ImageField` on `Equipment`: existing file paths became
+`EquipmentImage` rows (deduplicated by path), files stayed in place
+under `media/equipment/`.
 
 The API serializers (`EquipmentSerializer` and
 `LoanableEquipmentSerializer`) expose the image as a *relative* URL via
-a `SerializerMethodField` (`obj.image.url` or `null`) rather than DRF's
+a `SerializerMethodField` (`obj.image.image.url` or `null`) rather than DRF's
 default request-absolute URL: `MEDIA_URL = f"{SCRIPT_NAME}/media/"`
 already bakes in the sub-path prefix, and an absolute URL would be
 fragile behind the reverse proxy. The SPA uses the value as-is -- never
