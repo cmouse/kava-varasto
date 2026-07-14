@@ -66,7 +66,7 @@ class LoanReturnView(APIView):
 class LoanableEquipmentListView(ListAPIView):
     serializer_class = LoanableEquipmentSerializer
     queryset = (
-        Equipment.objects.select_related("category")
+        Equipment.objects.select_related("category", "image")
         .annotate(
             out_quantity=Coalesce(Sum(F("loan_items__quantity") - F("loan_items__quantity_returned")), Value(0))
         )

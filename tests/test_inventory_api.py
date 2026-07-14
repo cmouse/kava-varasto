@@ -1,7 +1,7 @@
 import pytest
 from django.test import override_settings
 
-from kava_varasto.inventory.models import Category, Equipment
+from kava_varasto.inventory.models import Category, Equipment, EquipmentImage
 
 
 @pytest.mark.django_db
@@ -41,7 +41,8 @@ def test_equipment_without_image_serializes_none(admin_client):
 @pytest.mark.django_db
 def test_equipment_image_returns_media_url(admin_client):
     category = Category.objects.create(name="Tents")
-    Equipment.objects.create(name="Dome tent", category=category, image="equipment/tent.jpg")
+    image = EquipmentImage.objects.create(name="tent", image="equipment/tent.jpg")
+    Equipment.objects.create(name="Dome tent", category=category, image=image)
 
     response = admin_client.get("/api/inventory/equipment/")
 
@@ -52,11 +53,25 @@ def test_equipment_image_returns_media_url(admin_client):
 @override_settings(MEDIA_URL="/varasto/media/")
 def test_equipment_image_honors_media_url_prefix(admin_client):
     category = Category.objects.create(name="Tents")
-    Equipment.objects.create(name="Dome tent", category=category, image="equipment/tent.jpg")
+    image = EquipmentImage.objects.create(name="tent", image="equipment/tent.jpg")
+    Equipment.objects.create(name="Dome tent", category=category, image=image)
 
     response = admin_client.get("/api/inventory/equipment/")
 
     assert response.json()[0]["image"] == "/varasto/media/equipment/tent.jpg"
+
+
+@pytest.mark.django_db
+def test_equipment_image_shared_between_equipment(admin_client):
+    category = Category.objects.create(name="Cooking")
+    image = EquipmentImage.objects.create(name="stove", image="equipment/stove.jpg")
+    Equipment.objects.create(name="Trangia stove", category=category, image=image)
+    Equipment.objects.create(name="Trangia stove XL", category=category, image=image)
+
+    response = admin_client.get("/api/inventory/equipment/")
+
+    urls = [item["image"] for item in response.json()]
+    assert urls == ["/media/equipment/stove.jpg", "/media/equipment/stove.jpg"]
 
 
 @pytest.mark.django_db
