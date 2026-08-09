@@ -452,3 +452,53 @@ class on the Bootstrap `form-label` (CSS `::after` rule in
 `frontend/src/index.css`) -- purely visual, actual enforcement stays in the
 inputs' `required` attributes and the serializers. Currently applied to the
 loan forms (`LoanNew.jsx`, `LoanReturn.jsx`).
+
+Deployment automation
+---------------------
+
+Deployments are driven by `.github/workflows/deploy.yml`, which reacts to the
+`CI` workflow completing successfully (`workflow_run`) rather than to the
+push itself: a red build cannot deploy, and the test suite is not run a
+second time. `main` deploys to the `staging` environment, a `vX.Y.Z` tag to
+`production` (which re-checks the tag against `pyproject.toml`'s version, as
+`publish.yml` does).
+
+Routing is a job of its own rather than an `if:` on each deploy job.
+`workflow_run` exposes the triggering ref as `head_branch`, and for a tag
+push that field is not dependable -- it may carry the tag name or the branch
+the tagged commit happens to sit on, so keying production off it risks a tag
+that silently deploys nowhere. The `target` job instead checks out the
+commit with full history and asks `git tag --points-at HEAD`, which is
+unambiguous. The cost is that any branch push at a tagged commit deploys to
+production again -- the two pushes are the same commit, so nothing in git
+tells them apart -- but it redeploys an identical tree, which is far
+preferable to a release tag that silently deploys nowhere.
+
+Each environment carries its own `HOST`, `USER` and `INSTALL_PATH`
+variables and `SSH_KEY` secret. `INSTALL_PATH` has no default and is
+rejected when empty: rsync with an empty destination would write to the
+deploy user's home root.
+
+The unit of deployment is the working tree, not the wheel that `publish.yml`
+builds. `BASE_DIR` is derived from the repo root
+(`src/kava_varasto/settings/base.py`), so `templates/`, `locale/`,
+`staticfiles/`, `media/` and `varasto.sqlite3` must live next to `src/`; a
+`pip install` of the wheel would relocate `BASE_DIR` into site-packages and
+break all of them. The shared steps live in `.github/actions/deploy` (a
+composite action, not a reusable workflow, because environment secrets only
+resolve in the job that declares the `environment:`).
+
+Two deliberate choices in that action:
+
+- **rsync without `--delete`.** Excludes protect the receiver, but a single
+  mistake in the exclude list would destroy `varasto.sqlite3`, `.env` or
+  `media/` with no way back. The cost of omitting it is stale hashed asset
+  files, which are harmless -- `collectstatic` output is content-addressed.
+- **A backup before every `migrate`.** Taken through sqlite3's backup API
+  rather than `cp`, which is not safe against the WAL journal mode the app
+  runs in.
+
+Compiled translations (`locale/**/*.mo`) and the built frontend are
+gitignored, so they are absent from the checkout: CI builds both and rsync
+carries them across. The host is therefore not required to have `gettext` or
+Node installed.

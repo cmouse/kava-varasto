@@ -1,0 +1,121 @@
+name: Deploy
+
+# Runs only after the CI workflow has finished successfully for the same
+# commit, so nothing is deployed on a red build and the checks are not run a
+# second time here. Pushes to main go to staging; vX.Y.Z tags go to
+# production.
+#
+# Both targets are GitHub environments providing the HOST, USER and
+# INSTALL_PATH variables and the SSH_KEY secret. Environment secrets only
+# resolve in the job that declares the environment, which is why the shared
+# steps live in .github/actions/deploy rather than in a reusable workflow.
+#
+# Host prerequisites (cannot be set up from CI):
+#   - USER's public key in ~/.ssh/authorized_keys on HOST
+#   - `loginctl enable-linger <user>` so the user's systemd instance and
+#     /run/user/<uid> exist without an active login session
+#   - a `varasto` user unit, and a .env file in INSTALL_PATH holding
+#     DJANGO_SECRET_KEY / DJANGO_ALLOWED_HOSTS / ... (never rsynced)
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  # workflow_run reports the ref that triggered CI as head_branch, but for a
+  # tag push that field is not dependable (it can carry the tag name or the
+  # branch the tagged commit sits on). Asking git which tags point at the
+  # commit is unambiguous, so the routing decision is made here once and both
+  # deploy jobs just read it.
+  target:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      staging: ${{ steps.route.outputs.staging }}
+      production: ${{ steps.route.outputs.production }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - id: route
+        env:
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          tag=$(git tag --list 'v*.*.*' --points-at HEAD | head -n 1)
+
+          # A release tag must match the packaged version, the same rule
+          # publish.yml enforces -- fail loudly rather than deploying a
+          # mislabelled build or silently skipping production.
+          if [ -n "$tag" ]; then
+            version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+            if [ "${tag#v}" != "$version" ]; then
+              echo "Tag $tag does not match pyproject.toml version $version" >&2
+              exit 1
+            fi
+          fi
+
+          staging=false
+          production=false
+          if [ "$HEAD_BRANCH" = "main" ]; then
+            staging=true
+          fi
+          if [ -n "$tag" ]; then
+            production=true
+          fi
+
+          echo "staging=$staging" >> "$GITHUB_OUTPUT"
+          echo "production=$production" >> "$GITHUB_OUTPUT"
+          echo "branch=$HEAD_BRANCH tag=${tag:-none} staging=$staging production=$production" >> "$GITHUB_STEP_SUMMARY"
+
+  staging:
+    needs: target
+    if: needs.target.outputs.staging == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: ./.github/actions/deploy
+        with:
+          host: ${{ vars.HOST }}
+          user: ${{ vars.USER }}
+          ssh_key: ${{ secrets.SSH_KEY }}
+          path: ${{ vars.INSTALL_PATH }}
+          artifact_run_id: ${{ github.event.workflow_run.id }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  production:
+    needs: target
+    if: needs.target.outputs.production == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: ./.github/actions/deploy
+        with:
+          host: ${{ vars.HOST }}
+          user: ${{ vars.USER }}
+          ssh_key: ${{ secrets.SSH_KEY }}
+          path: ${{ vars.INSTALL_PATH }}
+          artifact_run_id: ${{ github.event.workflow_run.id }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}

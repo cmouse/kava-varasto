@@ -199,3 +199,57 @@ proxy such as nginx. `kava_varasto.settings.prod` (used by `wsgi.py`/
 logs to the console (captured by systemd/journald or your process
 supervisor) — nothing further to configure for these. Run
 `manage.py check --deploy` under prod settings before going live to confirm.
+
+### Automated deployment
+
+`.github/workflows/deploy.yml` deploys automatically once the `CI` workflow
+has finished **successfully** for the same commit — a red build never
+reaches a host, and the checks are not re-run by the deploy itself:
+
+| Trigger | Target |
+| --- | --- |
+| push to `main` | `staging` environment |
+| push of a `vX.Y.Z` tag | `production` environment |
+
+Which target a run belongs to is decided by the `target` job, which asks git
+which `v*.*.*` tag points at the commit rather than trusting the branch name
+GitHub reports for a tag push. A tag that does not match `pyproject.toml`'s
+version fails the run outright — the same rule `publish.yml` enforces.
+
+Each GitHub environment supplies the target's address, location and
+credentials:
+
+- `HOST`, `USER` and `INSTALL_PATH` — environment *variables*
+  (`INSTALL_PATH` is the deploy directory, absolute or relative to `USER`'s
+  home; it has no default, and an empty value fails the run rather than
+  writing to the home root)
+- `SSH_KEY` — environment *secret*, a private key authorised for `USER` on
+  `HOST`
+
+Both targets share the steps in `.github/actions/deploy`: rsync the tree
+(with the built frontend and compiled `.mo` files, which are gitignored and
+therefore built in CI), then over SSH install into `$INSTALL_PATH/.venv`,
+back up `varasto.sqlite3`, run `migrate` and `collectstatic`, and finally
+`systemctl --user restart varasto`.
+
+The app is deployed as a checkout rather than as an installed wheel, because
+`BASE_DIR` is derived from the repo root — `templates/`, `locale/`,
+`staticfiles/`, `media/` and `varasto.sqlite3` must sit next to `src/`. The
+rsync deliberately runs without `--delete` and excludes `.env`,
+`varasto.sqlite3*`, `media/`, `staticfiles/` and `.venv/`, so host-local
+state is never touched.
+
+Set up on the host before the first deploy — none of this can be done from
+CI:
+
+1. `USER`'s public key in `~/.ssh/authorized_keys`.
+2. `loginctl enable-linger <user>`, so the user's systemd instance and
+   `/run/user/<uid>` exist without an active login session. Without it the
+   `systemctl --user restart` step fails.
+3. A `varasto` user unit running gunicorn (see above), and a `.env` file in
+   `INSTALL_PATH` with `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` and
+   friends — `.env` is never rsynced.
+4. `python3` 3.11 or newer with the venv module (on Debian/Ubuntu that's the
+   separate `python3-venv` package, without which `python3 -m venv` fails
+   with an `ensurepip is not available` message), plus outbound access to
+   PyPI so the deploy can install the dependencies.

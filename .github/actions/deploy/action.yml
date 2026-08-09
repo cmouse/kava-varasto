@@ -1,0 +1,165 @@
+name: Deploy over SSH
+description: >-
+  Rsync the working tree plus built frontend and compiled translations to a
+  host, run migrations and collectstatic there, then restart the service.
+
+inputs:
+  host:
+    description: Target hostname.
+    required: true
+  user:
+    description: SSH user on the target.
+    required: true
+  ssh_key:
+    description: Private SSH key authorised for that user.
+    required: true
+  path:
+    description: >-
+      Install directory on the host. Required and checked for emptiness: an
+      empty value would make rsync write to the user's home root.
+    required: true
+  artifact_run_id:
+    description: >-
+      Workflow run holding the frontend-build artifact. Defaults to this run;
+      set it when the build happened in a separate run.
+    required: false
+    default: ""
+  github_token:
+    description: Token used to fetch the artifact when artifact_run_id is set.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Check deploy configuration is set
+      shell: bash
+      env:
+        DEPLOY_HOST: ${{ inputs.host }}
+        DEPLOY_USER: ${{ inputs.user }}
+        DEPLOY_KEY: ${{ inputs.ssh_key }}
+        DEPLOY_PATH: ${{ inputs.path }}
+      run: |
+        for name in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_KEY; do
+          if [ -z "${!name}" ]; then
+            echo "$name is empty: set the HOST, USER and INSTALL_PATH" >&2
+            echo "variables and the SSH_KEY secret on this environment." >&2
+            exit 1
+          fi
+        done
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: "3.11"
+        cache: pip
+
+    - uses: actions/download-artifact@v8
+      with:
+        name: frontend-build
+        path: src/kava_varasto/static/frontend
+        run-id: ${{ inputs.artifact_run_id || github.run_id }}
+        github-token: ${{ inputs.github_token || github.token }}
+
+    # locale/**/*.mo is gitignored, so it is absent from the checkout and is
+    # built here -- the target host is not assumed to have gettext.
+    - shell: bash
+      run: sudo apt-get update && sudo apt-get install -y gettext
+    - shell: bash
+      run: pip install -e .
+    - shell: bash
+      run: python manage.py compilemessages
+
+    - name: Configure SSH
+      shell: bash
+      env:
+        DEPLOY_HOST: ${{ inputs.host }}
+        DEPLOY_KEY: ${{ inputs.ssh_key }}
+      run: |
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+    # No --delete: the excludes would protect the receiver, but one mistake in
+    # that list takes out varasto.sqlite3, .env or media/ irrecoverably. The
+    # cost of leaving it off is stale hashed asset files, which are harmless.
+    - name: Upload files
+      shell: bash
+      env:
+        DEPLOY_HOST: ${{ inputs.host }}
+        DEPLOY_USER: ${{ inputs.user }}
+        DEPLOY_PATH: ${{ inputs.path }}
+      run: |
+        rsync -az \
+          -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
+          --exclude '.git/' \
+          --exclude '.github/' \
+          --exclude '.venv/' \
+          --exclude 'frontend/node_modules/' \
+          --exclude '__pycache__/' \
+          --exclude '*.egg-info/' \
+          --exclude '.pytest_cache/' \
+          --exclude '.ruff_cache/' \
+          --exclude 'staticfiles/' \
+          --exclude 'media/' \
+          --exclude '.env' \
+          --exclude '*.sqlite3' \
+          --exclude '*.sqlite3-*' \
+          ./ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+
+    - name: Install, migrate and restart
+      shell: bash
+      env:
+        DEPLOY_HOST: ${{ inputs.host }}
+        DEPLOY_USER: ${{ inputs.user }}
+        DEPLOY_PATH: ${{ inputs.path }}
+      run: |
+        ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+          "$DEPLOY_USER@$DEPLOY_HOST" \
+          "DEPLOY_PATH='$DEPLOY_PATH' bash -s" <<'REMOTE'
+        set -eu
+
+        # systemctl --user over a non-login SSH channel finds neither the
+        # runtime directory nor the session bus on its own.
+        XDG_RUNTIME_DIR="/run/user/$(id -u)"
+        DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+        export XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS
+
+        export DJANGO_SETTINGS_MODULE=kava_varasto.settings.prod
+
+        cd "$DEPLOY_PATH"
+
+        if [ ! -x .venv/bin/python ]; then
+          python3 -m venv .venv
+        fi
+        .venv/bin/pip install --upgrade pip
+        .venv/bin/pip install -e .
+
+        # Migrations are not reversible and the database is the whole app.
+        # sqlite3's backup API is WAL-safe, unlike cp.
+        if [ -f varasto.sqlite3 ]; then
+          .venv/bin/python - <<'BACKUP'
+        import sqlite3
+        import time
+
+        name = "varasto.sqlite3.backup-" + time.strftime("%Y%m%d%H%M%S")
+        src = sqlite3.connect("varasto.sqlite3")
+        dst = sqlite3.connect(name)
+        with dst:
+            src.backup(dst)
+        dst.close()
+        src.close()
+        print("backed up database to " + name)
+        BACKUP
+        fi
+
+        .venv/bin/python manage.py migrate --noinput
+        .venv/bin/python manage.py collectstatic --noinput
+
+        systemctl --user restart varasto
+        # status exits non-zero for a merely inactive unit, so log it and let
+        # is-active decide whether the deploy succeeded.
+        systemctl --user --no-pager status varasto || true
+        systemctl --user is-active --quiet varasto
+        REMOTE
