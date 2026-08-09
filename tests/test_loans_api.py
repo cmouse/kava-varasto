@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -10,7 +10,7 @@ from kava_varasto.inventory.models import Category, Equipment, EquipmentImage
 from kava_varasto.loans.models import Loan, LoanItem
 from kava_varasto.loans.serializers import LoanCreateSerializer
 
-FUTURE_DUE_DATE = (date.today() + timedelta(days=60)).isoformat()
+FUTURE_DUE_DATE = (timezone.localdate() + timedelta(days=60)).isoformat()
 
 
 @pytest.fixture
@@ -89,7 +89,7 @@ def test_loan_create_rolls_back_loan_if_items_fail(admin_user, equipment):
     validated_data = {
         "borrower_name": "Matti Meikäläinen",
         "borrower_phone": "0401234567",
-        "due_date": date.today(),
+        "due_date": timezone.localdate(),
         "details": "",
         "items": [
             {"equipment": equipment, "quantity": 1},

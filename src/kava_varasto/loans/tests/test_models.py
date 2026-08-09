@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pytest
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -9,7 +9,7 @@ from kava_varasto.accounts.models import User
 from kava_varasto.inventory.models import Category, Equipment
 from kava_varasto.loans.models import Loan, LoanItem
 
-FUTURE_DUE_DATE = (date.today() + timedelta(days=60)).isoformat()
+FUTURE_DUE_DATE = (timezone.localdate() + timedelta(days=60)).isoformat()
 
 
 @pytest.fixture
@@ -189,7 +189,7 @@ def test_loan_past_due_date_rejected_on_new_instance(staff_user):
     loan = Loan(
         borrower_name="Matti Meikäläinen",
         borrower_phone="0401234567",
-        due_date=date.today() - timedelta(days=1),
+        due_date=timezone.localdate() - timedelta(days=1),
         responsible=staff_user,
     )
     with pytest.raises(ValidationError) as excinfo:
@@ -202,7 +202,7 @@ def test_loan_past_due_date_allowed_on_saved_loan(staff_user):
     loan = Loan.objects.create(
         borrower_name="Matti Meikäläinen",
         borrower_phone="0401234567",
-        due_date=date.today() - timedelta(days=1),
+        due_date=timezone.localdate() - timedelta(days=1),
         responsible=staff_user,
     )
     loan = Loan.objects.get(pk=loan.pk)
