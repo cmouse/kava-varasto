@@ -31,5 +31,8 @@ class ForcedPasswordChangeForm(ForcePasswordChangeMixin, AdminPasswordChangeForm
 class UserAdmin(DjangoUserAdmin):
     add_form = ForcedPasswordUserCreationForm
     change_password_form = ForcedPasswordChangeForm
-    fieldsets = DjangoUserAdmin.fieldsets + ((_("Password policy"), {"fields": ("must_change_password",)}),)
-    list_filter = DjangoUserAdmin.list_filter + ("must_change_password",)
+    fieldsets = (
+        *DjangoUserAdmin.fieldsets,
+        (_("Password policy"), {"fields": ("must_change_password",)}),
+    )
+    list_filter = (*DjangoUserAdmin.list_filter, "must_change_password")
