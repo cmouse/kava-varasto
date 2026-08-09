@@ -24,7 +24,7 @@ dependencies = [
 dev = [
     "pytest>=8",
     "pytest-django>=4.8",
-    "ruff>=0.15",
+    "ruff>=0.15,<0.17",
 ]
 
 [tool.setuptools.packages.find]
@@ -37,3 +37,27 @@ testpaths = ["src", "tests"]
 
 [tool.ruff]
 target-version = "py311"
+
+# Ruff's implicit default rule set widens between releases, so leaving it
+# implicit means an unrelated release turns CI red. Name the rules instead;
+# the version cap above bounds what a new release can add inside the groups
+# selected by prefix.
+[tool.ruff.lint]
+select = [
+    "E4", "E7", "E9",  # pycodestyle errors (ruff's own defaults)
+    "F",               # pyflakes
+    "I",               # import sorting
+    "DTZ",             # naive datetimes -- this app runs with USE_TZ
+    "EXE",             # shebang vs. executable bit
+    # Picked individually: the RUF group as a whole is mostly style, and
+    # RUF012 in particular fires on every Django declarative class
+    # attribute (list_display, Meta.fields, ...), which are plain lists by
+    # convention rather than ClassVar-annotated.
+    "RUF005",
+    "RUF100",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Django generates migrations with unsorted imports, and they are not worth
+# hand-editing after every makemigrations.
+"**/migrations/*.py" = ["I001"]
