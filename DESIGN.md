@@ -476,8 +476,20 @@ preferable to a release tag that silently deploys nowhere.
 
 Each environment carries its own `HOST`, `USER` and `INSTALL_PATH`
 variables and `SSH_KEY` secret. `INSTALL_PATH` has no default and is
-rejected when empty: rsync with an empty destination would write to the
-deploy user's home root.
+rejected when empty (rsync with an empty destination would write to the
+deploy user's home root) or when it starts with `~` (rsync's remote path is
+expanded by a shell, but the restart step reads the path from a quoted
+variable where the tilde stays literal, so a tilde would upload correctly
+and then fail on `cd`).
+
+A deploy does two things: rsync, then `systemctl --user restart varasto`.
+Everything else -- building the frontend, migrating, `collectstatic`,
+`compilemessages` -- belongs to `start.sh`, which the unit runs on every
+start. Duplicating those steps in the deploy would mean handing CI the
+production `DJANGO_SECRET_KEY` and friends purely to repeat work the
+service is about to do anyway. The one thing the deploy adds is a copy of
+`varasto.sqlite3` before the restart, because that restart migrates and
+migrations do not roll back.
 
 The unit of deployment is the working tree, not the wheel that `publish.yml`
 builds. `BASE_DIR` is derived from the repo root
@@ -492,13 +504,12 @@ Two deliberate choices in that action:
 
 - **rsync without `--delete`.** Excludes protect the receiver, but a single
   mistake in the exclude list would destroy `varasto.sqlite3`, `.env` or
-  `media/` with no way back. The cost of omitting it is stale hashed asset
-  files, which are harmless -- `collectstatic` output is content-addressed.
+  `media/` with no way back. The cost of omitting it is stale build output,
+  which `start.sh` regenerates on the next start anyway.
 - **A backup before every `migrate`.** Taken through sqlite3's backup API
   rather than `cp`, which is not safe against the WAL journal mode the app
   runs in.
 
 Compiled translations (`locale/**/*.mo`) and the built frontend are
-gitignored, so they are absent from the checkout: CI builds both and rsync
-carries them across. The host is therefore not required to have `gettext` or
-Node installed.
+gitignored, so they never travel in the rsync -- `start.sh` produces both on
+the host, which therefore needs Node and `gettext` alongside Python.

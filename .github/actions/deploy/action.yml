@@ -1,7 +1,7 @@
 name: Deploy over SSH
 description: >-
-  Rsync the working tree plus built frontend and compiled translations to a
-  host, run migrations and collectstatic there, then restart the service.
+  Rsync the working tree to a host and restart the service, which builds and
+  migrates on start.
 
 inputs:
   host:
@@ -18,16 +18,6 @@ inputs:
       Install directory on the host. Required and checked for emptiness: an
       empty value would make rsync write to the user's home root.
     required: true
-  artifact_run_id:
-    description: >-
-      Workflow run holding the frontend-build artifact. Defaults to this run;
-      set it when the build happened in a separate run.
-    required: false
-    default: ""
-  github_token:
-    description: Token used to fetch the artifact when artifact_run_id is set.
-    required: false
-    default: ""
 
 runs:
   using: composite
@@ -59,27 +49,6 @@ runs:
                 exit 1 ;;
         esac
 
-    - uses: actions/setup-python@v6
-      with:
-        python-version: "3.11"
-        cache: pip
-
-    - uses: actions/download-artifact@v8
-      with:
-        name: frontend-build
-        path: src/kava_varasto/static/frontend
-        run-id: ${{ inputs.artifact_run_id || github.run_id }}
-        github-token: ${{ inputs.github_token || github.token }}
-
-    # locale/**/*.mo is gitignored, so it is absent from the checkout and is
-    # built here -- the target host is not assumed to have gettext.
-    - shell: bash
-      run: sudo apt-get update && sudo apt-get install -y gettext
-    - shell: bash
-      run: pip install -e .
-    - shell: bash
-      run: python manage.py compilemessages
-
     - name: Configure SSH
       shell: bash
       env:
@@ -94,7 +63,7 @@ runs:
 
     # No --delete: the excludes would protect the receiver, but one mistake in
     # that list takes out varasto.sqlite3, .env or media/ irrecoverably. The
-    # cost of leaving it off is stale hashed asset files, which are harmless.
+    # cost of leaving it off is stale build output, which start.sh rebuilds.
     - name: Upload files
       shell: bash
       env:
@@ -119,7 +88,11 @@ runs:
           --exclude '*.sqlite3-*' \
           ./ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
 
-    - name: Install, migrate and restart
+    # The unit runs start.sh, which builds the frontend, migrates, collects
+    # static files and compiles translations before exec'ing gunicorn -- so
+    # a restart is the whole deploy, and the environment it needs comes from
+    # the unit rather than from this session.
+    - name: Restart service
       shell: bash
       env:
         DEPLOY_HOST: ${{ inputs.host }}
@@ -137,20 +110,12 @@ runs:
         DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
         export XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS
 
-        export DJANGO_SETTINGS_MODULE=kava_varasto.settings.prod
-
         cd "$DEPLOY_PATH"
 
-        if [ ! -x .venv/bin/python ]; then
-          python3 -m venv .venv
-        fi
-        .venv/bin/pip install --upgrade pip
-        .venv/bin/pip install -e .
-
-        # Migrations are not reversible and the database is the whole app.
-        # sqlite3's backup API is WAL-safe, unlike cp.
+        # start.sh migrates on every start and migrations do not roll back,
+        # so take a copy first. sqlite3's backup API is WAL-safe, cp is not.
         if [ -f varasto.sqlite3 ]; then
-          .venv/bin/python - <<'BACKUP'
+          python3 - <<'BACKUP'
         import sqlite3
         import time
 
@@ -164,9 +129,6 @@ runs:
         print("backed up database to " + name)
         BACKUP
         fi
-
-        .venv/bin/python manage.py migrate --noinput
-        .venv/bin/python manage.py collectstatic --noinput
 
         systemctl --user restart varasto
         # status exits non-zero for a merely inactive unit, so log it and let

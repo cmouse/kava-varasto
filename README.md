@@ -228,11 +228,14 @@ credentials:
 - `SSH_KEY` — environment *secret*, a private key authorised for `USER` on
   `HOST`
 
-Both targets share the steps in `.github/actions/deploy`: rsync the tree
-(with the built frontend and compiled `.mo` files, which are gitignored and
-therefore built in CI), then over SSH install into `$INSTALL_PATH/.venv`,
-back up `varasto.sqlite3`, run `migrate` and `collectstatic`, and finally
-`systemctl --user restart varasto`.
+Both targets share the steps in `.github/actions/deploy`, and a deploy is
+deliberately just two things: rsync the tree to `INSTALL_PATH`, then
+`systemctl --user restart varasto`. The unit runs `start.sh`, which builds
+the frontend, migrates, collects static files and compiles translations
+before exec'ing gunicorn — so the restart *is* the deploy, and CI never
+needs the app's production environment. The one extra step is a copy of
+`varasto.sqlite3` taken before the restart, since `start.sh` migrates on
+every start and migrations do not roll back.
 
 The app is deployed as a checkout rather than as an installed wheel, because
 `BASE_DIR` is derived from the repo root — `templates/`, `locale/`,
@@ -248,10 +251,9 @@ CI:
 2. `loginctl enable-linger <user>`, so the user's systemd instance and
    `/run/user/<uid>` exist without an active login session. Without it the
    `systemctl --user restart` step fails.
-3. A `varasto` user unit running gunicorn (see above), and a `.env` file in
-   `INSTALL_PATH` with `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` and
-   friends — `.env` is never rsynced.
-4. `python3` 3.11 or newer with the venv module (on Debian/Ubuntu that's the
-   separate `python3-venv` package, without which `python3 -m venv` fails
-   with an `ensurepip is not available` message), plus outbound access to
-   PyPI so the deploy can install the dependencies.
+3. A `varasto` user unit running `start.sh`, carrying `DJANGO_SECRET_KEY`,
+   `DJANGO_ALLOWED_HOSTS` and the rest of the app's environment — the deploy
+   supplies none of it, and `.env` is never rsynced.
+4. Whatever `start.sh` itself needs: `python3` with the project installed,
+   Node for `npm ci && npm run build`, and `gettext` for
+   `compilemessages`.
