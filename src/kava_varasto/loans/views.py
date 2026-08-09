@@ -14,8 +14,12 @@ from rest_framework.views import APIView
 from kava_varasto.inventory.models import Equipment
 
 from .models import Loan, LoanItem
-from .serializers import LoanableEquipmentSerializer, LoanCreateSerializer, LoanReturnSerializer, LoanSerializer
-
+from .serializers import (
+    LoanableEquipmentSerializer,
+    LoanCreateSerializer,
+    LoanReturnSerializer,
+    LoanSerializer,
+)
 
 ARCHIVE_AFTER = timedelta(days=61)  # ~2 months
 
