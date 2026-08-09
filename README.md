@@ -219,10 +219,12 @@ version fails the run outright — the same rule `publish.yml` enforces.
 Each GitHub environment supplies the target's address, location and
 credentials:
 
-- `HOST`, `USER` and `INSTALL_PATH` — environment *variables*
-  (`INSTALL_PATH` is the deploy directory, absolute or relative to `USER`'s
-  home; it has no default, and an empty value fails the run rather than
-  writing to the home root)
+- `HOST`, `USER` and `INSTALL_PATH` — environment *variables*.
+  `INSTALL_PATH` is the deploy directory, either absolute or relative to
+  `USER`'s home (`varasto`, not `~/varasto` — a leading `~` is rejected,
+  because only some of the steps run it through a shell that would expand
+  it). It has no default, and an empty value fails the run rather than
+  writing to the home root.
 - `SSH_KEY` — environment *secret*, a private key authorised for `USER` on
   `HOST`
 

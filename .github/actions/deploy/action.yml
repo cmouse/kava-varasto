@@ -48,6 +48,17 @@ runs:
           fi
         done
 
+        # rsync's remote path is expanded by a shell and a tilde works
+        # there, but the remote script reads the path from a quoted
+        # variable where it stays literal -- the upload would land in the
+        # right place and the deploy would then fail on cd. Reject it up
+        # front: both ends start in the deploy user's home, so the path
+        # after the tilde already works on its own.
+        case "$DEPLOY_PATH" in
+          "~"*) echo "INSTALL_PATH must not start with ~: use ${DEPLOY_PATH#\~/} or an absolute path." >&2
+                exit 1 ;;
+        esac
+
     - uses: actions/setup-python@v6
       with:
         python-version: "3.11"
