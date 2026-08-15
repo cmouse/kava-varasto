@@ -18,6 +18,11 @@ inputs:
       Install directory on the host. Required and checked for emptiness: an
       empty value would make rsync write to the user's home root.
     required: true
+  environment:
+    description: >-
+      Deploy environment name; selects the templated unit instance
+      varasto@<environment>.
+    required: true
 
 runs:
   using: composite
@@ -29,11 +34,13 @@ runs:
         DEPLOY_USER: ${{ inputs.user }}
         DEPLOY_KEY: ${{ inputs.ssh_key }}
         DEPLOY_PATH: ${{ inputs.path }}
+        DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
       run: |
-        for name in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_KEY; do
+        for name in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_KEY DEPLOY_ENVIRONMENT; do
           if [ -z "${!name}" ]; then
             echo "$name is empty: set the HOST, USER and INSTALL_PATH" >&2
-            echo "variables and the SSH_KEY secret on this environment." >&2
+            echo "variables and the SSH_KEY secret on this environment," >&2
+            echo "and pass the environment name to the action." >&2
             exit 1
           fi
         done
@@ -98,10 +105,11 @@ runs:
         DEPLOY_HOST: ${{ inputs.host }}
         DEPLOY_USER: ${{ inputs.user }}
         DEPLOY_PATH: ${{ inputs.path }}
+        DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
       run: |
         ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
           "$DEPLOY_USER@$DEPLOY_HOST" \
-          "DEPLOY_PATH='$DEPLOY_PATH' bash -s" <<'REMOTE'
+          "DEPLOY_PATH='$DEPLOY_PATH' DEPLOY_ENVIRONMENT='$DEPLOY_ENVIRONMENT' bash -s" <<'REMOTE'
         set -eu
 
         # systemctl --user over a non-login SSH channel finds neither the
@@ -130,9 +138,10 @@ runs:
         BACKUP
         fi
 
-        systemctl --user restart varasto
+        unit="varasto@$DEPLOY_ENVIRONMENT"
+        systemctl --user restart "$unit"
         # status exits non-zero for a merely inactive unit, so log it and let
         # is-active decide whether the deploy succeeded.
-        systemctl --user --no-pager status varasto || true
-        systemctl --user is-active --quiet varasto
+        systemctl --user --no-pager status "$unit" || true
+        systemctl --user is-active --quiet "$unit"
         REMOTE

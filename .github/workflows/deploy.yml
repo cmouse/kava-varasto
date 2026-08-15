@@ -10,16 +10,18 @@ name: Deploy
 # resolve in the job that declares the environment, which is why the shared
 # steps live in .github/actions/deploy rather than in a reusable workflow.
 #
-# A deploy is an rsync plus `systemctl --user restart varasto`: the unit
-# runs start.sh, which builds the frontend, migrates, collects static files
-# and compiles translations before exec'ing gunicorn.
+# A deploy is an rsync plus `systemctl --user restart varasto@<environment>`:
+# the unit runs start.sh, which builds the frontend, migrates, collects static
+# files and compiles translations before exec'ing gunicorn.
 #
 # Host prerequisites (cannot be set up from CI):
 #   - USER's public key in ~/.ssh/authorized_keys on HOST
 #   - `loginctl enable-linger <user>` so the user's systemd instance and
 #     /run/user/<uid> exist without an active login session
-#   - a `varasto` user unit carrying DJANGO_SECRET_KEY,
-#     DJANGO_ALLOWED_HOSTS and the rest of the app's environment
+#   - a `varasto@.service` templated user unit, enabled for the instance
+#     named after the environment (varasto@staging, varasto@production),
+#     carrying DJANGO_SECRET_KEY, DJANGO_ALLOWED_HOSTS and the rest of the
+#     app's environment
 
 on:
   workflow_run:
@@ -99,6 +101,7 @@ jobs:
           user: ${{ vars.USER }}
           ssh_key: ${{ secrets.SSH_KEY }}
           path: ${{ vars.INSTALL_PATH }}
+          environment: staging
 
   production:
     needs: target
@@ -118,3 +121,4 @@ jobs:
           user: ${{ vars.USER }}
           ssh_key: ${{ secrets.SSH_KEY }}
           path: ${{ vars.INSTALL_PATH }}
+          environment: production

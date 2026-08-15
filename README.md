@@ -230,7 +230,8 @@ credentials:
 
 Both targets share the steps in `.github/actions/deploy`, and a deploy is
 deliberately just two things: rsync the tree to `INSTALL_PATH`, then
-`systemctl --user restart varasto`. The unit runs `start.sh`, which builds
+`systemctl --user restart varasto@<environment>` (`varasto@staging` or
+`varasto@production`). The unit runs `start.sh`, which builds
 the frontend, migrates, collects static files and compiles translations
 before exec'ing gunicorn — so the restart *is* the deploy, and CI never
 needs the app's production environment. The one extra step is a copy of
@@ -251,7 +252,9 @@ CI:
 2. `loginctl enable-linger <user>`, so the user's systemd instance and
    `/run/user/<uid>` exist without an active login session. Without it the
    `systemctl --user restart` step fails.
-3. A `varasto` user unit running `start.sh`, carrying `DJANGO_SECRET_KEY`,
+3. A `varasto@.service` templated user unit running `start.sh`, enabled for
+   the instance named after the environment (`varasto@staging`,
+   `varasto@production`), carrying `DJANGO_SECRET_KEY`,
    `DJANGO_ALLOWED_HOSTS` and the rest of the app's environment — the deploy
    supplies none of it, and `.env` is never rsynced.
 4. Whatever `start.sh` itself needs: `python3` with the project installed,

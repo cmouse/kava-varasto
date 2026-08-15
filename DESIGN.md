@@ -482,7 +482,10 @@ expanded by a shell, but the restart step reads the path from a quoted
 variable where the tilde stays literal, so a tilde would upload correctly
 and then fail on `cd`).
 
-A deploy does two things: rsync, then `systemctl --user restart varasto`.
+A deploy does two things: rsync, then `systemctl --user restart
+varasto@<environment>` -- a templated unit instance, so staging and
+production run side by side on one host under `varasto@staging` and
+`varasto@production`.
 Everything else -- building the frontend, migrating, `collectstatic`,
 `compilemessages` -- belongs to `start.sh`, which the unit runs on every
 start. Duplicating those steps in the deploy would mean handing CI the
