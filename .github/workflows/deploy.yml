@@ -55,7 +55,7 @@ jobs:
         env:
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
-          tag=$(git tag --list 'v*.*.*' --points-at HEAD | head -n 1)
+          tag=$(git tag --list '*.*.*' --points-at HEAD | head -n 1)
 
           # A release tag must match the packaged version, the same rule
           # publish.yml enforces -- fail loudly rather than deploying a
