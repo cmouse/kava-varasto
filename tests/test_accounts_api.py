@@ -195,6 +195,8 @@ def test_flagged_user_cannot_use_the_api_until_password_is_changed(client, djang
 
     assert client.get("/api/inventory/equipment/").status_code == 403
     assert client.get("/api/loans/").status_code == 403
+    # /me/ stays open on purpose: it is how the SPA learns about the flag.
+    assert client.get("/api/accounts/me/").json()["user"]["must_change_password"] is True
 
     response = client.post(
         "/api/accounts/change-password/",
@@ -375,3 +377,15 @@ def test_throttle_counters_survive_cache_pressure(client, django_user_model, set
         HTTP_X_FORWARDED_FOR="203.0.113.5",
     )
     assert response.status_code == 429
+
+
+@pytest.mark.django_db
+def test_anonymous_api_request_is_denied_not_broken(client):
+    # IsAuthenticatedAndPasswordCurrent must short-circuit on IsAuthenticated
+    # before reading must_change_password: AnonymousUser has no such attribute,
+    # so folding the two checks into one expression turns every unauthenticated
+    # request into a 500.
+    response = client.get("/api/inventory/equipment/")
+
+    assert response.status_code == 403
+    assert response.json()["detail"]
