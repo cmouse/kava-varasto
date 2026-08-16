@@ -23,7 +23,9 @@ class ForcePasswordChangeMiddleware:
     def __call__(self, request):
         # Test the path first: request.user is lazy, and touching it costs a
         # session read plus a user query on every SPA page load and every 404,
-        # none of which this middleware has any opinion about.
+        # none of which this middleware has any opinion about. The trade is two
+        # reverse() calls on every request instead -- cached resolver lookups,
+        # no I/O.
         #
         # reverse() carries FORCE_SCRIPT_NAME and so does request.path, so
         # these compare correctly under sub-path mounting.
