@@ -158,7 +158,8 @@ a `SerializerMethodField` (`obj.image.image.url` or `null`) rather than DRF's
 default request-absolute URL: `MEDIA_URL = f"{SCRIPT_NAME}/media/"`
 already bakes in the sub-path prefix, and an absolute URL would be
 fragile behind the reverse proxy. The SPA uses the value as-is -- never
-prepend `window.SCRIPT_NAME` or hardcode `/media/`.
+prepend the mount point (`frontend/src/utils/scriptName.js`) or hardcode
+`/media/`.
 
 Clicking an equipment row on the Storage view opens
 `frontend/src/components/EquipmentDetailModal.jsx`: the image (or a
@@ -446,6 +447,27 @@ per process, so N gunicorn workers mean an effective N x 10/min. That is a
 bound where there was none, without a cache server to run or a new state
 directory for the deploy rsync to protect. Swap in a shared backend if the
 worker count ever makes the multiple matter.
+
+Handing the mount point to the SPA
+----------------------------------
+
+`kava_varasto.views.spa` passes `request.META["SCRIPT_NAME"]` into
+`templates/spa.html`, which renders it as `data-script-name` on the `#root`
+div. `frontend/src/utils/scriptName.js` reads it once and exports it; the
+three consumers are the axios `baseURL` (`api/client.js`), the router
+`basename` (`App.jsx`) and the `/i18n/setlang/` form action
+(`LanguageSwitcher.jsx`).
+
+It used to be an inline `<script>` setting `window.SCRIPT_NAME`. A data
+attribute instead, because a Content-Security-Policy would otherwise need a
+`sha256-` allowance for that inline block -- and the hash covers the
+interpolated prefix, so `/varasto` and a root-mounted deployment would need
+different policies. Reading the value from the DOM keeps `script-src 'self'`
+correct at every mount point, and `tests/test_spa.py` asserts the shell
+carries no inline script at all so it cannot creep back.
+
+The Vite dev server serves its own `frontend/index.html` with an empty
+`data-script-name`, matching a root mount.
 
 API renderers
 -------------
