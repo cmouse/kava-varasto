@@ -265,3 +265,11 @@ msgstr ""
 #: src/kava_varasto/loans/views.py:56
 msgid "This loan has already been returned."
 msgstr "Tämä laina on jo palautettu."
+
+#: src/kava_varasto/accounts/middleware.py:71
+msgid "Too many login attempts. Try again later."
+msgstr "Liikaa kirjautumisyrityksiä. Yritä myöhemmin uudelleen."
+
+#: src/kava_varasto/accounts/permissions.py:21
+msgid "Password change required."
+msgstr "Salasana on vaihdettava."
