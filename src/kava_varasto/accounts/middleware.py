@@ -45,22 +45,34 @@ class AdminLoginThrottleMiddleware:
     admin login is a second unthrottled credential endpoint on the same
     accounts. It is a plain Django view, so apply the same throttle -- and the
     same counter, since the two forms guess the same passwords -- here.
+
+    The check lives in process_view rather than in the request phase so that
+    CsrfViewMiddleware.process_view runs first: counted in the request phase,
+    ten CSRF-less junk POSTs from anyone at all would spend an address's whole
+    budget without ever submitting a credential, which locks out everyone
+    behind that address (a NAT, an office) for the window.
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.method == "POST" and request.path == reverse("admin:login"):
-            throttle = LoginRateThrottle()
-            if not throttle.allow_request(request, None):
-                response = HttpResponse(
-                    _("Too many login attempts. Try again later."),
-                    content_type="text/plain; charset=utf-8",
-                    status=429,
-                )
-                wait = throttle.wait()
-                if wait is not None:
-                    response.headers["Retry-After"] = str(int(wait) + 1)
-                return response
         return self.get_response(request)
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if request.method != "POST" or request.path != reverse("admin:login"):
+            return None
+
+        throttle = LoginRateThrottle()
+        if throttle.allow_request(request, None):
+            return None
+
+        response = HttpResponse(
+            _("Too many login attempts. Try again later."),
+            content_type="text/plain; charset=utf-8",
+            status=429,
+        )
+        wait = throttle.wait()
+        if wait is not None:
+            response.headers["Retry-After"] = str(int(wait) + 1)
+        return response

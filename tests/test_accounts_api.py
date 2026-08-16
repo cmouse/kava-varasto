@@ -291,3 +291,23 @@ def test_both_login_forms_share_one_throttle_budget(client, django_user_model):
         )
 
     assert client.post(reverse("admin:login"), {"username": "root", "password": "wrong"}).status_code == 429
+
+
+@pytest.mark.django_db
+def test_csrf_rejected_admin_posts_do_not_spend_the_login_budget(django_user_model):
+    # Counted in the request phase, ten junk POSTs from a passer-by would lock
+    # out every real user behind the same address without ever guessing a
+    # password. CsrfViewMiddleware has to reject them first.
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    csrf_client = Client(enforce_csrf_checks=True)
+
+    for _ in range(10):
+        response = csrf_client.post(reverse("admin:login"), {"username": "zz", "password": "zz"})
+        assert response.status_code == 403
+
+    response = Client().post(
+        "/api/accounts/login/",
+        {"username": "alice", "password": "s3cret-pw"},
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.content
