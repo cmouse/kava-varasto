@@ -40,3 +40,20 @@ def test_admin_login_prefixed_under_script_name(client):
     assert response.status_code == 200
     assert b'action="/varasto/admin/login/"' in response.content
     assert b"/varasto/static/" in response.content
+
+
+@pytest.mark.django_db
+def test_forced_password_change_redirect_is_prefixed(client, django_user_model):
+    # ForcePasswordChangeMiddleware builds its target from reverse("spa"),
+    # so the redirect has to land inside the mount point -- a bare
+    # /account/password would leave the app entirely under a sub-path.
+    django_user_model.objects.create_superuser(
+        username="root", password="s3cret-pw", must_change_password=True
+    )
+    client.login(username="root", password="s3cret-pw")
+
+    with script_name("/varasto/", FORCE_SCRIPT_NAME="/varasto", STATIC_URL="/varasto/static/"):
+        response = client.get("/admin/")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/varasto/account/password"
