@@ -21,13 +21,19 @@ class ForcePasswordChangeMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        user = getattr(request, "user", None)
-        if user is not None and user.is_authenticated and user.must_change_password:
-            # reverse() carries FORCE_SCRIPT_NAME, request.path carries the
-            # same prefix, so these compare correctly under sub-path mounting.
-            if request.path.startswith(reverse("admin:index")) and not request.path.startswith(
-                reverse("admin:logout")
-            ):
+        # Test the path first: request.user is lazy, and touching it costs a
+        # session read plus a user query on every SPA page load and every 404,
+        # none of which this middleware has any opinion about.
+        #
+        # reverse() carries FORCE_SCRIPT_NAME and so does request.path, so
+        # these compare correctly under sub-path mounting.
+        if request.path.startswith(reverse("admin:index")) and not request.path.startswith(
+            reverse("admin:logout")
+        ):
+            # Not getattr(): if this ever ends up above AuthenticationMiddleware
+            # the gate should crash, not silently wave everyone through.
+            user = request.user
+            if user.is_authenticated and user.must_change_password:
                 return redirect(reverse("spa") + "account/password")
         return self.get_response(request)
 
