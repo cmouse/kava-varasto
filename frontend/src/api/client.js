@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const scriptName = typeof window !== "undefined" ? window.SCRIPT_NAME || "" : "";
+import scriptName from "../utils/scriptName";
 
 const apiClient = axios.create({
   baseURL: `${scriptName}/api/`,

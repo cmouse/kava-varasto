@@ -10,10 +10,8 @@
     {% endfor %}
   </head>
   <body>
-    <div id="root"></div>
-    <script>
-      window.SCRIPT_NAME = "{{ script_name|escapejs }}";
-    </script>
+    {# Mount point as data, not as an inline script: see frontend/src/utils/scriptName.js #}
+    <div id="root" data-script-name="{{ script_name }}"></div>
     <script type="module" src="{% vite_asset 'index.html' %}"></script>
   </body>
 </html>

@@ -1,6 +1,5 @@
 import { getCookie } from "../api/cookies";
-
-const scriptName = typeof window !== "undefined" ? window.SCRIPT_NAME || "" : "";
+import scriptName from "../utils/scriptName";
 
 function LanguageSwitcher() {
   return (

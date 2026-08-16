@@ -7,10 +7,9 @@
     <title>Kava-varasto</title>
   </head>
   <body>
-    <div id="root"></div>
-    <script>
-      window.SCRIPT_NAME = "";
-    </script>
+    <!-- The Vite dev server always serves from the root; Django's spa.html fills
+         this in for a sub-path deployment. -->
+    <div id="root" data-script-name=""></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

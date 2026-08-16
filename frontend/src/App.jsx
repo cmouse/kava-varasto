@@ -9,9 +9,9 @@ import LoanList from "./pages/LoanList";
 import LoanNew from "./pages/LoanNew";
 import LoanReturn from "./pages/LoanReturn";
 import Storage from "./pages/Storage";
+import scriptName from "./utils/scriptName";
 
 const queryClient = new QueryClient();
-const scriptName = typeof window !== "undefined" ? window.SCRIPT_NAME || "" : "";
 
 function App() {
   return (
