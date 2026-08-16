@@ -113,6 +113,12 @@ location /varasto/static/ {
     alias /path/to/kava-varasto/staticfiles/;
 }
 
+# MEDIA_ROOT: equipment photos uploaded through the admin. Serve it as
+# plain files only -- no directory index, no scripting handler.
+location /varasto/media/ {
+    alias /path/to/kava-varasto/media/;
+}
+
 location /varasto/ {
     proxy_pass http://127.0.0.1:8000/;
     proxy_set_header Host $host;
