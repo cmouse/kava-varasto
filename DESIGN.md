@@ -420,6 +420,11 @@ and `AdminLoginThrottleMiddleware` applies the same class to `POST
 /admin/login/`, which is a plain Django view DRF never sees, returning 429
 with `Retry-After`.
 
+Every attempt counts, successes included. Counting only failures would let
+an attacker reset the budget by interleaving one valid login, and the cost
+of counting all of them is that ten admin logins in a minute during a
+debugging session cost a minute's wait.
+
 The client address comes from `X-Forwarded-For` behind the proxy, which is
 client-supplied; `REST_FRAMEWORK["NUM_PROXIES"]` (`DJANGO_NUM_PROXIES`,
 default 1) tells DRF how far down that chain to trust, so a client can't
