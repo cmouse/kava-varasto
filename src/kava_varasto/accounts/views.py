@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import ChangePasswordSerializer, UserSerializer
+from .throttling import LoginRateThrottle
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
@@ -21,6 +22,7 @@ class CurrentUserView(APIView):
 @method_decorator(csrf_protect, name="dispatch")
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
         username = request.data.get("username", "")

@@ -1,5 +1,5 @@
 from .base import *  # noqa: F403
-from .base import env
+from .base import REST_FRAMEWORK, env
 
 DEBUG = False
 
@@ -12,6 +12,17 @@ CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
 # Trust the reverse proxy's forwarded headers (see README.md for the nginx recipe).
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# How many proxies append to X-Forwarded-For between the client and gunicorn.
+# The login throttle buckets on the address this picks out of that chain, so
+# getting it wrong either shares one bucket between every client (too low, if
+# the proxy hides them) or lets a client mint a fresh bucket per request by
+# prepending its own X-Forwarded-For (too high). One reverse proxy is the
+# documented deployment; env-configurable so a CDN in front is a config change.
+REST_FRAMEWORK = {
+    **REST_FRAMEWORK,
+    "NUM_PROXIES": env.int("DJANGO_NUM_PROXIES", default=1),
+}
 
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True

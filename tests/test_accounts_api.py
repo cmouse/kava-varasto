@@ -242,3 +242,52 @@ def test_flagged_staff_user_can_still_reach_admin_logout(client, django_user_mod
 
     assert response.status_code == 200
     assert client.get("/api/accounts/me/").json()["authenticated"] is False
+
+
+@pytest.mark.django_db
+def test_api_login_is_rate_limited(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+
+    for _ in range(10):
+        response = client.post(
+            "/api/accounts/login/",
+            {"username": "alice", "password": "wrong"},
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+
+    response = client.post(
+        "/api/accounts/login/",
+        {"username": "alice", "password": "s3cret-pw"},
+        content_type="application/json",
+    )
+    assert response.status_code == 429
+
+
+@pytest.mark.django_db
+def test_admin_login_is_rate_limited(client, django_user_model):
+    django_user_model.objects.create_superuser(username="root", password="s3cret-pw")
+    url = reverse("admin:login")
+
+    for _ in range(10):
+        assert client.post(url, {"username": "root", "password": "wrong"}).status_code == 200
+
+    response = client.post(url, {"username": "root", "password": "s3cret-pw"})
+    assert response.status_code == 429
+    assert "Retry-After" in response.headers
+
+
+@pytest.mark.django_db
+def test_both_login_forms_share_one_throttle_budget(client, django_user_model):
+    # Same passwords, same accounts -- guessing at one form must spend the
+    # other's budget too, or the limit is trivially doubled.
+    django_user_model.objects.create_superuser(username="root", password="s3cret-pw")
+
+    for _ in range(10):
+        client.post(
+            "/api/accounts/login/",
+            {"username": "root", "password": "wrong"},
+            content_type="application/json",
+        )
+
+    assert client.post(reverse("admin:login"), {"username": "root", "password": "wrong"}).status_code == 429

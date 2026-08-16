@@ -80,6 +80,7 @@ root (WAL journal mode, `busy_timeout=5000`, immediate transactions).
 | `DJANGO_ALLOWED_HOSTS` | comma-separated allowed hosts | `*` (dev), required (prod) |
 | `DJANGO_FORCE_SCRIPT_NAME` | sub-path this app is mounted under, e.g. `/varasto` (no trailing slash) | unset (serve from domain root) |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | comma-separated trusted origins, e.g. `https://webhost` | unset (prod only) |
+| `DJANGO_NUM_PROXIES` | reverse proxies in front of gunicorn; picks the client address the login throttle counts | `1` (prod only) |
 
 ### Generating a SECRET_KEY
 

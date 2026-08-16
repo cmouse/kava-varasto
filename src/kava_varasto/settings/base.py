@@ -38,6 +38,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "kava_varasto.accounts.middleware.ForcePasswordChangeMiddleware",
+    "kava_varasto.accounts.middleware.AdminLoginThrottleMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -138,4 +139,18 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "kava_varasto.accounts.permissions.IsAuthenticatedAndPasswordCurrent",
     ],
+    # Applied to LoginView and, through AdminLoginThrottleMiddleware, to the
+    # admin's login form -- the app's only two credential endpoints.
+    "DEFAULT_THROTTLE_RATES": {"login": "10/min"},
+}
+
+# Only the login throttle uses the cache. LocMemCache is per process, so with
+# N gunicorn workers the effective cap is N x the rate above -- still a bound
+# where there was none, and cheap enough that no shared cache server (or new
+# state directory for the deploy rsync to worry about) has to exist for it.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "kava-varasto",
+    },
 }

@@ -1,5 +1,17 @@
 import pytest
+from django.core.cache import cache
 from django.urls import set_script_prefix
+
+
+@pytest.fixture(autouse=True)
+def _reset_throttle_counters():
+    """The login throttle counts per client address in the process-global
+    cache, which the test database rollback doesn't touch -- without this,
+    every test that logs in spends the same 10/min budget and the suite
+    starts failing on ordering."""
+    cache.clear()
+    yield
+    cache.clear()
 
 
 @pytest.fixture(autouse=True)

@@ -405,6 +405,32 @@ Without this an account would keep working access forever on the password
 its issuing admin picked -- the flag would announce the debt without
 collecting it.
 
+Login rate limiting
+-------------------
+
+Neither DRF nor the Django admin throttles logins by default, and this app
+has exactly one trust tier: a guessed staff password is the whole ledger
+plus the admin. `LoginRateThrottle` (`accounts/throttling.py`) caps
+credential guesses at `REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["login"]`
+(10/min) per client address.
+
+Both credential endpoints share that one counter, because they guess the
+same passwords: DRF applies it to `LoginView` through `throttle_classes`,
+and `AdminLoginThrottleMiddleware` applies the same class to `POST
+/admin/login/`, which is a plain Django view DRF never sees, returning 429
+with `Retry-After`.
+
+The client address comes from `X-Forwarded-For` behind the proxy, which is
+client-supplied; `REST_FRAMEWORK["NUM_PROXIES"]` (`DJANGO_NUM_PROXIES`,
+default 1) tells DRF how far down that chain to trust, so a client can't
+prepend a value and mint itself a fresh bucket per request.
+
+The counter lives in `CACHES["default"]`, deliberately `LocMemCache`: it is
+per process, so N gunicorn workers mean an effective N x 10/min. That is a
+bound where there was none, without a cache server to run or a new state
+directory for the deploy rsync to protect. Swap in a shared backend if the
+worker count ever makes the multiple matter.
+
 Borrower name/phone autofill
 -----------------------------
 
