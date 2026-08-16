@@ -181,3 +181,64 @@ def test_admin_reset_password_sets_must_change_password(admin_client, django_use
 
     user.refresh_from_db()
     assert user.must_change_password is True
+
+
+@pytest.mark.django_db
+def test_flagged_user_cannot_use_the_api_until_password_is_changed(client, django_user_model):
+    # The SPA gate (Layout.jsx) is a rendering decision; the session itself
+    # must be refused by the server until the issued password is rotated.
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw", must_change_password=True)
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    assert client.get("/api/inventory/equipment/").status_code == 403
+    assert client.get("/api/loans/").status_code == 403
+
+    response = client.post(
+        "/api/accounts/change-password/",
+        {"current_password": "s3cret-pw", "new_password": "Str0ngP@ssw0rd!"},
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.json()
+
+    assert client.get("/api/inventory/equipment/").status_code == 200
+
+
+@pytest.mark.django_db
+def test_flagged_user_can_still_log_out(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw", must_change_password=True)
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    assert client.post("/api/accounts/logout/", content_type="application/json").status_code == 204
+
+
+@pytest.mark.django_db
+def test_flagged_staff_user_is_redirected_out_of_the_admin(client, django_user_model):
+    # The admin is a second way into the same data and has no notion of the
+    # flag, so the middleware has to send these sessions to the SPA form.
+    django_user_model.objects.create_superuser(
+        username="root", password="s3cret-pw", must_change_password=True
+    )
+    client.login(username="root", password="s3cret-pw")
+
+    response = client.get(reverse("admin:index"))
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/account/password"
+
+
+@pytest.mark.django_db
+def test_flagged_staff_user_can_still_reach_admin_logout(client, django_user_model):
+    django_user_model.objects.create_superuser(
+        username="root", password="s3cret-pw", must_change_password=True
+    )
+    client.login(username="root", password="s3cret-pw")
+
+    # Django's admin logout is POST-only.
+    response = client.post(reverse("admin:logout"))
+
+    assert response.status_code == 200
+    assert client.get("/api/accounts/me/").json()["authenticated"] is False

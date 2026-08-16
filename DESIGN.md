@@ -382,9 +382,28 @@ touches these admin forms, so the bootstrap superuser is never gated.
 `Layout.jsx` centralizes the frontend gate: when the logged-in user's
 `must_change_password` is true, it renders `<ChangePasswordForm forced />`
 in place of `<Outlet/>` (navbar/logout stay usable) rather than repeating
-the per-page auth-guard pattern used elsewhere. This is a frontend-only
-gate -- the API itself doesn't block other endpoints for a flagged user,
-an accepted tradeoff at this app's few-trusted-staff scale.
+the per-page auth-guard pattern used elsewhere.
+
+That gate is UX only -- a rendering decision the session can ignore by
+calling the API directly -- so the flag is enforced server-side in two
+places, one per way into the data:
+
+- `IsAuthenticatedAndPasswordCurrent` (`accounts/permissions.py`) is the
+  project's `DEFAULT_PERMISSION_CLASSES`, so every DRF view denies a flagged
+  user with 403. `LoginView`/`CurrentUserView` (`AllowAny`) and
+  `LogoutView`/`ChangePasswordView` (plain `IsAuthenticated`) are the
+  deliberate exceptions: they are exactly the endpoints needed to clear the
+  flag or get out.
+- `ForcePasswordChangeMiddleware` (`accounts/middleware.py`) redirects a
+  flagged session away from `/admin/` to the SPA's change-password screen,
+  since the Django admin is a second complete way into the same data and
+  knows nothing about the flag. Admin logout is exempt so a redirected user
+  isn't stuck; the admin's own password-change form is not exempt, because
+  it wouldn't clear the flag and would loop.
+
+Without this an account would keep working access forever on the password
+its issuing admin picked -- the flag would announce the debt without
+collecting it.
 
 Borrower name/phone autofill
 -----------------------------
