@@ -425,10 +425,21 @@ an attacker reset the budget by interleaving one valid login, and the cost
 of counting all of them is that ten admin logins in a minute during a
 debugging session cost a minute's wait.
 
-The client address comes from `X-Forwarded-For` behind the proxy, which is
-client-supplied; `REST_FRAMEWORK["NUM_PROXIES"]` (`DJANGO_NUM_PROXIES`,
-default 1) tells DRF how far down that chain to trust, so a client can't
-prepend a value and mint itself a fresh bucket per request.
+Behind a proxy the client address comes from `X-Forwarded-For`, and the
+whole header is client-supplied. `REST_FRAMEWORK["NUM_PROXIES"]`
+(`DJANGO_NUM_PROXIES`, default 1) tells DRF how many entries at the *end*
+of that chain its own proxies appended: at 1 it counts `addrs[-1]`, so
+whatever the client prepended is ignored.
+
+That only holds if the proxy really does append. DRF does not verify it --
+if the proxy forwards the client's header untouched, `addrs[-1]` is a value
+the client chose, and it can both mint a fresh bucket per guess and lock
+out any address it names. **The proxy must set `X-Forwarded-For`**: Apache
+mod_proxy appends by default, nginx does not (`proxy_set_header
+X-Forwarded-For $proxy_add_x_forwarded_for;` -- see README.md). Set
+`DJANGO_NUM_PROXIES` to the real number of appending hops if a CDN or a
+second proxy is added; leaving it blank in `.env` is a boot failure, not a
+default.
 
 The counter lives in `CACHES["default"]`, deliberately `LocMemCache`: it is
 per process, so N gunicorn workers mean an effective N x 10/min. That is a

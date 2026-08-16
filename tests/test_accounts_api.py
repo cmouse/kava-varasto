@@ -311,3 +311,38 @@ def test_csrf_rejected_admin_posts_do_not_spend_the_login_budget(django_user_mod
         content_type="application/json",
     )
     assert response.status_code == 200, response.content
+
+
+@pytest.mark.django_db
+def test_throttle_buckets_on_the_last_forwarded_address(client, django_user_model, settings):
+    # NUM_PROXIES=1 (the production value) means DRF counts X-Forwarded-For's
+    # last entry -- the one this deployment's own proxy appended. Whatever the
+    # client prepended must not open a second bucket.
+    settings.REST_FRAMEWORK = {**settings.REST_FRAMEWORK, "NUM_PROXIES": 1}
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+
+    for i in range(10):
+        response = client.post(
+            "/api/accounts/login/",
+            {"username": "alice", "password": "wrong"},
+            content_type="application/json",
+            HTTP_X_FORWARDED_FOR=f"10.0.0.{i}, 203.0.113.5",
+        )
+        assert response.status_code == 400
+
+    spoofed = client.post(
+        "/api/accounts/login/",
+        {"username": "alice", "password": "s3cret-pw"},
+        content_type="application/json",
+        HTTP_X_FORWARDED_FOR="10.0.0.99, 203.0.113.5",
+    )
+    assert spoofed.status_code == 429
+
+    # A genuinely different client -- different last entry -- keeps its own budget.
+    other = client.post(
+        "/api/accounts/login/",
+        {"username": "alice", "password": "s3cret-pw"},
+        content_type="application/json",
+        HTTP_X_FORWARDED_FOR="10.0.0.99, 203.0.113.6",
+    )
+    assert other.status_code == 200

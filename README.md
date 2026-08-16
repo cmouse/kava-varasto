@@ -118,8 +118,15 @@ location /varasto/ {
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 }
 ```
+
+`X-Forwarded-For` is not optional: the login throttle buckets on the last
+entry of that header (`DJANGO_NUM_PROXIES`), and nginx forwards whatever
+the client sent unless this directive appends the real address. Without it
+a client picks its own throttle bucket. Apache's `mod_proxy` appends on its
+own, so an Apache front end needs nothing extra here.
 
 gunicorn never serves static files itself (that's true regardless of
 sub-path mounting), so nginx must serve `STATIC_ROOT` directly — build the
