@@ -22,6 +22,11 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 REST_FRAMEWORK = {
     **REST_FRAMEWORK,
     "NUM_PROXIES": env.int("DJANGO_NUM_PROXIES", default=1),
+    # The SPA only ever consumes JSON. DRF's default renderer list also
+    # carries BrowsableAPIRenderer, which serves an HTML API console (and an
+    # HTML 403 naming the endpoint) to anyone who asks with Accept: text/html
+    # -- surface with no consumer in production.
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
 }
 
 SECURE_HSTS_SECONDS = 31536000

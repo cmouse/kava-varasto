@@ -431,6 +431,16 @@ bound where there was none, without a cache server to run or a new state
 directory for the deploy rsync to protect. Swap in a shared backend if the
 worker count ever makes the multiple matter.
 
+API renderers
+-------------
+
+`settings/prod.py` narrows `DEFAULT_RENDERER_CLASSES` to `JSONRenderer`.
+DRF's default list also carries `BrowsableAPIRenderer`, which answers any
+`Accept: text/html` request -- including an anonymous one -- with an HTML
+API console naming the endpoint and offering its methods. The SPA speaks
+only JSON, so in production that renderer has no consumer, just surface.
+It stays enabled under the dev settings, where it is useful.
+
 Borrower name/phone autofill
 -----------------------------
 
