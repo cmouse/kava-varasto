@@ -95,6 +95,10 @@ location /varasto/ {
 - `X-Forwarded-For` is required: the login throttle buckets on its last entry,
   and nginx forwards the client's own header unless this directive appends the
   real address. Apache's `mod_proxy` appends by default.
+- Under Apache, do **not** set `X-Forwarded-Host` yourself: `mod_proxy` already
+  adds it, and a `RequestHeader set` on top produces two values, which Django
+  rejects as an invalid host — every request 400s. `RequestHeader unset
+  X-Forwarded-Host early` if the client's own value needs discarding.
 
 Host prerequisites for the automated deploy (see `DEVELOPMENT.md`): SSH key in
 `~/.ssh/authorized_keys`, `loginctl enable-linger <user>`, and a
