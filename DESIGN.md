@@ -457,6 +457,11 @@ API console naming the endpoint and offering its methods. The SPA speaks
 only JSON, so in production that renderer has no consumer, just surface.
 It stays enabled under the dev settings, where it is useful.
 
+One consequence worth knowing when debugging production by hand: a request
+asking for exactly `Accept: text/html` now gets 406, which masks the status
+it would otherwise have returned (a 403 or a 404 reads as 406). Browsers and
+`curl`'s default `*/*` are unaffected -- they negotiate to JSON.
+
 Borrower name/phone autofill
 -----------------------------
 
