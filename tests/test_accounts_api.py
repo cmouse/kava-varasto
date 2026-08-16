@@ -1,4 +1,5 @@
 import pytest
+from django.core.cache import cache
 from django.test import Client
 from django.urls import reverse
 
@@ -346,3 +347,31 @@ def test_throttle_buckets_on_the_last_forwarded_address(client, django_user_mode
         HTTP_X_FORWARDED_FOR="10.0.0.99, 203.0.113.6",
     )
     assert other.status_code == 200
+
+
+@pytest.mark.django_db
+def test_throttle_counters_survive_cache_pressure(client, django_user_model, settings):
+    # LocMemCache's default MAX_ENTRIES of 300 would cull a third of the cache
+    # once it filled, and throttle counters are the only thing in it -- a few
+    # hundred distinct addresses would hand a spent bucket a fresh budget.
+    settings.REST_FRAMEWORK = {**settings.REST_FRAMEWORK, "NUM_PROXIES": 1}
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+
+    for _ in range(10):
+        client.post(
+            "/api/accounts/login/",
+            {"username": "alice", "password": "wrong"},
+            content_type="application/json",
+            HTTP_X_FORWARDED_FOR="203.0.113.5",
+        )
+
+    for i in range(400):
+        cache.set(f"throttle-pressure-{i}", i, 60)
+
+    response = client.post(
+        "/api/accounts/login/",
+        {"username": "alice", "password": "s3cret-pw"},
+        content_type="application/json",
+        HTTP_X_FORWARDED_FOR="203.0.113.5",
+    )
+    assert response.status_code == 429

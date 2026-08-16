@@ -148,9 +148,16 @@ REST_FRAMEWORK = {
 # N gunicorn workers the effective cap is N x the rate above -- still a bound
 # where there was none, and cheap enough that no shared cache server (or new
 # state directory for the deploy rsync to worry about) has to exist for it.
+#
+# This is Django's own default backend, restated so the throttle's storage is
+# visible at the settings level and a swap has an obvious home. MAX_ENTRIES is
+# not: the default 300 culls a third of the cache whenever it fills, and since
+# throttle counters are the only entries, ~300 distinct addresses (an IPv6 /64,
+# or a busy afternoon) would quietly reset someone's budget mid-attack.
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         "LOCATION": "kava-varasto",
+        "OPTIONS": {"MAX_ENTRIES": 50000},
     },
 }
