@@ -57,3 +57,19 @@ def test_forced_password_change_redirect_is_prefixed(client, django_user_model):
 
     assert response.status_code == 302
     assert response.headers["Location"] == "/varasto/account/password"
+
+
+@pytest.mark.django_db
+def test_admin_login_throttle_matches_the_prefixed_path(client, django_user_model):
+    # AdminLoginThrottleMiddleware compares request.path against
+    # reverse("admin:login"); both carry the prefix, so a sub-path deployment
+    # must be throttled exactly like a root one.
+    django_user_model.objects.create_superuser(username="root", password="s3cret-pw")
+
+    with script_name("/varasto/", FORCE_SCRIPT_NAME="/varasto", STATIC_URL="/varasto/static/"):
+        for _ in range(10):
+            assert client.post("/admin/login/", {"username": "root", "password": "wrong"}).status_code == 200
+
+        response = client.post("/admin/login/", {"username": "root", "password": "s3cret-pw"})
+
+    assert response.status_code == 429
