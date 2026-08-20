@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kava-varasto\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 11:26+0300\n"
+"POT-Creation-Date: 2026-08-20 11:18+0300\n"
 "PO-Revision-Date: 2026-07-07 18:30+0300\n"
 "Last-Translator: Karhunvartijat ry\n"
 "Language-Team: English\n"
@@ -19,8 +19,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/kava_varasto/accounts/admin.py:34
+#: src/kava_varasto/accounts/admin.py:36
 msgid "Password policy"
+msgstr ""
+
+#: src/kava_varasto/accounts/middleware.py:73
+msgid "Too many login attempts. Try again later."
 msgstr ""
 
 #: src/kava_varasto/accounts/models.py:8
@@ -33,21 +37,30 @@ msgid ""
 "when an admin creates the account or resets its password."
 msgstr ""
 
+#: src/kava_varasto/accounts/permissions.py:20
+msgid "Password change required."
+msgstr ""
+
 #: src/kava_varasto/accounts/serializers.py:21
 msgid "Current password is incorrect."
 msgstr ""
 
-#: src/kava_varasto/inventory/admin.py:28
+#: src/kava_varasto/inventory/admin.py:20
+msgid "preview"
+msgstr ""
+
+#: src/kava_varasto/inventory/admin.py:42
 msgid "available quantity"
 msgstr ""
 
 #: src/kava_varasto/inventory/models.py:7
 #: src/kava_varasto/inventory/models.py:19
+#: src/kava_varasto/inventory/models.py:33
 msgid "name"
 msgstr ""
 
 #: src/kava_varasto/inventory/models.py:10
-#: src/kava_varasto/inventory/models.py:41
+#: src/kava_varasto/inventory/models.py:55
 msgid "category"
 msgstr ""
 
@@ -55,52 +68,73 @@ msgstr ""
 msgid "categories"
 msgstr ""
 
+#: src/kava_varasto/inventory/models.py:20
+#: src/kava_varasto/inventory/models.py:75
+msgid "image"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:21
+msgid "uploaded at"
+msgstr ""
+
 #: src/kava_varasto/inventory/models.py:24
+msgid "equipment image"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:25
+msgid "equipment images"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:38
 msgid "short code"
 msgstr ""
 
-#: src/kava_varasto/inventory/models.py:29
+#: src/kava_varasto/inventory/models.py:43
 msgid ""
 "Identifies one specific physical item, e.g. X75. Leave blank for equipment "
 "tracked only as a stock count (see quantity)."
 msgstr ""
 
-#: src/kava_varasto/inventory/models.py:36 src/kava_varasto/loans/models.py:107
+#: src/kava_varasto/inventory/models.py:50 src/kava_varasto/loans/models.py:107
 msgid "quantity"
 msgstr ""
 
-#: src/kava_varasto/inventory/models.py:38
+#: src/kava_varasto/inventory/models.py:52
 msgid "Total number in stock. Must be 1 for equipment with a short code."
 msgstr ""
 
-#: src/kava_varasto/inventory/models.py:44
+#: src/kava_varasto/inventory/models.py:58
 msgid "external loanable"
 msgstr ""
 
-#: src/kava_varasto/inventory/models.py:46
+#: src/kava_varasto/inventory/models.py:60
 msgid "If unset, only club members can borrow this equipment."
 msgstr ""
 
-#: src/kava_varasto/inventory/models.py:49
+#: src/kava_varasto/inventory/models.py:63
 msgid "broken quantity"
 msgstr ""
 
-#: src/kava_varasto/inventory/models.py:51
+#: src/kava_varasto/inventory/models.py:65
 msgid ""
 "How many of this equipment are currently broken and unavailable for loan."
 msgstr ""
 
-#: src/kava_varasto/inventory/models.py:55
-#: src/kava_varasto/inventory/models.py:56 src/kava_varasto/loans/models.py:105
-msgid "equipment"
+#: src/kava_varasto/inventory/models.py:76
+msgid "Optional photo shown in the storage detail view."
 msgstr ""
 
 #: src/kava_varasto/inventory/models.py:80
+#: src/kava_varasto/inventory/models.py:81 src/kava_varasto/loans/models.py:105
+msgid "equipment"
+msgstr ""
+
+#: src/kava_varasto/inventory/models.py:105
 msgid ""
 "Equipment with a short code identifies a single item, so quantity must be 1."
 msgstr ""
 
-#: src/kava_varasto/inventory/models.py:84
+#: src/kava_varasto/inventory/models.py:109
 msgid "Broken quantity cannot exceed total quantity."
 msgstr ""
 
@@ -116,7 +150,7 @@ msgstr ""
 msgid "borrower phone"
 msgstr ""
 
-#: src/kava_varasto/loans/models.py:23 src/kava_varasto/loans/serializers.py:65
+#: src/kava_varasto/loans/models.py:23 src/kava_varasto/loans/serializers.py:72
 msgid "Enter a valid phone number, e.g. 0401234567 or +358401234567."
 msgstr ""
 
@@ -162,11 +196,11 @@ msgstr ""
 msgid "loans"
 msgstr ""
 
-#: src/kava_varasto/loans/models.py:74 src/kava_varasto/loans/serializers.py:59
+#: src/kava_varasto/loans/models.py:74 src/kava_varasto/loans/serializers.py:66
 msgid "Enter both first and last name."
 msgstr ""
 
-#: src/kava_varasto/loans/models.py:76 src/kava_varasto/loans/serializers.py:71
+#: src/kava_varasto/loans/models.py:76 src/kava_varasto/loans/serializers.py:78
 msgid "Due date cannot be in the past."
 msgstr ""
 
@@ -206,62 +240,54 @@ msgstr ""
 msgid "Broken quantity cannot exceed returned quantity."
 msgstr ""
 
-#: src/kava_varasto/loans/serializers.py:76
-#: src/kava_varasto/loans/serializers.py:120
+#: src/kava_varasto/loans/serializers.py:83
+#: src/kava_varasto/loans/serializers.py:127
 msgid "At least one item is required."
 msgstr ""
 
-#: src/kava_varasto/loans/serializers.py:78
+#: src/kava_varasto/loans/serializers.py:85
 msgid "Too many items in a single loan."
 msgstr ""
 
-#: src/kava_varasto/loans/serializers.py:81
+#: src/kava_varasto/loans/serializers.py:88
 msgid "Each piece of equipment can only appear once per loan."
 msgstr ""
 
-#: src/kava_varasto/loans/serializers.py:94
+#: src/kava_varasto/loans/serializers.py:101
 #, python-format
 msgid "Only %(loanable)d of %(name)s available to loan right now."
 msgstr ""
 
-#: src/kava_varasto/loans/serializers.py:124
+#: src/kava_varasto/loans/serializers.py:131
 msgid "Each loan item can only appear once per return."
-msgstr ""
-
-#: src/kava_varasto/loans/serializers.py:132
-#, python-format
-msgid "Item %(id)d does not belong to this loan."
-msgstr ""
-
-#: src/kava_varasto/loans/serializers.py:135
-#, python-format
-msgid "Returned quantity for %(name)s cannot decrease."
 msgstr ""
 
 #: src/kava_varasto/loans/serializers.py:139
 #, python-format
+msgid "Item %(id)d does not belong to this loan."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:142
+#, python-format
+msgid "Returned quantity for %(name)s cannot decrease."
+msgstr ""
+
+#: src/kava_varasto/loans/serializers.py:146
+#, python-format
 msgid "Returned quantity for %(name)s cannot exceed %(quantity)d."
 msgstr ""
 
-#: src/kava_varasto/loans/serializers.py:144
+#: src/kava_varasto/loans/serializers.py:151
 #, python-format
 msgid "Broken quantity for %(name)s cannot decrease."
 msgstr ""
 
-#: src/kava_varasto/loans/serializers.py:148
+#: src/kava_varasto/loans/serializers.py:155
 #, python-format
 msgid ""
 "Broken quantity for %(name)s cannot exceed returned quantity %(quantity)d."
 msgstr ""
 
-#: src/kava_varasto/loans/views.py:56
+#: src/kava_varasto/loans/views.py:60
 msgid "This loan has already been returned."
-msgstr ""
-
-#: src/kava_varasto/accounts/middleware.py:71
-msgid "Too many login attempts. Try again later."
-msgstr ""
-
-#: src/kava_varasto/accounts/permissions.py:21
-msgid "Password change required."
 msgstr ""
