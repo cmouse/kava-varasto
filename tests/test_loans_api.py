@@ -6,7 +6,12 @@ from django.db import IntegrityError, connection
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
-from kava_varasto.inventory.models import Category, Equipment, EquipmentImage
+from kava_varasto.inventory.models import (
+    Category,
+    Equipment,
+    EquipmentImage,
+    StorageLocation,
+)
 from kava_varasto.loans.models import Loan, LoanItem
 from kava_varasto.loans.serializers import LoanCreateSerializer
 
@@ -16,7 +21,8 @@ FUTURE_DUE_DATE = (timezone.localdate() + timedelta(days=60)).isoformat()
 @pytest.fixture
 def equipment(db):
     category = Category.objects.create(name="Cooking")
-    return Equipment.objects.create(name="Trangia stove", quantity=5, category=category)
+    location = StorageLocation.objects.get(name="Kolo")
+    return Equipment.objects.create(name="Trangia stove", quantity=5, category=category, location=location)
 
 
 @pytest.mark.django_db
@@ -105,7 +111,10 @@ def test_loan_create_rolls_back_loan_if_items_fail(admin_user, equipment):
 @pytest.mark.django_db
 def test_loan_create_availability_check_uses_single_aggregate(admin_client, equipment):
     category = equipment.category
-    extra = [Equipment.objects.create(name=f"Item {i}", quantity=5, category=category) for i in range(4)]
+    extra = [
+        Equipment.objects.create(name=f"Item {i}", quantity=5, category=category, location=equipment.location)
+        for i in range(4)
+    ]
     items = [{"equipment": e.pk, "quantity": 1} for e in [equipment, *extra]]
 
     with CaptureQueriesContext(connection) as ctx:
@@ -510,7 +519,9 @@ def test_loanable_equipment_lists_active_loan_ids(admin_client, admin_user, equi
 
     # Loan still open because of other equipment, but this equipment fully
     # handed back — must not be listed for it.
-    other_equipment = Equipment.objects.create(name="Lantern", quantity=3, category=equipment.category)
+    other_equipment = Equipment.objects.create(
+        name="Lantern", quantity=3, category=equipment.category, location=equipment.location
+    )
     partial_loan = Loan.objects.create(
         borrower_name="Kalle Korhonen", borrower_phone="0409876543", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
@@ -579,7 +590,9 @@ def test_loan_return_partial_keeps_loan_active(admin_client, admin_user, equipme
     )
     item_a = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
     category = item_a.equipment.category
-    other_equipment = Equipment.objects.create(name="Lantern", quantity=1, category=category)
+    other_equipment = Equipment.objects.create(
+        name="Lantern", quantity=1, category=category, location=item_a.equipment.location
+    )
     item_b = LoanItem.objects.create(loan=loan, equipment=other_equipment, quantity=1)
 
     response = admin_client.post(
@@ -754,7 +767,9 @@ def test_loan_return_broken_quantity_omitted_keeps_existing_value(admin_client, 
     loan = Loan.objects.create(
         borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
     )
-    other_equipment = Equipment.objects.create(name="Lantern", quantity=3, category=equipment.category)
+    other_equipment = Equipment.objects.create(
+        name="Lantern", quantity=3, category=equipment.category, location=equipment.location
+    )
     item_a = LoanItem.objects.create(loan=loan, equipment=equipment, quantity=3)
     item_b = LoanItem.objects.create(loan=loan, equipment=other_equipment, quantity=2)
 

@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.utils import timezone
 
 from kava_varasto.accounts.models import User
-from kava_varasto.inventory.models import Category, Equipment
+from kava_varasto.inventory.models import Category, Equipment, StorageLocation
 from kava_varasto.loans.models import Loan, LoanItem
 
 FUTURE_DUE_DATE = (timezone.localdate() + timedelta(days=60)).isoformat()
@@ -20,7 +20,8 @@ def staff_user(db):
 @pytest.fixture
 def equipment(db):
     category = Category.objects.create(name="Cooking")
-    return Equipment.objects.create(name="Trangia stove", quantity=5, category=category)
+    location = StorageLocation.objects.get(name="Kolo")
+    return Equipment.objects.create(name="Trangia stove", quantity=5, category=category, location=location)
 
 
 @pytest.mark.django_db

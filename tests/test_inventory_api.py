@@ -1,7 +1,12 @@
 import pytest
 from django.test import override_settings
 
-from kava_varasto.inventory.models import Category, Equipment, EquipmentImage
+from kava_varasto.inventory.models import (
+    Category,
+    Equipment,
+    EquipmentImage,
+    StorageLocation,
+)
 
 
 @pytest.mark.django_db
@@ -13,7 +18,8 @@ def test_equipment_list_requires_auth(client):
 @pytest.mark.django_db
 def test_equipment_list_returns_stock_levels(admin_client):
     category = Category.objects.create(name="Cooking")
-    Equipment.objects.create(name="Trangia stove", quantity=5, broken_quantity=2, category=category)
+    location = StorageLocation.objects.get(name="Kolo")
+    Equipment.objects.create(name="Trangia stove", quantity=5, broken_quantity=2, category=category, location=location)
 
     response = admin_client.get("/api/inventory/equipment/")
 
@@ -31,7 +37,8 @@ def test_equipment_list_returns_stock_levels(admin_client):
 @pytest.mark.django_db
 def test_equipment_without_image_serializes_none(admin_client):
     category = Category.objects.create(name="Cooking")
-    Equipment.objects.create(name="Trangia stove", category=category)
+    location = StorageLocation.objects.get(name="Kolo")
+    Equipment.objects.create(name="Trangia stove", category=category, location=location)
 
     response = admin_client.get("/api/inventory/equipment/")
 
@@ -41,8 +48,9 @@ def test_equipment_without_image_serializes_none(admin_client):
 @pytest.mark.django_db
 def test_equipment_image_returns_media_url(admin_client):
     category = Category.objects.create(name="Tents")
+    location = StorageLocation.objects.get(name="Kolo")
     image = EquipmentImage.objects.create(name="tent", image="equipment/tent.jpg")
-    Equipment.objects.create(name="Dome tent", category=category, image=image)
+    Equipment.objects.create(name="Dome tent", category=category, location=location, image=image)
 
     response = admin_client.get("/api/inventory/equipment/")
 
@@ -53,8 +61,9 @@ def test_equipment_image_returns_media_url(admin_client):
 @override_settings(MEDIA_URL="/varasto/media/")
 def test_equipment_image_honors_media_url_prefix(admin_client):
     category = Category.objects.create(name="Tents")
+    location = StorageLocation.objects.get(name="Kolo")
     image = EquipmentImage.objects.create(name="tent", image="equipment/tent.jpg")
-    Equipment.objects.create(name="Dome tent", category=category, image=image)
+    Equipment.objects.create(name="Dome tent", category=category, location=location, image=image)
 
     response = admin_client.get("/api/inventory/equipment/")
 
@@ -64,9 +73,10 @@ def test_equipment_image_honors_media_url_prefix(admin_client):
 @pytest.mark.django_db
 def test_equipment_image_shared_between_equipment(admin_client):
     category = Category.objects.create(name="Cooking")
+    location = StorageLocation.objects.get(name="Kolo")
     image = EquipmentImage.objects.create(name="stove", image="equipment/stove.jpg")
-    Equipment.objects.create(name="Trangia stove", category=category, image=image)
-    Equipment.objects.create(name="Trangia stove XL", category=category, image=image)
+    Equipment.objects.create(name="Trangia stove", category=category, location=location, image=image)
+    Equipment.objects.create(name="Trangia stove XL", category=category, location=location, image=image)
 
     response = admin_client.get("/api/inventory/equipment/")
 
@@ -78,8 +88,9 @@ def test_equipment_image_shared_between_equipment(admin_client):
 def test_equipment_list_ordered_by_category_then_name(admin_client):
     tents = Category.objects.create(name="Tents")
     cooking = Category.objects.create(name="Cooking")
-    Equipment.objects.create(name="Dome tent", short_code="X75", category=tents)
-    Equipment.objects.create(name="Trangia stove", category=cooking)
+    location = StorageLocation.objects.get(name="Kolo")
+    Equipment.objects.create(name="Dome tent", short_code="X75", category=tents, location=location)
+    Equipment.objects.create(name="Trangia stove", category=cooking, location=location)
 
     response = admin_client.get("/api/inventory/equipment/")
 
