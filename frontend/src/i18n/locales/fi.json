@@ -157,6 +157,7 @@
     "reportedAt": "Ilmoitettu",
     "resolvedBy": "Käsittelijä",
     "showClosed": "Näytä käsitellyt",
+    "showClosedHint": "Viimeisen vuoden aikana käsitellyt.",
     "submit": "Ilmoita",
     "cancel": "Peruuta",
     "delete": "Poista",
