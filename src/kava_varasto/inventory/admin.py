@@ -2,11 +2,23 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from .models import Category, Equipment, EquipmentImage
+from .models import (
+    DEFAULT_LOCATION_NAME,
+    Category,
+    Equipment,
+    EquipmentImage,
+    StorageLocation,
+)
 
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+    search_fields = ["name"]
+
+
+@admin.register(StorageLocation)
+class StorageLocationAdmin(admin.ModelAdmin):
     list_display = ["name"]
     search_fields = ["name"]
 
@@ -30,15 +42,23 @@ class EquipmentAdmin(admin.ModelAdmin):
         "short_code",
         "name",
         "category",
+        "location",
         "quantity",
         "broken_quantity",
         "available_quantity",
         "is_external_loanable",
     ]
-    list_filter = ["category", "is_external_loanable"]
+    list_filter = ["category", "location", "is_external_loanable"]
     search_fields = ["name", "short_code"]
     list_editable = ["broken_quantity"]
 
     @admin.display(description=_("available quantity"))
     def available_quantity(self, obj):
         return obj.available_quantity
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        location = StorageLocation.objects.filter(name=DEFAULT_LOCATION_NAME).first()
+        if location is not None:
+            initial["location"] = location.pk
+        return initial
