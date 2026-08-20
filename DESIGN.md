@@ -53,6 +53,65 @@ Categorization
 --------------
 To make it easier to find equipment, there should be categories of equipment when borrowing, so that equipment with no short code is discoverable.
 
+Storage locations
+------------------
+
+Equipment records not just what and how much, but also *where* it physically
+lives (issue #31): the club's gear isn't all in one room -- most of it sits in
+"Kolo" (the troop's clubhouse), the rest in a container, an attic, or a
+trailer. `StorageLocation` (`kava_varasto.inventory.models.StorageLocation`)
+is a lookup table with the same shape as `Category`: unique `name`,
+`ordering = ["name"]`, `__str__` returning the name, registered in admin with
+`list_display`/`search_fields = ["name"]`. `Equipment.location` is a
+non-nullable FK to it with `on_delete=PROTECT`, `related_name="equipment"`.
+
+A lookup table rather than a free-form `CharField` or `TextChoices` (the
+`Category` precedent -- the repo has zero `choices=`/`TextChoices` anywhere):
+locations are club facts that change without a deploy (a new container, a
+member's garage), and a free-form field would spawn "Kolo"/"kolo"/"KOLO"
+duplicates that no dropdown can group. `unique=True` on `name` enforces that,
+and `PROTECT` means deleting a location in use is refused rather than quietly
+orphaning gear.
+
+**No `default=` on the FK.** A hardcoded `default=1` breaks on a fresh
+database (nothing guarantees row 1 is Kolo), and a callable default would run
+a DB query on every `Equipment()` instantiation. "Default to Kolo" is instead
+delivered by two separate, deliberate mechanisms, one per way a row gets a
+location:
+
+- *existing rows*, at migration time: `inventory/migrations/
+  0007_storagelocation.py` adds `location` as nullable, backfills every
+  existing `Equipment` row to a `StorageLocation` named `"Kolo"` via
+  `get_or_create` (the literal string, matching the model's
+  `DEFAULT_LOCATION_NAME` constant -- migrations must not import from the
+  live models module), then tightens the field to non-null in a final
+  `AlterField`. The same `get_or_create` also seeds Kolo on a **fresh**
+  database, so a brand-new install has a working default with no fixture
+  step.
+- *new rows*, in the admin: `EquipmentAdmin.get_changeform_initial_data`
+  looks up the Kolo row and preselects it on the "add equipment" form, so
+  staff only need to change it when the item genuinely lives elsewhere.
+  Falls back to no initial value (not a 500) if Kolo has been renamed or
+  deleted.
+
+Equipment is created/edited only through the Django admin (the SPA has no
+equipment write path), so "dropdown" for issue #31 means the admin
+change-form's FK select -- `EquipmentAdmin` declares no explicit `fields`, so
+`location` appears there automatically, same as `category` and `image`
+already did. `location` is also added to `EquipmentAdmin.list_display` and
+`list_filter`. The SPA side is display and filtering only: both equipment
+serializers carry the field (`EquipmentSerializer.location` as a
+`StringRelatedField`; `LoanableEquipmentSerializer.location`/`location_id`,
+mirroring the existing `category`/`category_id` pair so a filter can key off
+a stable id), and both querysets' `select_related(...)` include `"location"`
+to avoid a query per row. `Storage.jsx` shows a Location column and filters
+by it via a `<select>` dropdown in `EquipmentFilterBar.jsx` (deliberately a
+dropdown, not a second row of pill buttons -- category pills plus location
+pills would crowd the mobile layout, and a dropdown is what issue #31 asks
+for); `EquipmentDetailModal.jsx` shows it next to Category. Both live off
+`useEquipmentFilter.js`'s existing `categories`-style deduping pattern,
+reused for `locations`.
+
 Listings
 --------
 All borrows need to be listable as active and old.
