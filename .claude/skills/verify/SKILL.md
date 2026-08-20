@@ -127,3 +127,18 @@ Gotchas hit in practice:
   server-side-only validation path requires removing the client attribute
   first, e.g. `await someInput.evaluate((el) => el.removeAttribute("max"))`,
   before clicking submit.
+- **A CDP script that finishes its work but never calls `process.exit(0)`
+  hangs forever instead of exiting** — `connectOverCDP` keeps a live
+  connection open, so node has an open handle even after `page.close()`. The
+  symptom is not a timeout or an error: the script produces no output at all
+  and just sits there until killed, which reads like a hang at connect time
+  rather than at exit. `await browser.close()` is not the fix either — it
+  throws `AssertionError [ERR_ASSERTION]: rimraf: callback function
+  required` from playwright-core's cleanup path when the browser was
+  attached over CDP rather than launched by Playwright. End the script with
+  `await page.close(); process.exit(0);` and leave the browser process
+  running for the next run. Relatedly, a long-lived CDP chromium keeps its
+  cookies, so a script that unconditionally fills a login form fails with an
+  `#username` timeout on the second run once the session is already
+  authenticated — guard the login block with `if (await
+  page.locator("#username").count())`.
