@@ -92,9 +92,20 @@ an edit to `TicketStatus`.
 
 Any logged-in user can file, edit, close and delete tickets -- the same trust
 level the loan endpoints already assume, no `is_staff` gate. `GET
-/api/repairs/` returns only open tickets, since the queue is a to-do list;
-`?status=all` or an explicit `?status=done` digs up history, and an
-unrecognised value is a 400 rather than a silently empty list.
+/api/repairs/` returns only open tickets, since the queue is a to-do list.
+`?resolved=recent` adds back what was closed within `RESOLVED_VISIBLE_FOR`
+(one year) -- what the SPA's "show resolved" checkbox asks for -- while
+`?status=all` or an explicit `?status=done` digs up everything. An
+unrecognised value for either parameter is a 400 rather than a silently empty
+list.
+
+The year is deliberately longer than the loans' 61-day `ARCHIVE_AFTER`. A
+returned loan is finished business, but gear is seasonal: "did we already fix
+this last autumn?" has to stay answerable from the same checkbox, without
+anyone reaching for a URL parameter. There is no separate archive *page* the
+way loans have one -- the queue's default view already hides every closed
+ticket, so the cutoff only bounds the toggle, and a fifth navbar tab would
+cost more than it gives.
 
 The whole feature is one SPA page (`frontend/src/pages/Repairs.jsx`, tab
 "Repairs"/"Korjaukset"). A ticket is a line of text and a status, so there is
