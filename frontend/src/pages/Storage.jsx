@@ -53,6 +53,7 @@ function Storage() {
               <tr>
                 <th>{t("storage.shortCode")}</th>
                 <th>{t("storage.name")}</th>
+                <th>{t("storage.location")}</th>
                 <th className="text-end">{t("storage.quantity")}</th>
                 <th className="text-end">{t("storage.broken")}</th>
                 <th className="text-end">{t("storage.available")}</th>
@@ -64,7 +65,7 @@ function Storage() {
             {groupByCategory(filteredEquipment).map((group) => (
               <tbody key={group.category} className="table-group-divider">
                 <tr className="table-light">
-                  <th colSpan={8}>{group.category}</th>
+                  <th colSpan={9}>{group.category}</th>
                 </tr>
                 {group.items.map((item) => (
                   <tr
@@ -87,6 +88,7 @@ function Storage() {
                   >
                     <td>{item.short_code || "–"}</td>
                     <td>{item.name}</td>
+                    <td>{item.location}</td>
                     <td className="text-end">{item.quantity}</td>
                     <td className="text-end">{item.broken_quantity}</td>
                     <td className="text-end">{item.loanable_quantity}</td>

@@ -18,6 +18,7 @@
     "title": "Varasto",
     "shortCode": "Koodi",
     "name": "Nimi",
+    "location": "Sijainti",
     "quantity": "Määrä",
     "broken": "Rikki",
     "available": "Vapaana",
@@ -35,6 +36,7 @@
     "close": "Sulje",
     "noImage": "Ei kuvaa",
     "category": "Kategoria",
+    "location": "Sijainti",
     "loanable": "Lainattavissa nyt"
   },
   "equipmentFilter": {
