@@ -68,6 +68,7 @@
     "suggestionCount": "Matches: {{count}}.",
     "noSuggestions": "No matches.",
     "submit": "Create loan",
+    "cancel": "Cancel",
     "success": "Loan created.",
     "error": "Failed to create loan."
   },

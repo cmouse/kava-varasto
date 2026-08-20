@@ -231,13 +231,22 @@ function LoanNew() {
         </div>
       ) : null}
 
-      <button
-        className="btn btn-primary w-100"
-        type="submit"
-        disabled={items.length === 0 || createLoan.isPending || isEquipmentLoading}
-      >
-        {t("loanForm.submit")}
-      </button>
+      <div className="d-flex gap-2">
+        <button
+          className="btn btn-primary flex-grow-1"
+          type="submit"
+          disabled={items.length === 0 || createLoan.isPending || isEquipmentLoading}
+        >
+          {t("loanForm.submit")}
+        </button>
+        <button
+          className="btn btn-outline-secondary"
+          type="button"
+          onClick={() => navigate("/loans")}
+        >
+          {t("loanForm.cancel")}
+        </button>
+      </div>
     </form>
   );
 }

@@ -68,6 +68,7 @@
     "suggestionCount": "Osumia: {{count}}.",
     "noSuggestions": "Ei osumia.",
     "submit": "Luo laina",
+    "cancel": "Peruuta",
     "success": "Laina luotu.",
     "error": "Lainan luonti epäonnistui."
   },
