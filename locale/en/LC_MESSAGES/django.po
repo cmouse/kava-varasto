@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kava-varasto\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-20 10:33+0000\n"
+"POT-Creation-Date: 2026-08-20 11:47+0000\n"
 "PO-Revision-Date: 2026-07-07 18:30+0300\n"
 "Last-Translator: Karhunvartijat ry\n"
 "Language-Team: English\n"
@@ -391,6 +391,10 @@ msgstr ""
 msgid "Each piece of equipment can only be tagged once."
 msgstr ""
 
-#: src/kava_varasto/repairs/views.py:33
+#: src/kava_varasto/repairs/views.py:47
+msgid "Unknown value."
+msgstr ""
+
+#: src/kava_varasto/repairs/views.py:64
 msgid "Unknown status."
 msgstr ""

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kava-varasto\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-20 10:33+0000\n"
+"POT-Creation-Date: 2026-08-20 11:47+0000\n"
 "PO-Revision-Date: 2026-07-07 18:30+0300\n"
 "Last-Translator: Karhunvartijat ry\n"
 "Language-Team: Finnish\n"
@@ -348,17 +348,14 @@ msgid "status"
 msgstr "tila"
 
 #: src/kava_varasto/repairs/models.py:41
-#| msgid "returned by"
 msgid "reported by"
 msgstr "ilmoittaja"
 
 #: src/kava_varasto/repairs/models.py:43
-#| msgid "created at"
 msgid "reported at"
 msgstr "ilmoitettu"
 
 #: src/kava_varasto/repairs/models.py:48
-#| msgid "returned by"
 msgid "resolved by"
 msgstr "käsittelijä"
 
@@ -367,7 +364,6 @@ msgid "Set automatically when the ticket moves to a closed status."
 msgstr "Asetetaan automaattisesti, kun korjaus siirtyy käsiteltyyn tilaan."
 
 #: src/kava_varasto/repairs/models.py:53
-#| msgid "created at"
 msgid "resolved at"
 msgstr "käsitelty"
 
@@ -380,7 +376,6 @@ msgid "repair tickets"
 msgstr "korjaukset"
 
 #: src/kava_varasto/repairs/models.py:86
-#| msgid "Returned-at and returned-by must be set together."
 msgid "Resolved-at and resolved-by must be set together."
 msgstr "Käsittelyaika ja käsittelijä on asetettava yhdessä."
 
@@ -393,20 +388,22 @@ msgid "A closed ticket must record who resolved it and when."
 msgstr "Käsitellylle korjaukselle on merkittävä käsittelijä ja aika."
 
 #: src/kava_varasto/repairs/serializers.py:50
-#| msgid "At least one item is required."
 msgid "A title is required."
 msgstr "Otsikko vaaditaan."
 
 #: src/kava_varasto/repairs/serializers.py:55
-#| msgid "Too many items in a single loan."
 msgid "Too many pieces of equipment on a single ticket."
 msgstr "Liian monta varustetta yhdessä korjauksessa."
 
 #: src/kava_varasto/repairs/serializers.py:57
-#| msgid "Each piece of equipment can only appear once per loan."
 msgid "Each piece of equipment can only be tagged once."
 msgstr "Kukin varuste voi esiintyä korjauksessa vain kerran."
 
-#: src/kava_varasto/repairs/views.py:33
+#: src/kava_varasto/repairs/views.py:47
+#| msgid "Unknown status."
+msgid "Unknown value."
+msgstr "Tuntematon arvo."
+
+#: src/kava_varasto/repairs/views.py:64
 msgid "Unknown status."
 msgstr "Tuntematon tila."
