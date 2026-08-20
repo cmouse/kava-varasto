@@ -6,14 +6,11 @@ import { useCurrentUser } from "../api/auth";
 import { useCreateLoan, useLoanableEquipment, useLoans } from "../api/loans";
 import LoginForm from "../components/LoginForm";
 import { useEquipmentFilter } from "../hooks/useEquipmentFilter";
+import { equipmentLabel } from "../utils/equipmentLabel";
 import { groupByCategory } from "../utils/groupByCategory";
 
 function emptyItem(key) {
   return { key, equipmentId: "", quantity: 1 };
-}
-
-function equipmentLabel(item) {
-  return item.short_code ? `${item.short_code} ${item.name}` : item.name;
 }
 
 function toDateInputValue(date) {

@@ -12,7 +12,8 @@
     "archive": "Archive",
     "logout": "Log out",
     "toggleNav": "Toggle navigation",
-    "changePassword": "Change password"
+    "changePassword": "Change password",
+    "repairs": "Repairs"
   },
   "storage": {
     "title": "Storage",
@@ -134,5 +135,35 @@
     "submit": "Change password",
     "success": "Password changed.",
     "error": "Failed to change password."
+  },
+  "repairs": {
+    "title": "Repairs",
+    "report": "Report a repair",
+    "titleField": "What needs doing",
+    "titlePlaceholder": "e.g. Sharpen all them axes",
+    "description": "Details",
+    "equipment": "Equipment",
+    "equipmentOptional": "Equipment (optional)",
+    "equipmentSearch": "Search equipment to tag",
+    "removeTag": "Remove {{name}}",
+    "status": "Status",
+    "statuses": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "done": "Done",
+      "wontfix": "Won't fix"
+    },
+    "reportedBy": "Reported by",
+    "reportedAt": "Reported",
+    "resolvedBy": "Resolved by",
+    "showClosed": "Show resolved",
+    "submit": "Report",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirmDelete": "Delete “{{title}}”?",
+    "empty": "Nothing needs repairing.",
+    "error": "Failed to load repairs.",
+    "saveError": "Failed to save the repair.",
+    "rowError": "Change failed."
   }
 }
