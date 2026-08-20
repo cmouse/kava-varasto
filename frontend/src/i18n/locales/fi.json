@@ -12,7 +12,8 @@
     "archive": "Arkisto",
     "logout": "Kirjaudu ulos",
     "toggleNav": "Valikko",
-    "changePassword": "Vaihda salasana"
+    "changePassword": "Vaihda salasana",
+    "repairs": "Korjaukset"
   },
   "storage": {
     "title": "Varasto",
@@ -134,5 +135,35 @@
     "submit": "Vaihda salasana",
     "success": "Salasana vaihdettu.",
     "error": "Salasanan vaihto epäonnistui."
+  },
+  "repairs": {
+    "title": "Korjaukset",
+    "report": "Ilmoita korjaustarve",
+    "titleField": "Mitä pitää tehdä",
+    "titlePlaceholder": "esim. Teroita kaikki kirveet",
+    "description": "Lisätiedot",
+    "equipment": "Varusteet",
+    "equipmentOptional": "Varusteet (valinnainen)",
+    "equipmentSearch": "Hae liitettävää varustetta",
+    "removeTag": "Poista {{name}}",
+    "status": "Tila",
+    "statuses": {
+      "open": "Avoin",
+      "in_progress": "Työn alla",
+      "done": "Valmis",
+      "wontfix": "Ei korjata"
+    },
+    "reportedBy": "Ilmoittaja",
+    "reportedAt": "Ilmoitettu",
+    "resolvedBy": "Käsittelijä",
+    "showClosed": "Näytä käsitellyt",
+    "submit": "Ilmoita",
+    "cancel": "Peruuta",
+    "delete": "Poista",
+    "confirmDelete": "Poistetaanko ”{{title}}”?",
+    "empty": "Mikään ei kaipaa korjausta.",
+    "error": "Korjausten lataus epäonnistui.",
+    "saveError": "Korjaustarpeen tallennus epäonnistui.",
+    "rowError": "Muutos epäonnistui."
   }
 }
