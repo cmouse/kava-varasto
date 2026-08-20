@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useEquipmentFilter } from "../hooks/useEquipmentFilter";
@@ -37,7 +37,18 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
   const { t } = useTranslation();
   const { search, setSearch, filteredEquipment } = useEquipmentFilter(equipment);
   const [isFocused, setIsFocused] = useState(false);
-  const [status, setStatus] = useState("");
+  // Event-driven messages only (itemAdded/itemBumped/maxReached/itemRemoved/
+  // topUnavailable), set from add()/attemptAddTop()/remove() below and
+  // cleared by the search input's onChange -- a real DOM event that fires
+  // whenever the user types, meaning "the user moved on from that message".
+  // add() clears the search programmatically via setSearch(""), which does
+  // NOT fire onChange, so its message survives that clear; but backspacing
+  // the box by hand does fire onChange, so a stale message can't resurface
+  // just because the box happens to return to a value (e.g. "") an old
+  // message was set at. The suggestion-count announcement is still derived
+  // during render, since it's a pure function of `search` and `suggestions`
+  // and doesn't need an effect to compute it.
+  const [eventStatus, setEventStatus] = useState("");
   const searchInputRef = useRef(null);
 
   const suggestions = useMemo(
@@ -55,19 +66,17 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
   // Announce what the search box just found, so someone driving this by
   // screen reader gets a signal even when nothing on screen changes -- a
   // search with zero matches otherwise leaves the last add/remove message
-  // sitting there looking current. Skipped while the box is empty so this
-  // doesn't stomp on the itemAdded/itemBumped/maxReached message add() just
-  // set (add() clears search back to "" as its last step).
-  useEffect(() => {
-    if (!search.trim()) {
-      return;
-    }
-    setStatus(
-      suggestions.length > 0
+  // sitting there looking current. An event message, once set, wins until
+  // the input's onChange clears it (see eventStatus above), so this doesn't
+  // stomp on the itemAdded/itemBumped/maxReached/itemRemoved/topUnavailable
+  // message an event just set.
+  const status = eventStatus
+    ? eventStatus
+    : hasTypedTerm
+      ? suggestions.length > 0
         ? t("loanForm.suggestionCount", { count: suggestions.length })
-        : t("loanForm.noSuggestions"),
-    );
-  }, [search, suggestions.length, t]);
+        : t("loanForm.noSuggestions")
+      : "";
 
   function focusSearch() {
     searchInputRef.current?.focus();
@@ -80,22 +89,22 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
     const index = items.findIndex((line) => line.id === item.id);
     if (index === -1) {
       onItemsChange([...items, { id: item.id, name: item.name, short_code: item.short_code, quantity: "1" }]);
-      setStatus(t("loanForm.itemAdded", { name: equipmentLabel(item) }));
+      setEventStatus(t("loanForm.itemAdded", { name: equipmentLabel(item) }));
     } else if (items[index].short_code) {
       // short_code implies quantity 1 at the DB level -- a line already in
       // the cart has nothing further to add, so this is the max case too.
-      setStatus(t("loanForm.maxReached"));
+      setEventStatus(t("loanForm.maxReached"));
     } else {
       const current = Number(items[index].quantity) || 0;
       if (current >= item.loanable_quantity) {
-        setStatus(t("loanForm.maxReached"));
+        setEventStatus(t("loanForm.maxReached"));
       } else {
         const quantity = current + 1;
         onItemsChange(items.map((line, i) => (i === index ? { ...line, quantity: String(quantity) } : line)));
         // Distinct wording from itemAdded: two identical consecutive
         // aria-live strings get deduped by most screen readers, and a bump
         // needs its own announcement or the quantity change goes unheard.
-        setStatus(t("loanForm.itemBumped", { name: equipmentLabel(item), quantity }));
+        setEventStatus(t("loanForm.itemBumped", { name: equipmentLabel(item), quantity }));
       }
     }
     setSearch("");
@@ -112,7 +121,7 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
       // it just can't be added, and that needs saying. Named, not the bare
       // badge fragment: with several suggestions on screen, "not available"
       // alone doesn't say which one.
-      setStatus(t("loanForm.topUnavailable", { name: equipmentLabel(topSuggestion) }));
+      setEventStatus(t("loanForm.topUnavailable", { name: equipmentLabel(topSuggestion) }));
       return;
     }
     add(topSuggestion);
@@ -120,7 +129,7 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
 
   function remove(line) {
     onItemsChange(items.filter((item) => item.id !== line.id));
-    setStatus(t("loanForm.itemRemoved", { name: equipmentLabel(line) }));
+    setEventStatus(t("loanForm.itemRemoved", { name: equipmentLabel(line) }));
     focusSearch();
   }
 
@@ -194,7 +203,15 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
           className="form-control"
           placeholder={t("equipmentFilter.searchPlaceholder")}
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => {
+            // A real DOM event, not a state-derived effect: the user typing
+            // (including backspacing to "") means "moved on", so any event
+            // message on screen -- however it was set -- is no longer
+            // current and must not resurface just because `search` later
+            // returns to a value it was set at (see eventStatus above).
+            setSearch(event.target.value);
+            setEventStatus("");
+          }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           onKeyDown={(event) => {
