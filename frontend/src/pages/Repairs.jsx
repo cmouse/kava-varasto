@@ -105,6 +105,9 @@ function RepairRow({ ticket }) {
       <td>
         <select
           className="form-select form-select-sm"
+          // Without a floor the column collapses on narrow screens and the
+          // status reads as an empty box with a chevron.
+          style={{ minWidth: "8rem" }}
           aria-label={t("repairs.status")}
           value={ticket.status}
           disabled={updateRepair.isPending}
