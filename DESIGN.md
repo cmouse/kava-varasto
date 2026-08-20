@@ -221,12 +221,21 @@ Loan creation UI and stock-out limits
 --------------------------------------
 
 Staff create loans via the SPA (`frontend/src/pages/LoanNew.jsx`, `POST
-/api/loans/`), picking any number of equipment rows to add/remove on one
-form. Creating a loan sets `responsible` to the logged-in user automatically
-(same rule as the admin), and rejects (400) if any requested quantity
-exceeds what's actually free right now. The `Loan` and its `LoanItem` rows
-are created inside one `transaction.atomic()` block, so a failure can't
-leave a half-created loan behind.
+/api/loans/`), using a shopping-cart picker (`LoanItemCart.jsx`): one search
+box with a suggestion list and an add button, items accumulating
+top-to-bottom in a list above the picker, each with a `[x]` remove and,
+for stock-counted equipment, its own quantity input (short-code equipment
+is pinned to a plain `1`, matching `short_code`'s DB-level implication of
+quantity 1). Picking equipment already in the cart bumps that line's
+quantity in place, clamped to `loanable_quantity`, instead of adding a
+second line -- which makes `LoanCreateSerializer.validate_items()`'s
+duplicate-equipment error unreachable from the SPA, though it stays as the
+API contract for any other client. Creating a loan sets `responsible` to
+the logged-in user automatically (same rule as the admin), and rejects
+(400) if any requested quantity exceeds what's actually free right now.
+The `Loan` and its `LoanItem` rows are created inside one
+`transaction.atomic()` block, so a failure can't leave a half-created loan
+behind.
 
 "Currently out" for a piece of equipment is computed on the fly as the sum
 of `quantity - quantity_returned` across all its `LoanItem` rows (no need to
@@ -243,7 +252,17 @@ since it's loan data -- `inventory` still has no reverse dependency on
 This is a check-then-act validation with no row locking -- two staff
 creating loans for the same last-remaining item at the same instant could
 both pass validation. Accepted for this app's scale (few users, a single
-non-profit's gear closet).
+non-profit's gear closet). Because of this, the client-side `max` on a
+cart line's quantity input is only advisory: `loanable_quantity` is a
+snapshot taken when the equipment list was last fetched, so the form
+never blocks submission on it (an unavailable line drops its
+`max`/`required` constraint rather than becoming permanently
+unsubmittable behind a native browser validation bubble). The 400
+response's detail therefore has to stay visible -- `LoanNew.jsx` walks
+`error.response.data` for strings at any depth (the shape differs between
+a flat `validate_items` rejection and per-item field errors from the
+nested item serializer) and lists them in the form's error alert instead
+of a generic message.
 
 The read-only Storage view (`Storage.jsx`) now sources from
 `GET /api/loans/loanable-equipment/` instead of the plain
@@ -486,12 +505,19 @@ plain `inventory` app endpoint/serializer is untouched -- the SPA has never
 used it, only the loans app's annotated `loanable-equipment` endpoint.
 
 `Storage.jsx` gets a full search box + category pill buttons
-(`EquipmentFilterBar.jsx`). `LoanNew.jsx`'s picker gets a search box only
-(its rows aren't a table, so pill buttons don't fit) plus `<optgroup>`
-grouping by category inside each row's `<select>`; if a row's already-chosen
-equipment gets excluded by a new search term, its option is spliced back in
-from the unfiltered list so the dropdown never silently loses the visible
-selection.
+(`EquipmentFilterBar.jsx`). `LoanNew.jsx`'s picker (`LoanItemCart.jsx`) gets
+a search box only (it's a suggestion list, not a table, so pill buttons
+don't fit); each suggestion row shows its category as muted text instead,
+since `GET /api/loans/loanable-equipment/` is already ordered
+`category__name, name` and so arrives category-clustered for free.
+Suggestions are additionally sorted client-side, ahead of that ordering: an
+exact case-insensitive `short_code` match first, then a `short_code` prefix
+match, then everything else -- `useEquipmentFilter`'s substring matching is
+otherwise unranked, so typing a short code that is itself a prefix of a
+longer one (e.g. `X75` when `X750` also exists) could let Enter add the
+wrong item. `Storage.jsx` remains the only browse-by-category surface;
+`useEquipmentFilter` itself stays unranked since `Storage.jsx` shares it and
+has no equivalent ambiguity to resolve.
 
 Password policy
 -----------------
