@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import Q
+from django.db.models import Case, IntegerField, Q, Value, When
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status as http_status
@@ -20,8 +20,21 @@ RESOLVED_VISIBLE_FOR = timedelta(days=365)
 
 
 class RepairTicketQuerysetMixin:
-    queryset = RepairTicket.objects.select_related("reported_by", "resolved_by").prefetch_related(
-        "equipment"
+    queryset = (
+        RepairTicket.objects.select_related("reported_by", "resolved_by")
+        .prefetch_related("equipment")
+        # Outstanding work first. The model's -reported_at alone would sort a
+        # repair closed yesterday above one still open since last spring, so
+        # the list the SPA shows -- open plus the past year's closed tickets --
+        # would bury the actual to-do list under finished work.
+        .annotate(
+            open_first=Case(
+                When(status__in=OPEN_STATUSES, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by("open_first", "-reported_at")
     )
 
 

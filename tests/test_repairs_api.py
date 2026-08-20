@@ -211,3 +211,19 @@ def test_list_rejects_an_unknown_resolved_value(admin_client):
 
     assert response.status_code == 400
     assert "resolved" in response.json()
+
+
+@pytest.mark.django_db
+def test_open_tickets_sort_above_closed_ones(admin_client, admin_user):
+    """A repair closed yesterday must not bury one still open since last spring."""
+    stale_open = RepairTicket.objects.create(title="Open since spring", reported_by=admin_user)
+    RepairTicket.objects.filter(pk=stale_open.pk).update(
+        reported_at=timezone.now() - timedelta(days=200)
+    )
+    fresh_closed = RepairTicket.objects.create(title="Closed yesterday", reported_by=admin_user)
+    fresh_closed.set_status(TicketStatus.DONE, admin_user)
+    fresh_closed.save()
+
+    titles = [item["title"] for item in admin_client.get("/api/repairs/?resolved=recent").json()]
+
+    assert titles == ["Open since spring", "Closed yesterday"]
