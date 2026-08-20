@@ -92,26 +92,33 @@ an edit to `TicketStatus`.
 
 Any logged-in user can file, edit, close and delete tickets -- the same trust
 level the loan endpoints already assume, no `is_staff` gate. `GET
-/api/repairs/` returns only open tickets, since the queue is a to-do list.
-`?resolved=recent` adds back what was closed within `RESOLVED_VISIBLE_FOR`
-(one year) -- what the SPA's "show resolved" checkbox asks for -- while
-`?status=all` or an explicit `?status=done` digs up everything. An
-unrecognised value for either parameter is a 400 rather than a silently empty
-list.
+/api/repairs/` returns only open tickets; `?resolved=recent` adds back what
+was closed within `RESOLVED_VISIBLE_FOR` (one year), and `?status=all` or an
+explicit `?status=done` digs up everything. An unrecognised value for either
+parameter is a 400 rather than a silently empty list.
+
+The SPA asks for `?resolved=recent` by default, so its list is the past
+year's work rather than only what is outstanding. Marking a repair done would
+otherwise make the row vanish from under the person who just finished it,
+with nothing to show it landed and no way back from a misclick; instead the
+row stays put with a "Valmis" badge and a reopen button.
 
 The year is deliberately longer than the loans' 61-day `ARCHIVE_AFTER`. A
 returned loan is finished business, but gear is seasonal: "did we already fix
-this last autumn?" has to stay answerable from the same checkbox, without
-anyone reaching for a URL parameter. There is no separate archive *page* the
-way loans have one -- the queue's default view already hides every closed
-ticket, so the cutoff only bounds the toggle, and a fifth navbar tab would
+this last autumn?" has to stay answerable from the list itself, without anyone
+reaching for a URL parameter. Ticking "show older history" drops the window
+(`?status=all`). There is no separate archive *page* the way loans have one --
+the window keeps the list bounded on its own, and a fifth navbar tab would
 cost more than it gives.
 
 The whole feature is one SPA page (`frontend/src/pages/Repairs.jsx`, tab
 "Repairs"/"Korjaukset"). A ticket is a line of text and a status, so there is
-no detail page and no separate form page: the status dropdown PATCHes straight
-from the list row, the description shows inline under the title, and reporting
-is a collapsible form at the top of the same page. Tagging equipment reuses
+no detail page and no separate form page: each row carries buttons for the
+moves that make sense from where the ticket is now (Start / Done / Won't fix,
+or Reopen once closed), the description shows inline under the title, and
+reporting is a collapsible form at the top of the same page. Buttons rather
+than a status dropdown because a select that saves the instant it closes never
+makes it clear that anything was saved. Tagging equipment reuses
 `useEquipmentFilter` through `EquipmentTagPicker` -- a search box plus chips,
 not the full `EquipmentFilterBar`, whose category and location controls are
 more machinery than tagging needs.
