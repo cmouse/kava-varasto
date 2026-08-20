@@ -1,8 +1,12 @@
+from datetime import timedelta
+
 import pytest
+from django.utils import timezone
 
 from kava_varasto.accounts.models import User
 from kava_varasto.inventory.models import Category, Equipment, StorageLocation
 from kava_varasto.repairs.models import RepairTicket, TicketStatus
+from kava_varasto.repairs.views import RESOLVED_VISIBLE_FOR
 
 
 @pytest.fixture
@@ -178,3 +182,32 @@ def test_tickets_never_touch_broken_quantity(admin_client, admin_user, axe):
 
     axe.refresh_from_db()
     assert axe.broken_quantity == 1
+
+
+@pytest.mark.django_db
+def test_resolved_recent_hides_long_closed_tickets(admin_client, admin_user):
+    fresh = RepairTicket.objects.create(title="Torn tent", reported_by=admin_user)
+    fresh.set_status(TicketStatus.DONE, admin_user)
+    fresh.save()
+    stale = RepairTicket.objects.create(title="Ancient history", reported_by=admin_user)
+    stale.set_status(TicketStatus.DONE, admin_user)
+    stale.save()
+    # Straight to the DB: set_status() always stamps "now".
+    RepairTicket.objects.filter(pk=stale.pk).update(
+        resolved_at=timezone.now() - RESOLVED_VISIBLE_FOR - timedelta(days=1)
+    )
+    RepairTicket.objects.create(title="Bent pole", reported_by=admin_user)
+
+    recent = [item["title"] for item in admin_client.get("/api/repairs/?resolved=recent").json()]
+    assert set(recent) == {"Bent pole", "Torn tent"}
+
+    everything = [item["title"] for item in admin_client.get("/api/repairs/?status=all").json()]
+    assert "Ancient history" in everything
+
+
+@pytest.mark.django_db
+def test_list_rejects_an_unknown_resolved_value(admin_client):
+    response = admin_client.get("/api/repairs/?resolved=yes")
+
+    assert response.status_code == 400
+    assert "resolved" in response.json()
