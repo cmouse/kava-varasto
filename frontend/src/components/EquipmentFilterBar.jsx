@@ -1,6 +1,15 @@
 import { useTranslation } from "react-i18next";
 
-function EquipmentFilterBar({ search, onSearchChange, categories, categoryId, onCategoryChange }) {
+function EquipmentFilterBar({
+  search,
+  onSearchChange,
+  categories,
+  categoryId,
+  onCategoryChange,
+  locations,
+  locationId,
+  onLocationChange,
+}) {
   const { t } = useTranslation();
 
   return (
@@ -12,7 +21,7 @@ function EquipmentFilterBar({ search, onSearchChange, categories, categoryId, on
         value={search}
         onChange={(event) => onSearchChange(event.target.value)}
       />
-      <div className="d-flex flex-wrap gap-2">
+      <div className="d-flex flex-wrap gap-2 mb-2">
         <button
           type="button"
           className={`btn btn-sm ${categoryId === null ? "btn-primary" : "btn-outline-secondary"}`}
@@ -31,6 +40,18 @@ function EquipmentFilterBar({ search, onSearchChange, categories, categoryId, on
           </button>
         ))}
       </div>
+      <select
+        className="form-select"
+        value={locationId}
+        onChange={(event) => onLocationChange(event.target.value)}
+      >
+        <option value="">{t("equipmentFilter.allLocations")}</option>
+        {locations.map((location) => (
+          <option key={location.id} value={location.id}>
+            {location.name}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

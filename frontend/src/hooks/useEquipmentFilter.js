@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 export function useEquipmentFilter(equipment) {
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState(null);
+  const [locationId, setLocationId] = useState("");
 
   const categories = useMemo(() => {
     const seen = new Map();
@@ -14,10 +15,23 @@ export function useEquipmentFilter(equipment) {
     return Array.from(seen, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
   }, [equipment]);
 
+  const locations = useMemo(() => {
+    const seen = new Map();
+    for (const item of equipment ?? []) {
+      if (!seen.has(item.location_id)) {
+        seen.set(item.location_id, item.location);
+      }
+    }
+    return Array.from(seen, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [equipment]);
+
   const filteredEquipment = useMemo(() => {
     const term = search.trim().toLowerCase();
     return (equipment ?? []).filter((item) => {
       if (categoryId !== null && item.category_id !== categoryId) {
+        return false;
+      }
+      if (locationId !== "" && String(item.location_id) !== locationId) {
         return false;
       }
       if (!term) {
@@ -25,7 +39,17 @@ export function useEquipmentFilter(equipment) {
       }
       return item.name.toLowerCase().includes(term) || (item.short_code ?? "").toLowerCase().includes(term);
     });
-  }, [equipment, search, categoryId]);
+  }, [equipment, search, categoryId, locationId]);
 
-  return { search, setSearch, categoryId, setCategoryId, categories, filteredEquipment };
+  return {
+    search,
+    setSearch,
+    categoryId,
+    setCategoryId,
+    categories,
+    locationId,
+    setLocationId,
+    locations,
+    filteredEquipment,
+  };
 }
