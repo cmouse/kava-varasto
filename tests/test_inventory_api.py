@@ -29,6 +29,7 @@ def test_equipment_list_returns_stock_levels(admin_client):
     item = data[0]
     assert item["name"] == "Trangia stove"
     assert item["category"] == "Cooking"
+    assert item["location"] == "Kolo"
     assert item["quantity"] == 5
     assert item["broken_quantity"] == 2
     assert item["available_quantity"] == 3

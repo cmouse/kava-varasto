@@ -5,6 +5,7 @@ from .models import Equipment
 
 class EquipmentSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
+    location = serializers.StringRelatedField()
     image = serializers.SerializerMethodField()
 
     class Meta:
@@ -14,6 +15,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
             "name",
             "short_code",
             "category",
+            "location",
             "quantity",
             "broken_quantity",
             "available_quantity",
