@@ -8,6 +8,7 @@ import LoanDetail from "./pages/LoanDetail";
 import LoanList from "./pages/LoanList";
 import LoanNew from "./pages/LoanNew";
 import LoanReturn from "./pages/LoanReturn";
+import Repairs from "./pages/Repairs";
 import Storage from "./pages/Storage";
 import scriptName from "./utils/scriptName";
 
@@ -26,6 +27,7 @@ function App() {
             <Route path="loans/archive" element={<LoanArchive />} />
             <Route path="loans/:id" element={<LoanDetail />} />
             <Route path="loans/:id/return" element={<LoanReturn />} />
+            <Route path="repairs" element={<Repairs />} />
             <Route path="account/password" element={<ChangePassword />} />
           </Route>
         </Routes>
