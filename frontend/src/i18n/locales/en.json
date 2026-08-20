@@ -157,6 +157,7 @@
     "reportedAt": "Reported",
     "resolvedBy": "Resolved by",
     "showClosed": "Show resolved",
+    "showClosedHint": "Resolved within the past year.",
     "submit": "Report",
     "cancel": "Cancel",
     "delete": "Delete",

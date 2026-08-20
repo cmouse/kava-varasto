@@ -201,6 +201,7 @@ function Repairs() {
         <label className="form-check-label" htmlFor="repairs-show-closed">
           {t("repairs.showClosed")}
         </label>
+        {showClosed ? <div className="form-text">{t("repairs.showClosedHint")}</div> : null}
       </div>
 
       {tickets.length === 0 ? (
