@@ -15,6 +15,21 @@ class Category(models.Model):
         return self.name
 
 
+DEFAULT_LOCATION_NAME = "Kolo"
+
+
+class StorageLocation(models.Model):
+    name = models.CharField(_("name"), max_length=100, unique=True)
+
+    class Meta:
+        verbose_name = _("storage location")
+        verbose_name_plural = _("storage locations")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class EquipmentImage(models.Model):
     name = models.CharField(_("name"), max_length=100)
     image = models.ImageField(_("image"), upload_to="equipment/")
@@ -53,6 +68,13 @@ class Equipment(models.Model):
     )
     category = models.ForeignKey(
         Category, on_delete=models.PROTECT, related_name="equipment", verbose_name=_("category")
+    )
+    location = models.ForeignKey(
+        StorageLocation,
+        on_delete=models.PROTECT,
+        related_name="equipment",
+        verbose_name=_("storage location"),
+        help_text=_("Where this equipment is physically kept."),
     )
     is_external_loanable = models.BooleanField(
         _("external loanable"),
