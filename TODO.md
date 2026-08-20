@@ -9,6 +9,13 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Storage location model (issue #31), defaulting new equipment to "Kolo" — `kava_varasto.inventory.models.StorageLocation`, `Equipment.location`, admin dropdown preselects Kolo, exposed on both equipment serializers, shown + filterable (dropdown) in the SPA storage view — see DESIGN.md's "Storage locations"
 - [x] Loan/Borrow model (borrower name+phone, due date, details, per-item quantity/quantity_returned for partial returns, responsible/returned_by tied to logged-in users, no delete) — `kava_varasto.loans.models.Loan`/`LoanItem`, registered in admin
 
+## Repairs
+- [x] Repair work queue (issue #36): free-text tickets with a status, optional
+      many-to-many equipment tagging, any logged-in user may file/close --
+      `kava_varasto.repairs.models.RepairTicket`, `/api/repairs/`,
+      `frontend/src/pages/Repairs.jsx`, admin-registered. Deliberately does not
+      touch `Equipment.broken_quantity` -- see DESIGN.md's "Repair work queue"
+
 ## Auth / accounts
 - [x] Document createsuperuser flow using accounts.User in README — see "Creating additional user accounts" in README.md
 - [x] Borrower-name autofill from loan history — `<datalist>` in `frontend/src/pages/LoanNew.jsx`, no real `User` account link (see DESIGN.md)

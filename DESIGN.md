@@ -49,6 +49,62 @@ by `Equipment.clean()` and a DB check constraint. Loan returns can also
 increment this per equipment (see "Loan check-in / return" below) when
 returned items come back damaged.
 
+Repair work queue
+-----------------
+
+Gear breaks, and gear needs upkeep. Issue #36 asks for a way to report and
+handle both, so `kava_varasto.repairs.RepairTicket` is a free-text piece of
+work -- "X75 pole bent" as much as "sharpen all them axes" -- with a status
+(`open`, `in progress`, `done`, `won't fix`), the member who reported it, and
+whoever eventually closed it.
+
+Equipment tagging is a `ManyToManyField` and optional in both directions: a
+ticket can name one item, several, or none at all. A maintenance chore covering
+six axes is one ticket tagging six items, not six tickets, and "service the
+trailer" is a perfectly good ticket that tags nothing. The title always has to
+stand on its own -- the tags are a convenience for finding related work, not
+the subject of the ticket.
+
+The queue is deliberately **not** wired to `Equipment.broken_quantity`. Filing
+a ticket doesn't mark stock broken and resolving one doesn't make it loanable
+again; the count stays what it was, maintained by staff in the Django admin
+(`EquipmentAdmin.list_editable`). The two answer different questions -- the
+ticket says *what needs doing and by whom*, the field says *how many can't go
+out right now* -- and a chore like sharpening axes has no bearing on
+availability at all. Keeping them independent means the loan availability
+calculations (`available_quantity`, `loanable_quantity`,
+`LoanCreateSerializer.validate_items`) are untouched by this feature, and no
+double-counting seam exists between a damaged loan return and a repair ticket
+filed for the same damage. `tests/test_repairs_api.py` asserts the
+independence directly.
+
+Resolution bookkeeping lives in one place: `RepairTicket.set_status(status,
+by_user)`, modelled on `Loan.mark_returned_if_complete()`. Moving into a
+closed status stamps `resolved_at`/`resolved_by`, moving back out clears them,
+and a no-op status write leaves the original resolver alone. A DB check
+constraint (`repairticket_resolution_matches_status`) enforces the pairing, so
+the stamping cannot be skipped -- which is why the admin goes through the same
+method via a form `clean()` rather than through `save_model()`: the model's
+`full_clean()` runs during form validation, before `save_model()` would get a
+chance to fix anything up. The constraint hardcodes the status literals into
+its SQL, so adding a fifth status needs a migration that rewrites it, not just
+an edit to `TicketStatus`.
+
+Any logged-in user can file, edit, close and delete tickets -- the same trust
+level the loan endpoints already assume, no `is_staff` gate. `GET
+/api/repairs/` returns only open tickets, since the queue is a to-do list;
+`?status=all` or an explicit `?status=done` digs up history, and an
+unrecognised value is a 400 rather than a silently empty list.
+
+The whole feature is one SPA page (`frontend/src/pages/Repairs.jsx`, tab
+"Repairs"/"Korjaukset"). A ticket is a line of text and a status, so there is
+no detail page and no separate form page: the status dropdown PATCHes straight
+from the list row, the description shows inline under the title, and reporting
+is a collapsible form at the top of the same page. Tagging equipment reuses
+`useEquipmentFilter` through `EquipmentTagPicker` -- a search box plus chips,
+not the full `EquipmentFilterBar`, whose category and location controls are
+more machinery than tagging needs.
+
 Categorization
 --------------
 To make it easier to find equipment, there should be categories of equipment when borrowing, so that equipment with no short code is discoverable.
@@ -349,9 +405,10 @@ Scope note: broken can only be recorded for a `LoanItem` while it's still
 being actively returned -- once an item is fully returned, `LoanReturn.jsx`
 only shows a static badge and it drops out of the submitted payload, so
 there's no UI path to retroactively mark an already-returned item broken
-later. The pre-existing Django-admin-only editing of `Equipment.broken_quantity`
-already covers "found broken after the fact", just coarsely at the
-equipment level rather than per loan item.
+later. "Found broken after the fact" is covered from two directions instead:
+the repair queue records the *work* that needs doing (see "Repair work
+queue"), and staff adjust the *count* by editing `Equipment.broken_quantity`
+in the Django admin.
 
 Implementation note: `LoanReturnView` fetches the `Loan` *without*
 `prefetch_related("items")`. Prefetching before mutating and saving the
