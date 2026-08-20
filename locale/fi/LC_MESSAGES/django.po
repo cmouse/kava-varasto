@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kava-varasto\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-20 12:36+0300\n"
+"POT-Creation-Date: 2026-08-20 10:33+0000\n"
 "PO-Revision-Date: 2026-07-07 18:30+0300\n"
 "Last-Translator: Karhunvartijat ry\n"
 "Language-Team: Finnish\n"
@@ -44,11 +44,11 @@ msgstr "Salasana on vaihdettava."
 msgid "Current password is incorrect."
 msgstr "Nykyinen salasana on virheellinen."
 
-#: src/kava_varasto/inventory/admin.py:26
+#: src/kava_varasto/inventory/admin.py:32
 msgid "preview"
 msgstr "esikatselu"
 
-#: src/kava_varasto/inventory/admin.py:49
+#: src/kava_varasto/inventory/admin.py:55
 msgid "available quantity"
 msgstr "saatavilla oleva määrä"
 
@@ -143,7 +143,7 @@ msgstr "Valinnainen kuva, joka näkyy varusteen tiedoissa."
 
 #: src/kava_varasto/inventory/models.py:102
 #: src/kava_varasto/inventory/models.py:103
-#: src/kava_varasto/loans/models.py:105
+#: src/kava_varasto/loans/models.py:105 src/kava_varasto/repairs/models.py:31
 msgid "equipment"
 msgstr "varuste"
 
@@ -314,3 +314,99 @@ msgstr ""
 #: src/kava_varasto/loans/views.py:60
 msgid "This loan has already been returned."
 msgstr "Tämä laina on jo palautettu."
+
+#: src/kava_varasto/repairs/models.py:11
+msgid "open"
+msgstr "avoin"
+
+#: src/kava_varasto/repairs/models.py:12
+msgid "in progress"
+msgstr "työn alla"
+
+#: src/kava_varasto/repairs/models.py:13
+msgid "done"
+msgstr "valmis"
+
+#: src/kava_varasto/repairs/models.py:14
+msgid "won't fix"
+msgstr "ei korjata"
+
+#: src/kava_varasto/repairs/models.py:22
+msgid "title"
+msgstr "otsikko"
+
+#: src/kava_varasto/repairs/models.py:23
+msgid "description"
+msgstr "lisätiedot"
+
+#: src/kava_varasto/repairs/models.py:32
+msgid "Which equipment this concerns, if any."
+msgstr "Mitä varusteita tämä koskee, jos mitään."
+
+#: src/kava_varasto/repairs/models.py:35
+msgid "status"
+msgstr "tila"
+
+#: src/kava_varasto/repairs/models.py:41
+#| msgid "returned by"
+msgid "reported by"
+msgstr "ilmoittaja"
+
+#: src/kava_varasto/repairs/models.py:43
+#| msgid "created at"
+msgid "reported at"
+msgstr "ilmoitettu"
+
+#: src/kava_varasto/repairs/models.py:48
+#| msgid "returned by"
+msgid "resolved by"
+msgstr "käsittelijä"
+
+#: src/kava_varasto/repairs/models.py:51
+msgid "Set automatically when the ticket moves to a closed status."
+msgstr "Asetetaan automaattisesti, kun korjaus siirtyy käsiteltyyn tilaan."
+
+#: src/kava_varasto/repairs/models.py:53
+#| msgid "created at"
+msgid "resolved at"
+msgstr "käsitelty"
+
+#: src/kava_varasto/repairs/models.py:56
+msgid "repair ticket"
+msgstr "korjaus"
+
+#: src/kava_varasto/repairs/models.py:57
+msgid "repair tickets"
+msgstr "korjaukset"
+
+#: src/kava_varasto/repairs/models.py:86
+#| msgid "Returned-at and returned-by must be set together."
+msgid "Resolved-at and resolved-by must be set together."
+msgstr "Käsittelyaika ja käsittelijä on asetettava yhdessä."
+
+#: src/kava_varasto/repairs/models.py:88
+msgid "An open ticket cannot have resolution details."
+msgstr "Avoimella korjauksella ei voi olla käsittelytietoja."
+
+#: src/kava_varasto/repairs/models.py:90
+msgid "A closed ticket must record who resolved it and when."
+msgstr "Käsitellylle korjaukselle on merkittävä käsittelijä ja aika."
+
+#: src/kava_varasto/repairs/serializers.py:50
+#| msgid "At least one item is required."
+msgid "A title is required."
+msgstr "Otsikko vaaditaan."
+
+#: src/kava_varasto/repairs/serializers.py:55
+#| msgid "Too many items in a single loan."
+msgid "Too many pieces of equipment on a single ticket."
+msgstr "Liian monta varustetta yhdessä korjauksessa."
+
+#: src/kava_varasto/repairs/serializers.py:57
+#| msgid "Each piece of equipment can only appear once per loan."
+msgid "Each piece of equipment can only be tagged once."
+msgstr "Kukin varuste voi esiintyä korjauksessa vain kerran."
+
+#: src/kava_varasto/repairs/views.py:33
+msgid "Unknown status."
+msgstr "Tuntematon tila."

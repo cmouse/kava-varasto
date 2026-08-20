@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kava-varasto\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-20 12:36+0300\n"
+"POT-Creation-Date: 2026-08-20 10:33+0000\n"
 "PO-Revision-Date: 2026-07-07 18:30+0300\n"
 "Last-Translator: Karhunvartijat ry\n"
 "Language-Team: English\n"
@@ -45,11 +45,11 @@ msgstr ""
 msgid "Current password is incorrect."
 msgstr ""
 
-#: src/kava_varasto/inventory/admin.py:26
+#: src/kava_varasto/inventory/admin.py:32
 msgid "preview"
 msgstr ""
 
-#: src/kava_varasto/inventory/admin.py:49
+#: src/kava_varasto/inventory/admin.py:55
 msgid "available quantity"
 msgstr ""
 
@@ -140,7 +140,7 @@ msgstr ""
 
 #: src/kava_varasto/inventory/models.py:102
 #: src/kava_varasto/inventory/models.py:103
-#: src/kava_varasto/loans/models.py:105
+#: src/kava_varasto/loans/models.py:105 src/kava_varasto/repairs/models.py:31
 msgid "equipment"
 msgstr ""
 
@@ -305,4 +305,92 @@ msgstr ""
 
 #: src/kava_varasto/loans/views.py:60
 msgid "This loan has already been returned."
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:11
+msgid "open"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:12
+msgid "in progress"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:13
+msgid "done"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:14
+msgid "won't fix"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:22
+msgid "title"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:23
+msgid "description"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:32
+msgid "Which equipment this concerns, if any."
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:35
+msgid "status"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:41
+msgid "reported by"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:43
+msgid "reported at"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:48
+msgid "resolved by"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:51
+msgid "Set automatically when the ticket moves to a closed status."
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:53
+msgid "resolved at"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:56
+msgid "repair ticket"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:57
+msgid "repair tickets"
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:86
+msgid "Resolved-at and resolved-by must be set together."
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:88
+msgid "An open ticket cannot have resolution details."
+msgstr ""
+
+#: src/kava_varasto/repairs/models.py:90
+msgid "A closed ticket must record who resolved it and when."
+msgstr ""
+
+#: src/kava_varasto/repairs/serializers.py:50
+msgid "A title is required."
+msgstr ""
+
+#: src/kava_varasto/repairs/serializers.py:55
+msgid "Too many pieces of equipment on a single ticket."
+msgstr ""
+
+#: src/kava_varasto/repairs/serializers.py:57
+msgid "Each piece of equipment can only be tagged once."
+msgstr ""
+
+#: src/kava_varasto/repairs/views.py:33
+msgid "Unknown status."
 msgstr ""
