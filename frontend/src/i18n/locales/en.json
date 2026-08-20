@@ -18,6 +18,7 @@
     "title": "Storage",
     "shortCode": "Code",
     "name": "Name",
+    "location": "Location",
     "quantity": "Quantity",
     "broken": "Broken",
     "available": "Available",
@@ -35,6 +36,7 @@
     "close": "Close",
     "noImage": "No image",
     "category": "Category",
+    "location": "Location",
     "loanable": "Loanable now"
   },
   "equipmentFilter": {

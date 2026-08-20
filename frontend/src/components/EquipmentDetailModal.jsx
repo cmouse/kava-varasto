@@ -56,6 +56,8 @@ function EquipmentDetailModal({ item, onClose }) {
                 <dd className="col-sm-7">{item.short_code || "–"}</dd>
                 <dt className="col-sm-5">{t("equipmentDetail.category")}</dt>
                 <dd className="col-sm-7">{item.category}</dd>
+                <dt className="col-sm-5">{t("equipmentDetail.location")}</dt>
+                <dd className="col-sm-7">{item.location}</dd>
                 <dt className="col-sm-5">{t("storage.quantity")}</dt>
                 <dd className="col-sm-7">{item.quantity}</dd>
                 <dt className="col-sm-5">{t("storage.broken")}</dt>
