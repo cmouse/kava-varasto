@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "kava_varasto.accounts",
     "kava_varasto.inventory",
     "kava_varasto.loans",
+    "kava_varasto.repairs",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
