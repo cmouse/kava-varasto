@@ -153,6 +153,12 @@
       "done": "Valmis",
       "wontfix": "Ei korjata"
     },
+    "actions": {
+      "start": "Aloita",
+      "done": "Valmis",
+      "wontfix": "Ei korjata",
+      "reopen": "Avaa uudelleen"
+    },
     "reportedBy": "Ilmoittaja",
     "reportedAt": "Ilmoitettu",
     "resolvedBy": "Käsittelijä",

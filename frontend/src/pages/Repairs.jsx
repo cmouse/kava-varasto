@@ -8,7 +8,28 @@ import EquipmentTagPicker from "../components/EquipmentTagPicker";
 import LoginForm from "../components/LoginForm";
 import { equipmentLabel } from "../utils/equipmentLabel";
 
-const STATUSES = ["open", "in_progress", "done", "wontfix"];
+const STATUS_BADGE = {
+  open: "text-bg-warning",
+  in_progress: "text-bg-info",
+  done: "text-bg-success",
+  wontfix: "text-bg-secondary",
+};
+
+// Only the moves that make sense from where the ticket is now, so a row shows
+// two or three buttons rather than every status it could ever hold.
+const TRANSITIONS = {
+  open: [
+    { status: "in_progress", key: "start", variant: "btn-outline-primary" },
+    { status: "done", key: "done", variant: "btn-outline-success" },
+    { status: "wontfix", key: "wontfix", variant: "btn-outline-secondary" },
+  ],
+  in_progress: [
+    { status: "done", key: "done", variant: "btn-outline-success" },
+    { status: "wontfix", key: "wontfix", variant: "btn-outline-secondary" },
+  ],
+  done: [{ status: "open", key: "reopen", variant: "btn-outline-primary" }],
+  wontfix: [{ status: "open", key: "reopen", variant: "btn-outline-primary" }],
+};
 
 function ReportForm({ equipment, onDone }) {
   const { t } = useTranslation();
@@ -103,22 +124,24 @@ function RepairRow({ ticket }) {
         )}
       </td>
       <td>
-        <select
-          className="form-select form-select-sm"
-          // Without a floor the column collapses on narrow screens and the
-          // status reads as an empty box with a chevron.
-          style={{ minWidth: "8rem" }}
-          aria-label={t("repairs.status")}
-          value={ticket.status}
-          disabled={updateRepair.isPending}
-          onChange={(event) => updateRepair.mutate({ id: ticket.id, status: event.target.value })}
-        >
-          {STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {t(`repairs.statuses.${status}`)}
-            </option>
+        <span className={`badge ${STATUS_BADGE[ticket.status]}`}>
+          {t(`repairs.statuses.${ticket.status}`)}
+        </span>
+      </td>
+      <td>
+        <div className="d-flex flex-wrap gap-1">
+          {(TRANSITIONS[ticket.status] ?? []).map(({ status, key, variant }) => (
+            <button
+              key={key}
+              type="button"
+              className={`btn btn-sm ${variant}`}
+              disabled={updateRepair.isPending}
+              onClick={() => updateRepair.mutate({ id: ticket.id, status })}
+            >
+              {t(`repairs.actions.${key}`)}
+            </button>
           ))}
-        </select>
+        </div>
         {updateRepair.isError ? (
           <div className="small text-danger">{t("repairs.rowError")}</div>
         ) : null}
@@ -214,6 +237,7 @@ function Repairs() {
                 <th>{t("repairs.titleField")}</th>
                 <th>{t("repairs.equipment")}</th>
                 <th>{t("repairs.status")}</th>
+                <th />
                 <th>{t("repairs.reportedBy")}</th>
                 <th>{t("repairs.reportedAt")}</th>
                 <th>{t("repairs.resolvedBy")}</th>

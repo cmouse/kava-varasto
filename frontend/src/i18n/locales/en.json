@@ -153,6 +153,12 @@
       "done": "Done",
       "wontfix": "Won't fix"
     },
+    "actions": {
+      "start": "Start",
+      "done": "Done",
+      "wontfix": "Won't fix",
+      "reopen": "Reopen"
+    },
     "reportedBy": "Reported by",
     "reportedAt": "Reported",
     "resolvedBy": "Resolved by",
