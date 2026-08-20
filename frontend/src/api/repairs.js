@@ -2,14 +2,15 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 
 import apiClient from "./client";
 
-export function useRepairs({ enabled = true, includeClosed = false } = {}) {
+export function useRepairs({ enabled = true, includeArchived = false } = {}) {
   return useQuery({
-    queryKey: includeClosed ? ["repairs", "recent"] : ["repairs"],
+    queryKey: includeArchived ? ["repairs", "all"] : ["repairs"],
     queryFn: async () => {
-      // "recent", not "all": the server drops tickets resolved over a year
-      // ago, so the toggle stays readable as history piles up.
+      // The queue shows what was resolved within the past year, so finishing
+      // a repair doesn't make it vanish from under the person who finished
+      // it. Only the toggle reaches further back than that.
       const { data } = await apiClient.get("repairs/", {
-        params: includeClosed ? { resolved: "recent" } : undefined,
+        params: includeArchived ? { status: "all" } : { resolved: "recent" },
       });
       return data;
     },

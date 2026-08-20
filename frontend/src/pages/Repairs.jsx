@@ -173,13 +173,13 @@ function RepairRow({ ticket }) {
 function Repairs() {
   const { t } = useTranslation();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
-  const [showClosed, setShowClosed] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
   const {
     data: tickets,
     isLoading,
     isError,
-  } = useRepairs({ enabled: user?.authenticated, includeClosed: showClosed });
+  } = useRepairs({ enabled: user?.authenticated, includeArchived: showArchived });
   const { data: equipment } = useLoanableEquipment({ enabled: user?.authenticated });
 
   if (isUserLoading) {
@@ -217,14 +217,14 @@ function Repairs() {
         <input
           className="form-check-input"
           type="checkbox"
-          id="repairs-show-closed"
-          checked={showClosed}
-          onChange={(event) => setShowClosed(event.target.checked)}
+          id="repairs-show-archived"
+          checked={showArchived}
+          onChange={(event) => setShowArchived(event.target.checked)}
         />
-        <label className="form-check-label" htmlFor="repairs-show-closed">
-          {t("repairs.showClosed")}
+        <label className="form-check-label" htmlFor="repairs-show-archived">
+          {t("repairs.showArchived")}
         </label>
-        {showClosed ? <div className="form-text">{t("repairs.showClosedHint")}</div> : null}
+        {showArchived ? null : <div className="form-text">{t("repairs.recentHint")}</div>}
       </div>
 
       {tickets.length === 0 ? (
