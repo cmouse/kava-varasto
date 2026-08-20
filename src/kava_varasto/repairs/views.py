@@ -1,3 +1,7 @@
+from datetime import timedelta
+
+from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status as http_status
 from rest_framework.exceptions import ValidationError
@@ -8,6 +12,11 @@ from .models import OPEN_STATUSES, RepairTicket, TicketStatus
 from .serializers import RepairTicketSerializer, RepairTicketWriteSerializer
 
 ALL_STATUSES = "all"
+RECENT_RESOLVED = "recent"
+# How long a closed ticket stays in the "show resolved" view. Longer than the
+# loans' ARCHIVE_AFTER on purpose: gear is seasonal, and "did we already fix
+# this last autumn?" has to stay answerable without digging through history.
+RESOLVED_VISIBLE_FOR = timedelta(days=365)
 
 
 class RepairTicketQuerysetMixin:
@@ -20,9 +29,18 @@ class RepairTicketListCreateView(RepairTicketQuerysetMixin, ListCreateAPIView):
     def get_queryset(self):
         qs = super().get_queryset()
         wanted = self.request.query_params.get("status")
+        resolved = self.request.query_params.get("resolved")
+        if resolved is not None and resolved != RECENT_RESOLVED:
+            raise ValidationError({"resolved": _("Unknown value.")})
         if wanted is None:
+            if resolved == RECENT_RESOLVED:
+                # What the SPA's "show resolved" checkbox asks for: the queue
+                # plus what was dealt with recently enough to still be worth
+                # reading. Anything older is history and needs ?status=all.
+                cutoff = timezone.now() - RESOLVED_VISIBLE_FOR
+                return qs.filter(Q(status__in=OPEN_STATUSES) | Q(resolved_at__gte=cutoff))
             # The queue is a to-do list: closed tickets are history, and only
-            # ?status=all (or one explicit status) digs them back up.
+            # ?resolved=recent or ?status=all digs them back up.
             return qs.filter(status__in=OPEN_STATUSES)
         if wanted == ALL_STATUSES:
             return qs
