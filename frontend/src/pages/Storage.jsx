@@ -15,7 +15,17 @@ function Storage() {
   const [selectedId, setSelectedId] = useState(null);
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
   const { data, isLoading, isError } = useLoanableEquipment({ enabled: user?.authenticated });
-  const { search, setSearch, categoryId, setCategoryId, categories, filteredEquipment } = useEquipmentFilter(data);
+  const {
+    search,
+    setSearch,
+    categoryId,
+    setCategoryId,
+    categories,
+    locationId,
+    setLocationId,
+    locations,
+    filteredEquipment,
+  } = useEquipmentFilter(data);
   const selectedItem = data?.find((item) => item.id === selectedId) ?? null;
 
   if (isUserLoading) {
@@ -43,6 +53,9 @@ function Storage() {
         categories={categories}
         categoryId={categoryId}
         onCategoryChange={setCategoryId}
+        locations={locations}
+        locationId={locationId}
+        onLocationChange={setLocationId}
       />
       {filteredEquipment.length === 0 ? (
         <p className="text-muted">{t("storage.noResults")}</p>

@@ -41,7 +41,8 @@
   },
   "equipmentFilter": {
     "searchPlaceholder": "Hae nimellä tai koodilla…",
-    "allCategories": "Kaikki kategoriat"
+    "allCategories": "Kaikki kategoriat",
+    "allLocations": "Kaikki sijainnit"
   },
   "loanForm": {
     "title": "Uusi laina",

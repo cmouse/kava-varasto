@@ -41,7 +41,8 @@
   },
   "equipmentFilter": {
     "searchPlaceholder": "Search by name or code…",
-    "allCategories": "All categories"
+    "allCategories": "All categories",
+    "allLocations": "All locations"
   },
   "loanForm": {
     "title": "New loan",
