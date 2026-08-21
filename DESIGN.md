@@ -233,6 +233,17 @@ duplicate-equipment error unreachable from the SPA, though it stays as the
 API contract for any other client. Creating a loan sets `responsible` to
 the logged-in user automatically (same rule as the admin), and rejects
 (400) if any requested quantity exceeds what's actually free right now.
+
+The picker's status line (added/bumped/removed/max-reached/unavailable, plus
+a derived suggestion count) is a pair of `aria-live="polite"` regions, both
+mounted from the start, with the message alternating between them on a
+counter that bumps once per event. A single region would go silent whenever
+an event repeated its message -- Enter twice on an out-of-stock suggestion,
+re-picking a short-code item already in the cart -- because React bails out
+of the re-render on an equal string and, even forced to render, does not
+rewrite an unchanged text node, so nothing fires the region. Typing clears
+the message but keeps the counter, so the suggestion count is not
+re-announced on every keystroke.
 The `Loan` and its `LoanItem` rows are created inside one
 `transaction.atomic()` block, so a failure can't leave a half-created loan
 behind.
