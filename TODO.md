@@ -48,16 +48,11 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Equipment image upload in admin (`Equipment.image`, Pillow, dev media serving) — `inventory/models.py`, `urls.py`
 - [x] Equipment image exposed in API (relative URL honoring sub-path `MEDIA_URL`) — `EquipmentSerializer`, `LoanableEquipmentSerializer`
 - [x] Equipment detail modal on the storage page (image + all item info, row click/keyboard) — `frontend/src/components/EquipmentDetailModal.jsx`
-- [ ] Equipment picker `aria-live="polite"` status region doesn't re-announce
-      identical consecutive messages (e.g. pressing Enter twice on an
-      out-of-stock top suggestion, or re-picking a short-code item already in
-      the cart) — `frontend/src/components/LoanItemCart.jsx`. Root cause: React's
-      text reconciler skips the DOM update when the text is unchanged, so the
-      live region never re-fires; this is independent of how the status is
-      stored (tried effect-pushed state, a `{message, term}` object, and a plain
-      string — same bail-out at the DOM text level each time). Needs the
-      announcement to actually change between events, e.g. an appended
-      invisible nonce/counter or briefly clearing the region before re-setting.
+- [x] Equipment picker re-announces identical consecutive status messages
+      (Enter twice on an out-of-stock top suggestion, re-picking a short-code
+      item already in the cart) — a message+counter pair alternating between
+      two always-mounted `aria-live="polite"` regions, so each announcement is
+      a `""`->text change — `frontend/src/components/LoanItemCart.jsx`
 
 ## Localization
 - [x] Wire an i18n library into the React frontend (react-i18next) with FI/EN string
