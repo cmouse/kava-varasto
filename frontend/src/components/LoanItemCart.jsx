@@ -58,15 +58,18 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
   // regions below, making each announcement a genuine ""->text change.
   // Clearing keeps the counter: typing must not shuffle the slots, or the
   // derived suggestion-count string would be re-announced on every keystroke.
-  const [eventStatus, setEventStatus] = useState({ message: "", slot: 0 });
+  const [eventStatus, setEventStatus] = useState({ message: "", slot: 0, isError: false });
   const searchInputRef = useRef(null);
 
-  function announce(message) {
-    setEventStatus((prev) => ({ message, slot: prev.slot + 1 }));
+  // isError paints the line red: "can't do that" (max reached, out of stock)
+  // needs to stand out from "done" (added/bumped/removed) and from the derived
+  // suggestion count, which all stay muted like the rest of the form help text.
+  function announce(message, error = false) {
+    setEventStatus((prev) => ({ message, slot: prev.slot + 1, isError: error }));
   }
 
   function clearAnnouncement() {
-    setEventStatus((prev) => (prev.message ? { message: "", slot: prev.slot } : prev));
+    setEventStatus((prev) => (prev.message ? { message: "", slot: prev.slot, isError: false } : prev));
   }
 
   const suggestions = useMemo(
@@ -111,11 +114,11 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
     } else if (items[index].short_code) {
       // short_code implies quantity 1 at the DB level -- a line already in
       // the cart has nothing further to add, so this is the max case too.
-      announce(t("loanForm.maxReached"));
+      announce(t("loanForm.maxReached"), true);
     } else {
       const current = Number(items[index].quantity) || 0;
       if (current >= item.loanable_quantity) {
-        announce(t("loanForm.maxReached"));
+        announce(t("loanForm.maxReached"), true);
       } else {
         const quantity = current + 1;
         onItemsChange(items.map((line, i) => (i === index ? { ...line, quantity: String(quantity) } : line)));
@@ -139,7 +142,7 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
       // it just can't be added, and that needs saying. Named, not the bare
       // badge fragment: with several suggestions on screen, "not available"
       // alone doesn't say which one.
-      announce(t("loanForm.topUnavailable", { name: equipmentLabel(topSuggestion) }));
+      announce(t("loanForm.topUnavailable", { name: equipmentLabel(topSuggestion) }), true);
       return;
     }
     add(topSuggestion);
@@ -262,7 +265,7 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
           unreliably, and one that merely keeps its text is not announced at
           all. The message alternates between them so every announcement is an
           ""->text change in a region that was already there. */}
-      <div className="form-text mb-0 mt-1">
+      <div className={`form-text mb-0 mt-1${eventStatus.isError ? " text-danger" : ""}`}>
         <div aria-live="polite">{eventStatus.slot % 2 === 0 ? status : ""}</div>
         <div aria-live="polite">{eventStatus.slot % 2 === 0 ? "" : status}</div>
       </div>
