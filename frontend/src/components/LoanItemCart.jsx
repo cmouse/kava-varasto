@@ -253,6 +253,20 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
         </button>
       </div>
 
+      {/* Above the suggestion list, not below it: add() refocuses the search
+          box, which reopens the list at full height, and a status line after
+          it lands off-screen -- the message a sighted user needs most (max
+          reached, not available) is exactly the one that fires while the list
+          is open. Two regions, both present from first mount: a live region
+          added to the DOM in the same commit as its content is announced
+          unreliably, and one that merely keeps its text is not announced at
+          all. The message alternates between them so every announcement is an
+          ""->text change in a region that was already there. */}
+      <div className="form-text mb-0 mt-1">
+        <div aria-live="polite">{eventStatus.slot % 2 === 0 ? status : ""}</div>
+        <div aria-live="polite">{eventStatus.slot % 2 === 0 ? "" : status}</div>
+      </div>
+
       {isFocused && suggestions.length > 0 ? (
         <div className="list-group mt-1">
           {suggestions.map((eq) => {
@@ -279,15 +293,6 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
         </div>
       ) : null}
 
-      {/* Two regions, both present from first mount -- a live region added to
-          the DOM in the same commit as its content is announced unreliably,
-          and one that merely keeps its text is not announced at all. The
-          message alternates between them so every announcement is an
-          ""->text change in a region that was already there. */}
-      <div className="form-text mb-0">
-        <div aria-live="polite">{eventStatus.slot % 2 === 0 ? status : ""}</div>
-        <div aria-live="polite">{eventStatus.slot % 2 === 0 ? "" : status}</div>
-      </div>
     </div>
   );
 }

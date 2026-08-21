@@ -235,8 +235,11 @@ the logged-in user automatically (same rule as the admin), and rejects
 (400) if any requested quantity exceeds what's actually free right now.
 
 The picker's status line (added/bumped/removed/max-reached/unavailable, plus
-a derived suggestion count) is a pair of `aria-live="polite"` regions, both
-mounted from the start, with the message alternating between them on a
+a derived suggestion count) sits between the search row and the suggestion
+list, not after it: adding an item refocuses the search box, which reopens
+the list at full height, and a status line below that list falls off-screen
+exactly when the messages worth seeing fire. It is a pair of
+`aria-live="polite"` regions, both mounted from the start, with the message alternating between them on a
 counter that bumps once per event. A single region would go silent whenever
 an event repeated its message -- Enter twice on an out-of-stock suggestion,
 re-picking a short-code item already in the cart -- because React bails out
