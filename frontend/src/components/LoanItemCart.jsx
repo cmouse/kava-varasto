@@ -48,8 +48,26 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
   // message was set at. The suggestion-count announcement is still derived
   // during render, since it's a pure function of `search` and `suggestions`
   // and doesn't need an effect to compute it.
-  const [eventStatus, setEventStatus] = useState("");
+  // Carries a slot counter alongside the message: two identical consecutive
+  // announcements (Enter twice on an out-of-stock suggestion, re-picking a
+  // short-code item already in the cart) are the case to defend against, and
+  // a bare string loses them twice over -- setState bails out on Object.is
+  // equality, and even when re-rendered React skips writing an unchanged text
+  // node, so the live region never fires. Bumping the counter on every event
+  // both forces the render and moves the text to the other of the two live
+  // regions below, making each announcement a genuine ""->text change.
+  // Clearing keeps the counter: typing must not shuffle the slots, or the
+  // derived suggestion-count string would be re-announced on every keystroke.
+  const [eventStatus, setEventStatus] = useState({ message: "", slot: 0 });
   const searchInputRef = useRef(null);
+
+  function announce(message) {
+    setEventStatus((prev) => ({ message, slot: prev.slot + 1 }));
+  }
+
+  function clearAnnouncement() {
+    setEventStatus((prev) => (prev.message ? { message: "", slot: prev.slot } : prev));
+  }
 
   const suggestions = useMemo(
     () => rankSuggestions(filteredEquipment, search).slice(0, MAX_SUGGESTIONS),
@@ -70,8 +88,8 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
   // the input's onChange clears it (see eventStatus above), so this doesn't
   // stomp on the itemAdded/itemBumped/maxReached/itemRemoved/topUnavailable
   // message an event just set.
-  const status = eventStatus
-    ? eventStatus
+  const status = eventStatus.message
+    ? eventStatus.message
     : hasTypedTerm
       ? suggestions.length > 0
         ? t("loanForm.suggestionCount", { count: suggestions.length })
@@ -89,22 +107,22 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
     const index = items.findIndex((line) => line.id === item.id);
     if (index === -1) {
       onItemsChange([...items, { id: item.id, name: item.name, short_code: item.short_code, quantity: "1" }]);
-      setEventStatus(t("loanForm.itemAdded", { name: equipmentLabel(item) }));
+      announce(t("loanForm.itemAdded", { name: equipmentLabel(item) }));
     } else if (items[index].short_code) {
       // short_code implies quantity 1 at the DB level -- a line already in
       // the cart has nothing further to add, so this is the max case too.
-      setEventStatus(t("loanForm.maxReached"));
+      announce(t("loanForm.maxReached"));
     } else {
       const current = Number(items[index].quantity) || 0;
       if (current >= item.loanable_quantity) {
-        setEventStatus(t("loanForm.maxReached"));
+        announce(t("loanForm.maxReached"));
       } else {
         const quantity = current + 1;
         onItemsChange(items.map((line, i) => (i === index ? { ...line, quantity: String(quantity) } : line)));
-        // Distinct wording from itemAdded: two identical consecutive
-        // aria-live strings get deduped by most screen readers, and a bump
-        // needs its own announcement or the quantity change goes unheard.
-        setEventStatus(t("loanForm.itemBumped", { name: equipmentLabel(item), quantity }));
+        // Distinct wording from itemAdded: "added" for something that was
+        // already in the cart would misdescribe what happened, and the new
+        // quantity is the whole point of the event.
+        announce(t("loanForm.itemBumped", { name: equipmentLabel(item), quantity }));
       }
     }
     setSearch("");
@@ -121,7 +139,7 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
       // it just can't be added, and that needs saying. Named, not the bare
       // badge fragment: with several suggestions on screen, "not available"
       // alone doesn't say which one.
-      setEventStatus(t("loanForm.topUnavailable", { name: equipmentLabel(topSuggestion) }));
+      announce(t("loanForm.topUnavailable", { name: equipmentLabel(topSuggestion) }));
       return;
     }
     add(topSuggestion);
@@ -129,7 +147,7 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
 
   function remove(line) {
     onItemsChange(items.filter((item) => item.id !== line.id));
-    setEventStatus(t("loanForm.itemRemoved", { name: equipmentLabel(line) }));
+    announce(t("loanForm.itemRemoved", { name: equipmentLabel(line) }));
     focusSearch();
   }
 
@@ -210,7 +228,7 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
             // current and must not resurface just because `search` later
             // returns to a value it was set at (see eventStatus above).
             setSearch(event.target.value);
-            setEventStatus("");
+            clearAnnouncement();
           }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -261,8 +279,14 @@ function LoanItemCart({ equipment, isLoading, isError, items, onItemsChange }) {
         </div>
       ) : null}
 
-      <div aria-live="polite" className="form-text mb-0">
-        {status}
+      {/* Two regions, both present from first mount -- a live region added to
+          the DOM in the same commit as its content is announced unreliably,
+          and one that merely keeps its text is not announced at all. The
+          message alternates between them so every announcement is an
+          ""->text change in a region that was already there. */}
+      <div className="form-text mb-0">
+        <div aria-live="polite">{eventStatus.slot % 2 === 0 ? status : ""}</div>
+        <div aria-live="polite">{eventStatus.slot % 2 === 0 ? "" : status}</div>
       </div>
     </div>
   );
