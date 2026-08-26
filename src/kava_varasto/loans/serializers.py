@@ -56,10 +56,25 @@ class LoanSerializer(serializers.ModelSerializer):
 
 class LoanCreateSerializer(serializers.ModelSerializer):
     items = LoanItemWriteSerializer(many=True)
+    trip_notification_submitted = serializers.BooleanField(write_only=True)
 
     class Meta:
         model = Loan
-        fields = ["borrower_name", "borrower_phone", "due_date", "details", "items"]
+        fields = [
+            "borrower_name",
+            "borrower_phone",
+            "due_date",
+            "details",
+            "items",
+            "trip_notification_submitted",
+        ]
+
+    def validate_trip_notification_submitted(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                _("The trip notification must be submitted before borrowing equipment.")
+            )
+        return value
 
     def validate_borrower_name(self, value):
         if len(value.split()) < 2:
@@ -107,6 +122,7 @@ class LoanCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         items = validated_data.pop("items")
+        validated_data.pop("trip_notification_submitted")
         with transaction.atomic():
             loan = Loan.objects.create(responsible=self.context["request"].user, **validated_data)
             LoanItem.objects.bulk_create(LoanItem(loan=loan, **item) for item in items)
