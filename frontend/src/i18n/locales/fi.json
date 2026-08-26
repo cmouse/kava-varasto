@@ -67,6 +67,8 @@
     "itemRemoved": "{{name}} poistettu lainasta.",
     "suggestionCount": "Osumia: {{count}}.",
     "noSuggestions": "Ei osumia.",
+    "tripNotification": "Olen tehnyt retkellelähtöilmoituksen",
+    "tripNotificationHint": "Ilmoitus on tehtävä ennen kaluston lainaamista.",
     "submit": "Luo laina",
     "cancel": "Peruuta",
     "success": "Laina luotu.",
