@@ -67,6 +67,8 @@
     "itemRemoved": "{{name}} removed from the loan.",
     "suggestionCount": "Matches: {{count}}.",
     "noSuggestions": "No matches.",
+    "tripNotification": "I have submitted the trip notification",
+    "tripNotificationHint": "The notification must be submitted before borrowing equipment.",
     "submit": "Create loan",
     "cancel": "Cancel",
     "success": "Loan created.",

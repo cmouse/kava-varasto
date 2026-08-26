@@ -91,6 +91,7 @@ function LoanNew() {
   const [dueDate, setDueDate] = useState(() => defaultDueDateValue());
   const [details, setDetails] = useState("");
   const [items, setItems] = useState([]);
+  const [tripNotification, setTripNotification] = useState(false);
 
   const errorMessages = useMemo(
     () => collectErrorMessages(createLoan.error?.response?.data),
@@ -122,6 +123,7 @@ function LoanNew() {
       due_date: dueDate,
       details,
       items: items.map((item) => ({ equipment: item.id, quantity: Number(item.quantity) })),
+      trip_notification_submitted: tripNotification,
     };
     createLoan.mutate(payload, {
       onSuccess: () => {
@@ -210,6 +212,21 @@ function LoanNew() {
           items={items}
           onItemsChange={setItems}
         />
+      </div>
+
+      <div className="form-check mb-3">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          id="loan-trip-notification"
+          checked={tripNotification}
+          onChange={(event) => setTripNotification(event.target.checked)}
+          required
+        />
+        <label className="form-check-label required" htmlFor="loan-trip-notification">
+          {t("loanForm.tripNotification")}
+        </label>
+        <div className="form-text">{t("loanForm.tripNotificationHint")}</div>
       </div>
 
       {createLoan.isError ? (
