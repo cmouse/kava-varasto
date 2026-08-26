@@ -18,6 +18,19 @@ from kava_varasto.loans.serializers import LoanCreateSerializer
 FUTURE_DUE_DATE = (timezone.localdate() + timedelta(days=60)).isoformat()
 
 
+def loan_payload(items, **overrides):
+    payload = {
+        "borrower_name": "Matti Meikäläinen",
+        "borrower_phone": "0401234567",
+        "due_date": FUTURE_DUE_DATE,
+        "details": "",
+        "items": items,
+        "trip_notification_submitted": True,
+    }
+    payload.update(overrides)
+    return payload
+
+
 @pytest.fixture
 def equipment(db):
     category = Category.objects.create(name="Cooking")
@@ -35,13 +48,7 @@ def test_loan_create_requires_auth(client):
 def test_loan_create_sets_responsible_and_echoes_items(admin_client, admin_user, equipment):
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Matti Meikäläinen",
-            "borrower_phone": "0401234567",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [{"equipment": equipment.pk, "quantity": 2}],
-        },
+        loan_payload(items=[{"equipment": equipment.pk, "quantity": 2}]),
         content_type="application/json",
     )
 
@@ -58,13 +65,7 @@ def test_loan_create_sets_responsible_and_echoes_items(admin_client, admin_user,
 def test_loan_create_requires_at_least_one_item(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Matti Meikäläinen",
-            "borrower_phone": "0401234567",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [],
-        },
+        loan_payload(items=[]),
         content_type="application/json",
     )
     assert response.status_code == 400
@@ -74,16 +75,12 @@ def test_loan_create_requires_at_least_one_item(admin_client, equipment):
 def test_loan_create_rejects_duplicate_equipment(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Matti Meikäläinen",
-            "borrower_phone": "0401234567",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [
+        loan_payload(
+            items=[
                 {"equipment": equipment.pk, "quantity": 1},
                 {"equipment": equipment.pk, "quantity": 1},
-            ],
-        },
+            ]
+        ),
         content_type="application/json",
     )
     assert response.status_code == 400
@@ -101,6 +98,7 @@ def test_loan_create_rolls_back_loan_if_items_fail(admin_user, equipment):
             {"equipment": equipment, "quantity": 1},
             {"equipment": equipment, "quantity": 1},
         ],
+        "trip_notification_submitted": True,
     }
     with pytest.raises(IntegrityError):
         serializer.create(validated_data)
@@ -120,13 +118,7 @@ def test_loan_create_availability_check_uses_single_aggregate(admin_client, equi
     with CaptureQueriesContext(connection) as ctx:
         response = admin_client.post(
             "/api/loans/",
-            {
-                "borrower_name": "Matti Meikäläinen",
-                "borrower_phone": "0401234567",
-                "due_date": FUTURE_DUE_DATE,
-                "details": "",
-                "items": items,
-            },
+            loan_payload(items=items),
             content_type="application/json",
         )
 
@@ -144,13 +136,7 @@ def test_loan_create_availability_check_uses_single_aggregate(admin_client, equi
 def test_loan_create_rejects_quantity_over_available(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Matti Meikäläinen",
-            "borrower_phone": "0401234567",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [{"equipment": equipment.pk, "quantity": 6}],
-        },
+        loan_payload(items=[{"equipment": equipment.pk, "quantity": 6}]),
         content_type="application/json",
     )
     assert response.status_code == 400
@@ -160,13 +146,10 @@ def test_loan_create_rejects_quantity_over_available(admin_client, equipment):
 def test_loan_create_rejects_single_word_name(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Matti",
-            "borrower_phone": "0401234567",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [{"equipment": equipment.pk, "quantity": 1}],
-        },
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            borrower_name="Matti",
+        ),
         content_type="application/json",
     )
     assert response.status_code == 400
@@ -177,13 +160,10 @@ def test_loan_create_rejects_single_word_name(admin_client, equipment):
 def test_loan_create_rejects_invalid_phone(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Matti Meikäläinen",
-            "borrower_phone": "12345",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [{"equipment": equipment.pk, "quantity": 1}],
-        },
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            borrower_phone="12345",
+        ),
         content_type="application/json",
     )
     assert response.status_code == 400
@@ -194,13 +174,10 @@ def test_loan_create_rejects_invalid_phone(admin_client, equipment):
 def test_loan_create_accepts_plus358_phone(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Matti Meikäläinen",
-            "borrower_phone": "+358401234567",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [{"equipment": equipment.pk, "quantity": 1}],
-        },
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            borrower_phone="+358401234567",
+        ),
         content_type="application/json",
     )
     assert response.status_code == 201, response.json()
@@ -210,17 +187,53 @@ def test_loan_create_accepts_plus358_phone(admin_client, equipment):
 def test_loan_create_rejects_past_due_date(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Matti Meikäläinen",
-            "borrower_phone": "0401234567",
-            "due_date": "2020-01-01",
-            "details": "",
-            "items": [{"equipment": equipment.pk, "quantity": 1}],
-        },
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            due_date="2020-01-01",
+        ),
         content_type="application/json",
     )
     assert response.status_code == 400
     assert "due_date" in response.json()
+
+
+@pytest.mark.django_db
+def test_loan_create_rejects_missing_trip_notification(admin_client, equipment):
+    response = admin_client.post(
+        "/api/loans/",
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            trip_notification_submitted=False,
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert "trip_notification_submitted" in response.json()
+
+
+@pytest.mark.django_db
+def test_loan_create_requires_trip_notification_key(admin_client, equipment):
+    payload = loan_payload(items=[{"equipment": equipment.pk, "quantity": 1}])
+    del payload["trip_notification_submitted"]
+
+    response = admin_client.post(
+        "/api/loans/",
+        payload,
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert "trip_notification_submitted" in response.json()
+
+
+@pytest.mark.django_db
+def test_loan_create_accepts_confirmed_trip_notification_and_omits_it_from_response(admin_client, equipment):
+    response = admin_client.post(
+        "/api/loans/",
+        loan_payload(items=[{"equipment": equipment.pk, "quantity": 1}]),
+        content_type="application/json",
+    )
+    assert response.status_code == 201, response.json()
+    assert "trip_notification_submitted" not in response.json()
 
 
 @pytest.mark.django_db
@@ -232,26 +245,22 @@ def test_loan_create_accounts_for_stock_already_out_on_other_loans(admin_client,
 
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Liisa Virtanen",
-            "borrower_phone": "0407654321",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [{"equipment": equipment.pk, "quantity": 2}],
-        },
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 2}],
+            borrower_name="Liisa Virtanen",
+            borrower_phone="0407654321",
+        ),
         content_type="application/json",
     )
     assert response.status_code == 201, response.json()
 
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Kalle Korhonen",
-            "borrower_phone": "0409876543",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [{"equipment": equipment.pk, "quantity": 1}],
-        },
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            borrower_name="Kalle Korhonen",
+            borrower_phone="0409876543",
+        ),
         content_type="application/json",
     )
     assert response.status_code == 400
@@ -266,13 +275,11 @@ def test_loan_create_allows_stock_freed_by_a_return(admin_client, admin_user, eq
 
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Liisa Virtanen",
-            "borrower_phone": "0407654321",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [{"equipment": equipment.pk, "quantity": 1}],
-        },
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            borrower_name="Liisa Virtanen",
+            borrower_phone="0407654321",
+        ),
         content_type="application/json",
     )
     assert response.status_code == 400
@@ -282,13 +289,11 @@ def test_loan_create_allows_stock_freed_by_a_return(admin_client, admin_user, eq
 
     response = admin_client.post(
         "/api/loans/",
-        {
-            "borrower_name": "Liisa Virtanen",
-            "borrower_phone": "0407654321",
-            "due_date": FUTURE_DUE_DATE,
-            "details": "",
-            "items": [{"equipment": equipment.pk, "quantity": 2}],
-        },
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 2}],
+            borrower_name="Liisa Virtanen",
+            borrower_phone="0407654321",
+        ),
         content_type="application/json",
     )
     assert response.status_code == 201, response.json()
