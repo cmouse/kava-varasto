@@ -30,6 +30,11 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Spec deviation: show "loaned by" (`responsible`, who gave the loan out) alongside
       "returned by" in the returned-loan views — `responsible` column added to
       `frontend/src/components/ReturnedLoansTable.jsx` (detail view already showed it).
+- [x] Require trip notification (retkellelähtöilmoitus) confirmation before
+      loan creation, issue #47 — write-only `trip_notification_submitted`
+      field on `LoanCreateSerializer`, checkbox in `frontend/src/pages/LoanNew.jsx`;
+      not persisted, no staff exemption — see DESIGN.md's "Trip notification
+      confirmation"
 
 ## Search & browsing
 - [x] Search by name/short code, category filter buttons — client-side filtering in `Storage.jsx` and `LoanNew.jsx` via `useEquipmentFilter`

@@ -473,7 +473,9 @@ Loan form input validation
 ---------------------------
 
 `LoanCreateSerializer` (`loans/serializers.py`) validates three fields on
-creation, in addition to the existing item/quantity checks:
+creation, in addition to the existing item/quantity checks (a fourth field,
+`trip_notification_submitted`, is validated the same way but write-only and
+not persisted -- see "Trip notification confirmation" below):
 
 - `borrower_name` must have at least two whitespace-separated parts (first
   and last name).
@@ -499,6 +501,36 @@ via ModelForm validation, so admin-created loans are validated too.
 client-side via native HTML5 `pattern`/`min` attributes (no new per-field
 error UI -- the app has none anywhere), and defaults the due-date field to
 today+7 days.
+
+Trip notification confirmation
+--------------------------------
+
+Equipment must not leave the storage before the group's
+*retkellelähtöilmoitus* (trip notification) has been filed. Loan creation
+requires a `trip_notification_submitted` boolean confirming that.
+
+This is a **write-only gate, not a persisted fact**: there is no `Loan`
+model field and no migration. Nothing separate needs recording because the
+attestation is already implicitly attributable -- `Loan.responsible` records
+who checked the person's equipment out, so it is always known who confirmed
+the notification was filed, without a second field duplicating that link.
+`LoanCreateSerializer` declares
+`trip_notification_submitted = serializers.BooleanField(write_only=True)`
+(required, no `default`, so an absent key is also a 400) with a
+`validate_trip_notification_submitted` that rejects a falsy value, and
+`create()` pops the key out of `validated_data` before calling
+`Loan.objects.create(**validated_data)` -- same pattern as the existing
+`items` pop just above it. `LoanSerializer`, the read path, is untouched:
+`write_only` means the field is never echoed back. `LoanNew.jsx` mirrors
+the requirement with a required checkbox above the submit button, so the
+browser blocks submission natively before the API round-trip.
+
+Accepted gap: loans created through the Django admin
+(`LoanAdmin`/`LoanItemInline`) or directly via `Loan.objects.create(...)` in
+scripts/fixtures bypass this gate -- a write-only serializer field leaves
+nothing for a `ModelForm` or direct `.create()` call to check. Closing that
+gap would require persisting the confirmation, which was explicitly not
+wanted.
 
 Search / category browsing
 ----------------------------
