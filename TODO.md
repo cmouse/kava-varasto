@@ -21,6 +21,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Borrower-name autofill from loan history — `<datalist>` in `frontend/src/pages/LoanNew.jsx`, no real `User` account link (see DESIGN.md)
 - [x] Password change form so users can change their own password — `POST /api/accounts/change-password/`, `frontend/src/pages/ChangePassword.jsx`
 - [x] Require password change on first use — `must_change_password` on `accounts.User`, forced via `accounts/admin.py`, gated in `frontend/src/components/Layout.jsx`
+- [x] Profile self-edit (name/email/phone) plus loan contact cards, issue #57 — `PATCH /api/accounts/profile/`, `frontend/src/pages/Profile.jsx`; loan `responsible`/`returned_by` shown as a `UserContactModal` popup — see DESIGN.md's "Profile editing and loan contact cards"
 
 ## Borrowing workflow
 - [x] Checkout (loan creation) view, with stock-out limit enforcement — `kava_varasto.loans.views.LoanListCreateView`, `frontend/src/pages/LoanNew.jsx`
