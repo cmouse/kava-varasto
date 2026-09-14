@@ -2,7 +2,11 @@
 
 set -eu
 
-source $PWD/.venv/bin/activate
+# Only activate our own venv if the caller hasn't already got one active
+# (e.g. under `uv run` or a manually activated env).
+if [ -z "${VIRTUAL_ENV:-}" ]; then
+	source $PWD/.venv/bin/activate
+fi
 
 pushd frontend
 npm ci && npm run build
