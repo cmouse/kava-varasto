@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kava-varasto\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 09:20+0300\n"
+"POT-Creation-Date: 2026-09-14 09:24+0300\n"
 "PO-Revision-Date: 2026-07-07 18:30+0300\n"
 "Last-Translator: Karhunvartijat ry\n"
 "Language-Team: Finnish\n"
@@ -53,7 +53,7 @@ msgstr "Anna kelvollinen puhelinnumero, esim. 0401234567 tai +358401234567."
 msgid "Password change required."
 msgstr "Salasana on vaihdettava."
 
-#: src/kava_varasto/accounts/serializers.py:21
+#: src/kava_varasto/accounts/serializers.py:43
 msgid "Current password is incorrect."
 msgstr "Nykyinen salasana on virheellinen."
 
