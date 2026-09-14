@@ -22,6 +22,7 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
 - [x] Password change form so users can change their own password — `POST /api/accounts/change-password/`, `frontend/src/pages/ChangePassword.jsx`
 - [x] Require password change on first use — `must_change_password` on `accounts.User`, forced via `accounts/admin.py`, gated in `frontend/src/components/Layout.jsx`
 - [x] Profile self-edit (name/email/phone) plus loan contact cards, issue #57 — `PATCH /api/accounts/profile/`, `frontend/src/pages/Profile.jsx`; loan `responsible`/`returned_by` shown as a `UserContactModal` popup — see DESIGN.md's "Profile editing and loan contact cards"
+- [x] What's new changelog dialog, issue #61 — `GET`/`POST /api/accounts/whats-new/`, `frontend/src/components/WhatsNewModal.jsx`, auto-shown once per unseen version and reopenable from the navbar; English-only, no i18n — see DESIGN.md's "What's new dialog"
 
 ## Borrowing workflow
 - [x] Checkout (loan creation) view, with stock-out limit enforcement — `kava_varasto.loans.views.LoanListCreateView`, `frontend/src/pages/LoanNew.jsx`
