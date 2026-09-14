@@ -17,6 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
             "phone",
             "is_staff",
             "must_change_password",
+            "whats_new_seen_version",
         ]
 
 

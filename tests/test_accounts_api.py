@@ -230,6 +230,7 @@ def test_update_profile_cannot_set_staff_flags(client, django_user_model):
             "is_staff": True,
             "is_superuser": True,
             "must_change_password": True,
+            "whats_new_seen_version": "9.9.9",
             "username": "eve",
             "password": "SomeOtherStr0ngP@ss!",
         },
@@ -241,6 +242,7 @@ def test_update_profile_cannot_set_staff_flags(client, django_user_model):
     assert user.is_staff is False
     assert user.is_superuser is False
     assert user.must_change_password is False
+    assert user.whats_new_seen_version == ""
     assert user.username == "alice"
     assert user.password == original_password
 
