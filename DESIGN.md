@@ -1014,3 +1014,90 @@ Two deliberate choices in that action:
 Compiled translations (`locale/**/*.mo`) and the built frontend are
 gitignored, so they never travel in the rsync -- `start.sh` produces both on
 the host, which therefore needs Node and `gettext` alongside Python.
+
+What's new dialog
+------------------
+
+Issue #61 asks for a changelog shown to a user the first time they use a
+version they haven't acknowledged, plus a way to reopen it on demand.
+`kava_varasto.whatsnew.WHATS_NEW` is an ordered, newest-first list of
+`{"version": ..., "changes": [...]}` -- the single source of truth for both
+the dialog's content and `CURRENT_VERSION` (`WHATS_NEW[0]["version"]`). It is
+not derived from `pyproject.toml` or `importlib.metadata` at runtime: the
+package version and the changelog's newest entry are kept in agreement by
+convention (bumped together, in their own commit) rather than by code, since
+a version bump with nothing user-visible to say about it is a normal
+occurrence this list should not be forced to track.
+
+This content is deliberately **English only**, unlike the rest of the app --
+no `gettext_lazy`, no i18n keys, no `.po`/`.mo` work, dialog chrome (the
+navbar control, "Close") included. A per-release changelog is exactly the
+kind of prose that is expensive to keep translated in lockstep with the code
+and low-value to translate for a club-internal tool; the cost of a second
+language track here would exceed what anyone gets from reading it in
+Finnish. `User.whats_new_seen_version` itself carries no `verbose_name`/
+`help_text` for the same reason -- it is bookkeeping for this feature, not
+club-facing content, but keeping the whole feature off the translation
+catalog means nothing about it needs a matching Finnish string anywhere,
+including in the model layer.
+
+`User.whats_new_seen_version` (`CharField`, blank default) tracks what a
+user has last acknowledged. Comparing it against `CURRENT_VERSION` is done
+by **index position** in `WHATS_NEW`, never lexically:
+`kava_varasto.whatsnew.is_unseen()` looks up both versions' positions in the
+list and treats a stored version that isn't in the list at all -- blank, or
+older than the tracked 0.1.18 baseline -- as unseen. A naive string compare
+would get this wrong the moment a double-digit patch version shows up
+(`"0.1.9" > "0.1.18"` lexically, despite being the older release), silently
+turning the dialog off for good. `tests/test_whatsnew_api.py` asserts this
+directly against a synthetic list built to trigger exactly that ordering.
+
+`GET /api/accounts/whats-new/` (mounted under `accounts`, not a new app --
+this is user state, the same reasoning as `profile`/`change-password`)
+returns `{"current_version", "unseen", "entries"}`: the full list, always,
+regardless of what the user has seen -- the unseen/seen comparison decides
+only whether the dialog *pops up automatically*, never what it displays, so
+reopening it later always shows the whole history. `unseen` is computed
+server-side via `is_unseen()` rather than left for the frontend to
+recompute from `whats_new_seen_version` and `entries`: this app has no JS
+test runner, so the one comparison that is actually tested
+(`is_unseen`, directly) is also the only place it runs -- the frontend gate
+reduces to reading a boolean, with no version-ordering logic of its own to
+regress silently.
+
+`POST /api/accounts/whats-new/` stamps `whats_new_seen_version =
+CURRENT_VERSION` on explicit acknowledgement only -- never as a side effect
+of `GET` or of login -- so a page refresh before the user has actually read
+the dialog can't lose it. Both methods use the project's default
+`IsAuthenticatedAndPasswordCurrent`: like `ProfileView`, this is not one of
+the deliberate exceptions (`/me/`, change-password, logout) that stay open
+to an account owing a forced password change, so `Layout.jsx` gates the
+dialog and its `useWhatsNew()` query on `authenticated && !mustChangePassword`
+-- querying any earlier would 403 on every login screen and forced
+password-change load, and popping the dialog over
+`<ChangePasswordForm forced />` would stack a second overlay on a form the
+user cannot get past yet.
+
+`frontend/src/components/WhatsNewModal.jsx` is modelled on
+`UserContactModal.jsx`/`EquipmentDetailModal.jsx` (Escape handler, backdrop,
+`modal-dialog-scrollable` so the list stays usable as entries accumulate)
+but hardcodes its strings instead of calling `t()`. `Layout.jsx` derives
+whether it's showing during render from query data plus two local flags
+(`manuallyOpened`, `dismissed` for this session) rather than syncing it into
+state via an effect: `whatsNewOpen = manuallyOpened || (unseen &&
+!dismissed)`. Deriving it avoids a "closed dialog pops back open" bug that a
+naive `useEffect` + `setState` would have if the acknowledging `POST` is
+slow or fails -- `dismissed` is locally authoritative the moment the user
+closes it, independent of whether the server round-trip has landed yet --
+and it also sidesteps the "setState in an effect" lint warning outright,
+rather than suppressing it.
+
+A navbar "What's new" button next to Profile/Change password (same
+`!mustChangePassword` gate) reopens the dialog on demand, satisfying issue
+#61's "tab" with a control rather than a dedicated route: the dialog has no
+state worth deep-linking to, and every other reachable-anytime action in
+this app (profile, change password) is already a button, not a page swap.
+Closing the dialog -- button, Escape, or backdrop click, all funnelled
+through the same handler -- always fires the acknowledgement `POST`,
+regardless of whether it was opened automatically or manually; re-stamping
+an already-current version is harmless.
