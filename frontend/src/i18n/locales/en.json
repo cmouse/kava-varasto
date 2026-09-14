@@ -41,6 +41,13 @@
     "location": "Location",
     "loanable": "Loanable now"
   },
+  "userContact": {
+    "close": "Close",
+    "username": "Username",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone"
+  },
   "equipmentFilter": {
     "searchPlaceholder": "Search by name or code…",
     "allCategories": "All categories",

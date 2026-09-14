@@ -58,7 +58,7 @@ def test_loan_create_sets_responsible_and_echoes_items(admin_client, admin_user,
     assert loan.items.count() == 1
     data = response.json()
     assert data["items"][0]["quantity"] == 2
-    assert data["responsible"] == admin_user.username
+    assert data["responsible"]["username"] == admin_user.username
 
 
 @pytest.mark.django_db
@@ -327,7 +327,7 @@ def test_loan_list_reports_active_and_returned(admin_client, admin_user, equipme
     by_borrower = {loan["borrower_name"]: loan for loan in data}
     assert by_borrower["Matti Meikäläinen"]["is_returned"] is False
     assert by_borrower["Liisa Virtanen"]["is_returned"] is True
-    assert by_borrower["Liisa Virtanen"]["returned_by"] == admin_user.username
+    assert by_borrower["Liisa Virtanen"]["returned_by"]["username"] == admin_user.username
 
 
 @pytest.mark.django_db
@@ -469,6 +469,28 @@ def test_loan_detail_returns_loan_with_items(admin_client, admin_user, equipment
 
 
 @pytest.mark.django_db
+def test_loan_detail_nests_responsible_and_returned_by(admin_client, admin_user, equipment):
+    loan = Loan.objects.create(
+        borrower_name="Matti Meikäläinen", borrower_phone="0401234567", due_date=FUTURE_DUE_DATE, responsible=admin_user
+    )
+    LoanItem.objects.create(loan=loan, equipment=equipment, quantity=2)
+
+    response = admin_client.get(f"/api/loans/{loan.pk}/")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["responsible"] == {
+        "id": admin_user.pk,
+        "username": admin_user.username,
+        "first_name": admin_user.first_name,
+        "last_name": admin_user.last_name,
+        "email": admin_user.email,
+        "phone": admin_user.phone,
+    }
+    assert data["returned_by"] is None
+
+
+@pytest.mark.django_db
 def test_loan_detail_unknown_id_returns_404(admin_client):
     response = admin_client.get("/api/loans/9999/")
     assert response.status_code == 404
@@ -582,7 +604,7 @@ def test_loan_return_full_marks_loan_returned(admin_client, admin_user, equipmen
     assert response.status_code == 200, response.json()
     data = response.json()
     assert data["is_returned"] is True
-    assert data["returned_by"] == admin_user.username
+    assert data["returned_by"]["username"] == admin_user.username
     assert data["returned_at"] is not None
     assert data["items"][0]["quantity_returned"] == 2
 

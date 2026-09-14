@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
+import UserContactModal from "./UserContactModal";
+
 function ReturnedLoansTable({ loans, emptyMessage }) {
   const { t } = useTranslation();
+  const [contactUser, setContactUser] = useState(null);
 
   if (loans.length === 0) {
     return <p className="text-muted">{emptyMessage}</p>;
@@ -33,13 +37,31 @@ function ReturnedLoansTable({ loans, emptyMessage }) {
               <td>{loan.borrower_phone}</td>
               <td>{loan.due_date}</td>
               <td>{loan.items.length}</td>
-              <td>{loan.responsible}</td>
-              <td>{loan.returned_by}</td>
+              <td>
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm p-0"
+                  onClick={() => setContactUser(loan.responsible)}
+                >
+                  {loan.responsible.username}
+                </button>
+              </td>
+              <td>
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm p-0"
+                  onClick={() => setContactUser(loan.returned_by)}
+                >
+                  {loan.returned_by?.username}
+                </button>
+              </td>
               <td>{new Date(loan.returned_at).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      <UserContactModal user={contactUser} onClose={() => setContactUser(null)} />
     </div>
   );
 }

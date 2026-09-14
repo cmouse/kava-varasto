@@ -33,6 +33,21 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         fields = ["first_name", "last_name", "email", "phone"]
 
 
+class UserContactSerializer(serializers.ModelSerializer):
+    """Read-only contact card for a staff member, nested onto a Loan.
+
+    Used for Loan.responsible/returned_by (see loans.serializers.LoanSerializer)
+    so the SPA can show who handed out or accepted back a loan without a
+    second round-trip. Every field here is visible to any authenticated user
+    -- the app has one trust tier already (borrower phone numbers sit on
+    every loan row the same way), so this isn't a new exposure.
+    """
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "first_name", "last_name", "email", "phone"]
+
+
 class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True)

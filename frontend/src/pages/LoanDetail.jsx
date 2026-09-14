@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 
@@ -5,6 +6,7 @@ import { useCurrentUser } from "../api/auth";
 import { useLoan } from "../api/loans";
 import LoginForm from "../components/LoginForm";
 import OverdueIcon from "../components/OverdueIcon";
+import UserContactModal from "../components/UserContactModal";
 
 function LoanDetail() {
   const { t } = useTranslation();
@@ -16,6 +18,7 @@ function LoanDetail() {
     isError,
     error,
   } = useLoan(id, { enabled: user?.authenticated });
+  const [contactUser, setContactUser] = useState(null);
 
   if (isUserLoading) {
     return null;
@@ -70,7 +73,11 @@ function LoanDetail() {
         </dd>
 
         <dt className="col-sm-3">{t("loanDetail.responsible")}</dt>
-        <dd className="col-sm-9">{loan.responsible}</dd>
+        <dd className="col-sm-9">
+          <button type="button" className="btn btn-link btn-sm p-0" onClick={() => setContactUser(loan.responsible)}>
+            {loan.responsible.username}
+          </button>
+        </dd>
 
         <dt className="col-sm-3">{t("loanDetail.details")}</dt>
         <dd className="col-sm-9">{loan.details || "—"}</dd>
@@ -90,7 +97,15 @@ function LoanDetail() {
         {loan.is_returned ? (
           <>
             <dt className="col-sm-3">{t("loanDetail.returnedBy")}</dt>
-            <dd className="col-sm-9">{loan.returned_by}</dd>
+            <dd className="col-sm-9">
+              <button
+                type="button"
+                className="btn btn-link btn-sm p-0"
+                onClick={() => setContactUser(loan.returned_by)}
+              >
+                {loan.returned_by?.username}
+              </button>
+            </dd>
 
             <dt className="col-sm-3">{t("loanDetail.returnedAt")}</dt>
             <dd className="col-sm-9">{new Date(loan.returned_at).toLocaleString()}</dd>
@@ -128,6 +143,8 @@ function LoanDetail() {
       </div>
 
       <Link to="/loans">{t("loanDetail.backToList")}</Link>
+
+      <UserContactModal user={contactUser} onClose={() => setContactUser(null)} />
     </div>
   );
 }

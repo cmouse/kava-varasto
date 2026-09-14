@@ -25,7 +25,9 @@ ARCHIVE_AFTER = timedelta(days=61)  # ~2 months
 
 
 class LoanListCreateView(ListCreateAPIView):
-    queryset = Loan.objects.prefetch_related("items__equipment__category").all()
+    queryset = Loan.objects.select_related("responsible", "returned_by").prefetch_related(
+        "items__equipment__category"
+    )
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -47,7 +49,9 @@ class LoanListCreateView(ListCreateAPIView):
 
 
 class LoanDetailView(RetrieveAPIView):
-    queryset = Loan.objects.prefetch_related("items__equipment__category").all()
+    queryset = Loan.objects.select_related("responsible", "returned_by").prefetch_related(
+        "items__equipment__category"
+    )
     serializer_class = LoanSerializer
 
 

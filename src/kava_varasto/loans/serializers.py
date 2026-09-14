@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from kava_varasto.accounts.serializers import UserContactSerializer
 from kava_varasto.inventory.models import Equipment
 from kava_varasto.validators import PHONE_RE
 
@@ -28,8 +29,8 @@ class LoanItemReadSerializer(serializers.ModelSerializer):
 
 class LoanSerializer(serializers.ModelSerializer):
     items = LoanItemReadSerializer(many=True, read_only=True)
-    responsible = serializers.StringRelatedField()
-    returned_by = serializers.StringRelatedField()
+    responsible = UserContactSerializer(read_only=True)
+    returned_by = UserContactSerializer(read_only=True)
     is_overdue = serializers.SerializerMethodField()
 
     class Meta:

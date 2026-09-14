@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
@@ -6,11 +7,13 @@ import { useLoans } from "../api/loans";
 import LoginForm from "../components/LoginForm";
 import OverdueIcon from "../components/OverdueIcon";
 import ReturnedLoansTable from "../components/ReturnedLoansTable";
+import UserContactModal from "../components/UserContactModal";
 
 function LoanList() {
   const { t } = useTranslation();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
   const { data: loans, isLoading, isError } = useLoans({ enabled: user?.authenticated });
+  const [contactUser, setContactUser] = useState(null);
 
   if (isUserLoading) {
     return null;
@@ -72,7 +75,15 @@ function LoanList() {
                   </td>
                   <td>{loan.items.length}</td>
                   <td>{loan.details}</td>
-                  <td>{loan.responsible}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-link btn-sm p-0"
+                      onClick={() => setContactUser(loan.responsible)}
+                    >
+                      {loan.responsible.username}
+                    </button>
+                  </td>
                   <td>
                     <Link to={`/loans/${loan.id}/return`} className="btn btn-sm btn-outline-primary">
                       {t("loanList.returnAction")}
@@ -87,6 +98,8 @@ function LoanList() {
 
       <h2 className="h6">{t("loanList.historical")}</h2>
       <ReturnedLoansTable loans={historicalLoans} emptyMessage={t("loanList.noHistorical")} />
+
+      <UserContactModal user={contactUser} onClose={() => setContactUser(null)} />
     </div>
   );
 }
