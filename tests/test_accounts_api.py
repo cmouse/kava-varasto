@@ -191,6 +191,19 @@ def test_update_profile_can_clear_phone(client, django_user_model):
 
 
 @pytest.mark.django_db
+def test_update_profile_can_clear_email(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw", email="alice@example.com")
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    response = client.patch("/api/accounts/profile/", {"email": ""}, content_type="application/json")
+
+    assert response.status_code == 200, response.json()
+    assert response.json()["user"]["email"] == ""
+
+
+@pytest.mark.django_db
 def test_update_profile_rejects_invalid_phone(client, django_user_model):
     django_user_model.objects.create_user(username="alice", password="s3cret-pw")
     client.post(
@@ -206,20 +219,30 @@ def test_update_profile_rejects_invalid_phone(client, django_user_model):
 @pytest.mark.django_db
 def test_update_profile_cannot_set_staff_flags(client, django_user_model):
     user = django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    original_password = user.password
     client.post(
         "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
     )
 
     response = client.patch(
         "/api/accounts/profile/",
-        {"is_staff": True, "must_change_password": True},
+        {
+            "is_staff": True,
+            "is_superuser": True,
+            "must_change_password": True,
+            "username": "eve",
+            "password": "SomeOtherStr0ngP@ss!",
+        },
         content_type="application/json",
     )
 
     assert response.status_code == 200, response.json()
     user.refresh_from_db()
     assert user.is_staff is False
+    assert user.is_superuser is False
     assert user.must_change_password is False
+    assert user.username == "alice"
+    assert user.password == original_password
 
 
 @pytest.mark.django_db
