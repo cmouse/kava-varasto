@@ -140,12 +140,13 @@ is a lookup table with the same shape as `Category`: unique `name`,
 non-nullable FK to it with `on_delete=PROTECT`, `related_name="equipment"`.
 
 A lookup table rather than a free-form `CharField` or `TextChoices` (the
-`Category` precedent -- the repo has zero `choices=`/`TextChoices` anywhere):
-locations are club facts that change without a deploy (a new container, a
-member's garage), and a free-form field would spawn "Kolo"/"kolo"/"KOLO"
-duplicates that no dropdown can group. `unique=True` on `name` enforces that,
-and `PROTECT` means deleting a location in use is refused rather than quietly
-orphaning gear.
+`Category` precedent): locations are club facts that change without a
+deploy (a new container, a member's garage), unlike a `TextChoices` such as
+the repairs app's `TicketStatus`, which enumerates states the code itself
+branches on and so only changes alongside a migration. A free-form field
+would spawn "Kolo"/"kolo"/"KOLO" duplicates that no dropdown can group.
+`unique=True` on `name` enforces that, and `PROTECT` means deleting a
+location in use is refused rather than quietly orphaning gear.
 
 **No `default=` on the FK.** A hardcoded `default=1` breaks on a fresh
 database (nothing guarantees row 1 is Kolo), and a callable default would run
