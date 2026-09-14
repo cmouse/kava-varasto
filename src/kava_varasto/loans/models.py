@@ -1,5 +1,3 @@
-import re
-
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
@@ -8,8 +6,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from kava_varasto.inventory.models import Equipment
-
-PHONE_RE = re.compile(r"^(\+358\d{6,12}|0\d{6,12})$")
+from kava_varasto.validators import PHONE_RE
 
 
 class Loan(models.Model):
