@@ -41,6 +41,13 @@
     "location": "Sijainti",
     "loanable": "Lainattavissa nyt"
   },
+  "userContact": {
+    "close": "Sulje",
+    "username": "Käyttäjätunnus",
+    "name": "Nimi",
+    "email": "Sähköposti",
+    "phone": "Puhelin"
+  },
   "equipmentFilter": {
     "searchPlaceholder": "Hae nimellä tai koodilla…",
     "allCategories": "Kaikki kategoriat",
