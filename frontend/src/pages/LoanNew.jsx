@@ -371,7 +371,15 @@ function LoanNewForm() {
         <button
           className="btn btn-primary flex-grow-1"
           type="submit"
-          disabled={items.length === 0 || createLoan.isPending || isEquipmentLoading}
+          // isEquipmentError included alongside isEquipmentLoading: if the
+          // equipment list never loads, the draft-item reconcile effect
+          // never runs either (it waits for live data), so a restored draft
+          // could otherwise reach the server unreconciled. The server still
+          // has the last word on stock integrity either way (see "Loan
+          // creation UI and stock-out limits" in DESIGN.md) -- this only
+          // avoids a pointless submit attempt against data we never got to
+          // check.
+          disabled={items.length === 0 || createLoan.isPending || isEquipmentLoading || isEquipmentError}
         >
           {t("loanForm.submit")}
         </button>
