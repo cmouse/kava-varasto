@@ -47,6 +47,14 @@ export function loadLoanDraft() {
       details: typeof parsed.details === "string" ? parsed.details : "",
       items: sanitizeItems(parsed.items),
       tripNotification: parsed.tripNotification === true,
+      // Explicit "was this ever edited" flag, not derived from field values
+      // (a restored value can coincide with what a fresh default happens to
+      // be, which is not the same thing as "untouched" -- see LoanNew.jsx).
+      // A draft written before this field existed has no way to say, so it
+      // defaults to true: treating an old-format draft as touched risks
+      // keeping it around a little longer, treating it as untouched risks
+      // silently deleting content the user actually entered.
+      touched: typeof parsed.touched === "boolean" ? parsed.touched : true,
     };
   } catch {
     return null;

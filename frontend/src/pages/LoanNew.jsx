@@ -149,6 +149,19 @@ function LoanNewForm() {
   // below (which could then write that empty state over a good draft).
   const [draft] = useState(() => loadLoanDraft());
 
+  // "Has anything actually been entered" has to be its own explicit flag,
+  // not inferred by comparing field values against their defaults: a
+  // restored value can numerically coincide with what a *fresh* default
+  // happens to be on a later visit (e.g. a due date deliberately set to
+  // "10 days out" can land exactly on today+7 once enough days have
+  // passed), and that coincidence is not the same thing as "untouched".
+  // Set once, on the first real edit (see the on*Change handlers below),
+  // and persisted alongside the rest of the draft so it survives a reload.
+  // A draft saved before this flag existed has no way to say either way,
+  // so loadLoanDraft() defaults it to true -- an old draft is treated as
+  // touched rather than risk silently discarding real content.
+  const [touched, setTouched] = useState(() => draft?.touched ?? false);
+
   const [borrowerName, setBorrowerName] = useState(() => draft?.borrowerName ?? "");
   const [borrowerPhone, setBorrowerPhone] = useState(() => draft?.borrowerPhone ?? "");
   const [dueDate, setDueDate] = useState(() => clampDueDateValue(draft?.dueDate) ?? defaultDueDateValue());
@@ -174,8 +187,14 @@ function LoanNewForm() {
   }, [isEquipmentLoading, equipment]);
 
   useEffect(() => {
-    saveLoanDraft({ borrowerName, borrowerPhone, dueDate, details, items, tripNotification });
-  }, [borrowerName, borrowerPhone, dueDate, details, items, tripNotification]);
+    if (!touched) {
+      // Nothing entered yet -- avoids leaving a stored entry behind after a
+      // bare visit to /loans/new that nobody typed into.
+      clearLoanDraft();
+      return;
+    }
+    saveLoanDraft({ borrowerName, borrowerPhone, dueDate, details, items, tripNotification, touched });
+  }, [touched, borrowerName, borrowerPhone, dueDate, details, items, tripNotification]);
 
   const errorMessages = useMemo(
     () => collectErrorMessages(createLoan.error?.response?.data),
@@ -183,12 +202,18 @@ function LoanNewForm() {
   );
 
   function handleBorrowerNameChange(event) {
+    setTouched(true);
     const name = event.target.value;
     setBorrowerName(name);
     const knownPhone = borrowerPhoneByName.get(name);
     if (knownPhone && !borrowerPhone) {
       setBorrowerPhone(knownPhone);
     }
+  }
+
+  function handleItemsChange(newItems) {
+    setTouched(true);
+    setItems(newItems);
   }
 
   function handleSubmit(event) {
@@ -248,7 +273,10 @@ function LoanNewForm() {
           type="tel"
           className="form-control"
           value={borrowerPhone}
-          onChange={(event) => setBorrowerPhone(event.target.value)}
+          onChange={(event) => {
+            setTouched(true);
+            setBorrowerPhone(event.target.value);
+          }}
           pattern={PHONE_PATTERN}
           title={t("loanForm.borrowerPhoneHint")}
           required
@@ -265,7 +293,10 @@ function LoanNewForm() {
           className="form-control"
           value={dueDate}
           min={todayValue()}
-          onChange={(event) => setDueDate(event.target.value)}
+          onChange={(event) => {
+            setTouched(true);
+            setDueDate(event.target.value);
+          }}
           required
         />
       </div>
@@ -279,7 +310,10 @@ function LoanNewForm() {
           className="form-control"
           rows="2"
           value={details}
-          onChange={(event) => setDetails(event.target.value)}
+          onChange={(event) => {
+            setTouched(true);
+            setDetails(event.target.value);
+          }}
         />
       </div>
 
@@ -292,7 +326,7 @@ function LoanNewForm() {
           isLoading={isEquipmentLoading}
           isError={isEquipmentError}
           items={items}
-          onItemsChange={setItems}
+          onItemsChange={handleItemsChange}
         />
       </div>
 
@@ -302,7 +336,10 @@ function LoanNewForm() {
           type="checkbox"
           id="loan-trip-notification"
           checked={tripNotification}
-          onChange={(event) => setTripNotification(event.target.checked)}
+          onChange={(event) => {
+            setTouched(true);
+            setTripNotification(event.target.checked);
+          }}
           required
         />
         <label className="form-check-label required" htmlFor="loan-trip-notification">
