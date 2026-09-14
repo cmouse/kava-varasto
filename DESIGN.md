@@ -729,6 +729,18 @@ bound where there was none, without a cache server to run or a new state
 directory for the deploy rsync to protect. Swap in a shared backend if the
 worker count ever makes the multiple matter.
 
+Swapping `CACHES["default"]` to Django's `DummyCache` -- by mistake, or by
+copying a settings snippet meant for something else -- would silently turn
+the throttle off: `LoginRateThrottle` still writes a counter on every
+attempt, `DummyCache` just never gives it back, so DRF sees no prior
+attempts, raises no exception, and logs nothing, and no test catches it
+because the settings still name a throttle class.
+`check_login_throttle_cache` (`accounts/checks.py`) compares the backend to
+that constant and raises an `Error`, id `accounts.E001`, if it matches.
+`AccountsConfig.ready()` registers it plainly, not with `deploy=True` or a
+tag, so it fires on any `manage.py check` -- CI's `--deploy` run included --
+not only an explicit deploy check.
+
 Handing the mount point to the SPA
 ----------------------------------
 
