@@ -910,9 +910,9 @@ Django-side translations
 `LOCALE_PATHS = [BASE_DIR / "locale"]` was already set, but `locale/` had
 never been generated. `django-admin makemessages -l fi -l en` now extracts
 the real `gettext_lazy`/`_()` call sites that already existed in the
-code -- model `verbose_name`/`help_text` (inventory/loans/accounts models),
-admin fieldset/list_display labels, and DRF `ValidationError` messages in
-the loans/accounts serializers and views. `locale/fi/LC_MESSAGES/django.po`
+code -- model `verbose_name`/`help_text`, admin fieldset/list_display
+labels, and DRF `ValidationError` messages, spread across every app's
+models, admin and serializers/views. `locale/fi/LC_MESSAGES/django.po`
 has real Finnish translations; `locale/en/LC_MESSAGES/django.po` leaves
 every `msgstr` empty since the source `msgid`s are already the English
 strings (Django falls back to `msgid`, same effect as duplicating it, less
