@@ -33,7 +33,10 @@ function UserContactModal({ user, onClose }) {
         aria-labelledby="user-contact-title"
         onClick={onClose}
       >
-        <div className="modal-dialog modal-dialog-centered" onClick={(event) => event.stopPropagation()}>
+        <div
+          className="modal-dialog modal-dialog-centered modal-dialog-scrollable"
+          onClick={(event) => event.stopPropagation()}
+        >
           <div className="modal-content">
             <div className="modal-header">
               <h2 className="modal-title h5" id="user-contact-title">
