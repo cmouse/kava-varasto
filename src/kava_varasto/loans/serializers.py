@@ -5,8 +5,9 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from kava_varasto.inventory.models import Equipment
+from kava_varasto.validators import PHONE_RE
 
-from .models import PHONE_RE, Loan, LoanItem
+from .models import Loan, LoanItem
 
 MAX_LOAN_ITEMS = 100
 

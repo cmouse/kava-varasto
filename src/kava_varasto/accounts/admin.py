@@ -34,5 +34,6 @@ class UserAdmin(DjangoUserAdmin):
     fieldsets = (
         *DjangoUserAdmin.fieldsets,
         (_("Password policy"), {"fields": ("must_change_password",)}),
+        (_("Contact"), {"fields": ("phone",)}),
     )
     list_filter = (*DjangoUserAdmin.list_filter, "must_change_password")
