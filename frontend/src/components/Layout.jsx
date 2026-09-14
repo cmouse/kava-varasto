@@ -113,6 +113,7 @@ function Layout() {
                     className="btn btn-sm btn-outline-light"
                     type="button"
                     onClick={() => setManuallyOpened(true)}
+                    disabled={!whatsNew?.entries}
                   >
                     What&apos;s new
                   </button>
