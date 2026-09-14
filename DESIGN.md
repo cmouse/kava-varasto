@@ -612,6 +612,79 @@ Without this an account would keep working access forever on the password
 its issuing admin picked -- the flag would announce the debt without
 collecting it.
 
+Profile editing and loan contact cards
+----------------------------------------
+
+Issue #57 has two halves: staff editing their own name/email/phone, and
+those details showing up on a loan so a borrower can be pointed at whoever
+handed equipment out or took it back.
+
+`PHONE_RE` (the `^(\+358\d{6,12}|0\d{6,12})$` validator already used for
+`Loan.borrower_phone`) moved out of `loans.models` into a new top-level
+`kava_varasto.validators` module, and `User.phone` (`CharField`, `blank=True`,
+same `RegexValidator`) was added alongside it. Not re-exported from
+`loans.models` and not imported by `accounts.models` from `loans` -- either
+would be an app-layering inversion; a shared validator belongs above both
+apps, not inside one of them.
+
+`PATCH /api/accounts/profile/` (`ProfileView` + `ProfileUpdateSerializer`)
+lets a logged-in user set their own `first_name`/`last_name`/`email`/`phone`.
+`ProfileUpdateSerializer` is a `ModelSerializer`, deliberately not
+`UserSerializer`: the latter is read-only and also carries `is_staff` and
+`must_change_password`, which this endpoint must never let a user set on
+themselves. Building it as a `ModelSerializer` rather than a hand-rolled one
+also means `allow_blank` on `phone` derives straight from the model's
+`blank=True` -- a plain `serializers.CharField()` would 400 on `phone: ""`
+and a user could never clear a number they'd previously entered. The
+response envelope matches `ChangePasswordView` exactly
+(`{"authenticated": True, "user": UserSerializer(...).data}`), so the SPA's
+`useUpdateProfile()` mutation can `setQueryData(["currentUser"], data)` the
+same way the three existing auth mutations do. `ProfileView` uses the
+project's default permission class, `IsAuthenticatedAndPasswordCurrent`
+(spelled out explicitly rather than left implicit, since unlike its `/me/`
+and change-password neighbours this endpoint is *not* one of the deliberate
+exceptions that stays open to a flagged account) -- editing a profile isn't
+one of the ways out of the forced-password-change gate. The frontend page
+(`frontend/src/pages/Profile.jsx`, route `/account/profile`, linked from
+`Layout.jsx` next to "Change password") mirrors `ChangePassword.jsx`'s
+auth-gating shape but splits the form into a child component
+(`components/ProfileForm.jsx`) that only ever mounts once `useCurrentUser()`
+has resolved -- initializing the field `useState`s from a `user` prop that
+is guaranteed present, rather than from a query result that starts out
+`undefined` on first render and never re-runs the initializer once the real
+data lands.
+
+On the loan side, `LoanSerializer.responsible`/`returned_by` changed from
+`StringRelatedField` (a bare username) to a nested `UserContactSerializer`
+(`id`, `username`, `first_name`, `last_name`, `email`, `phone`) so the SPA
+can show a loan's handed-out-by/returned-by contact without a second
+request. It lives in `accounts.serializers` (loans importing from accounts,
+not the other way around, matching the app's existing dependency direction)
+and is deliberately visible to any authenticated user: this app has one
+trust tier already -- every borrower's phone number sits in plain view on
+every loan row -- so a staff member's own contact details are not a new
+exposure. `returned_by` stays nullable (`null` on an active loan); the SPA
+optional-chains every read of it. `LoanListCreateView` and `LoanDetailView`
+both gained `.select_related("responsible", "returned_by")` -- a free win
+while touching the querysets, since `StringRelatedField` was already
+dereferencing the FK per row without it. `LoanReturnView`'s queryset is
+untouched: it's deliberately unprefetched (see "Loan check-in / return"
+above) to avoid a stale reverse-FK cache, and stacking `select_related`
+onto its `select_for_update()` isn't worth reopening that for two extra
+queries on a return response.
+
+Clicking the contact's username (`frontend/src/components/UserContactModal.jsx`,
+opened from `LoanList.jsx`, `LoanDetail.jsx` and `ReturnedLoansTable.jsx`)
+shows the full contact card. The clickable label itself stays the
+**username**, not the full name: `get_full_name()` is empty for any account
+with blank names, and today's real accounts mostly have them blank, so a
+label that switched to full name would render empty buttons. Inside the
+modal, full name is shown with a username fallback. The blank-field
+placeholder matches whichever file is being edited rather than being
+unified -- `LoanDetail.jsx` already uses an em dash (`—`), the equipment
+detail modal it mirrors uses an en dash (`–`); `UserContactModal.jsx`, being
+a new file modelled on `EquipmentDetailModal.jsx`, uses the latter.
+
 Login rate limiting
 -------------------
 
