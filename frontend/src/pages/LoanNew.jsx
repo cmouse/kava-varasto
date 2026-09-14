@@ -6,6 +6,7 @@ import { useCurrentUser } from "../api/auth";
 import { useCreateLoan, useLoanableEquipment, useLoans } from "../api/loans";
 import LoanItemCart from "../components/LoanItemCart";
 import LoginForm from "../components/LoginForm";
+import PHONE_PATTERN from "../utils/phonePattern";
 
 // A whole non-JSON error document (an nginx 502 page, a DEBUG=False Django
 // 500 page) always arrives as the top-level response body, as a string, and
@@ -59,7 +60,6 @@ function defaultDueDateValue() {
   return toDateInputValue(d);
 }
 
-const PHONE_PATTERN = "\\+358\\d{6,12}|0\\d{6,12}";
 const NAME_PATTERN = "\\S+(\\s+\\S+)+";
 
 function LoanNew() {

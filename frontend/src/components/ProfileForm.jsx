@@ -2,10 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useUpdateProfile } from "../api/auth";
-
-// Mirrors kava_varasto.validators.PHONE_RE (^(\+358\d{6,12}|0\d{6,12})$) --
-// the HTML pattern attribute is implicitly anchored, so no ^/$ here.
-const PHONE_PATTERN = "\\+358\\d{6,12}|0\\d{6,12}";
+import PHONE_PATTERN from "../utils/phonePattern";
 
 // `user` is only ever passed once real data is available (see Profile.jsx's
 // loading/auth gate), so useState's initial value is never stale.
