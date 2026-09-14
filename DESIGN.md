@@ -831,7 +831,46 @@ whatever the previous one left mid-loan. There is no 401/403 interceptor in
 `api/client.js`, so a session that expires mid-form falls through to
 `useCurrentUser` returning `authenticated: false`, `LoanNew.jsx` swapping
 to `LoginForm`, and the draft is cleared once that user (or the next one)
-logs back in -- cheaper than namespacing the storage key per account.
+logs back in.
+
+Clearing `sessionStorage` on login is not enough by itself, though:
+`LoanNew.jsx` renders `LoginForm` as its own return value when
+unauthenticated rather than routing away, so without more than a storage
+clear the component holding the draft's React state never unmounts and a
+second user logging in on the same tab would see the first user's
+name/phone/cart still sitting in state, regardless of what was done to
+storage. `LoanNew.jsx` is therefore two components: an outer `LoanNew`
+that only resolves `useCurrentUser` and either renders `LoginForm` or (once
+authenticated) `<LoanNewForm key={user.user.id} />` -- all the actual form
+state and effects live in `LoanNewForm`. Swapping to the `LoginForm` branch
+already unmounts `LoanNewForm`, discarding its state, on every real
+login/logout in this app (there is no direct authenticated-user-A ->
+authenticated-user-B transition that skips the `LoginForm` branch); the
+`key` on top of that is cheap insurance against ever relying on that being
+the only thing preventing it.
+
+Two smaller refinements sit alongside the same effect. The persist effect
+skips writing (and clears any existing entry) when nothing has actually
+been entered -- a bare visit to `/loans/new` no longer leaves a stored
+entry behind. What "entered" means is its own explicit `touched` flag, set
+by every on-change handler on the first real edit and persisted alongside
+the rest of the draft, not inferred by comparing field values against
+their defaults: a restored `dueDate` a user deliberately set some days out
+can numerically coincide with whatever a *later* visit's fresh today+7
+default happens to be, and that coincidence isn't the same thing as
+"nothing was entered" -- a value-comparison check would clear a
+deliberately-set draft out from under the user the moment the calendar
+happened to catch up to it. `loadLoanDraft()` defaults a missing `touched`
+field to `true`, so a draft written before this field existed is treated
+as touched on restore rather than risk silently discarding real content.
+And the submit button now also disables on `isEquipmentError`, alongside
+the existing loading/pending checks: the item-reconcile effect above waits
+for the equipment list to resolve before it runs, so if that request never
+succeeds, a restored draft's items would otherwise never get reconciled
+before submission was possible. The server still has the last word on
+stock integrity regardless (see "Loan creation UI and stock-out limits"
+above) -- this is only about not letting a submit go out against data the
+client never got to check.
 
 Django-side translations
 --------------------------
