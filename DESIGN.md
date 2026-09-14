@@ -1029,7 +1029,9 @@ convention rather than by code, since a version bump with nothing
 user-visible to say about it is a normal occurrence this list should not be
 forced to track. The two need not land in the same commit -- nothing reads
 `pyproject.toml` at runtime, so `WHATS_NEW`'s newest entry is free to ship
-ahead of the package version bump that eventually matches it.
+ahead of the package version bump that eventually matches it. CLAUDE.md
+requires contributors to add an entry alongside the user-visible change it
+describes, rather than reconstructing the list at release time.
 
 This content is deliberately **English only**, unlike the rest of the app --
 no `gettext_lazy`, no i18n keys, no `.po`/`.mo` work, dialog chrome (the
