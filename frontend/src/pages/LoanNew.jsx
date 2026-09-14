@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -6,6 +6,7 @@ import { useCurrentUser } from "../api/auth";
 import { useCreateLoan, useLoanableEquipment, useLoans } from "../api/loans";
 import LoanItemCart from "../components/LoanItemCart";
 import LoginForm from "../components/LoginForm";
+import { clearLoanDraft, loadLoanDraft, saveLoanDraft } from "../utils/loanDraft";
 import PHONE_PATTERN from "../utils/phonePattern";
 
 // A whole non-JSON error document (an nginx 502 page, a DEBUG=False Django
@@ -60,6 +61,45 @@ function defaultDueDateValue() {
   return toDateInputValue(d);
 }
 
+// A restored due date can be stale -- the tab that wrote it may have sat
+// open overnight -- and the date input's min={todayValue()} silently
+// rejects anything before today rather than showing an error. Clamped
+// forward to today rather than reset to the today+7 default: today is the
+// smallest change that makes the stored value valid again, so it disturbs
+// the user's original choice the least (a due date they picked as "a few
+// days out" doesn't silently jump a whole week further away). Returns null
+// for anything that isn't a plain YYYY-MM-DD string, so the caller falls
+// back to the normal default.
+function clampDueDateValue(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+  const today = todayValue();
+  return value < today ? today : value;
+}
+
+// Restored items came from a session that may be hours old: equipment can
+// have been deleted, gone non-loanable, or dropped in available quantity
+// since. Reconciled once the live equipment list is in hand, never trusting
+// the stored quantity or even the stored equipment's continued existence.
+function reconcileDraftItems(items, equipment) {
+  const byId = new Map(equipment.map((eq) => [eq.id, eq]));
+  return items
+    .map((item) => {
+      const live = byId.get(item.id);
+      if (!live || live.loanable_quantity <= 0) {
+        return null;
+      }
+      if (item.short_code) {
+        // short_code implies quantity 1 at the DB level -- nothing to clamp.
+        return item;
+      }
+      const quantity = Math.min(Number(item.quantity) || 1, live.loanable_quantity);
+      return quantity > 0 ? { ...item, quantity: String(quantity) } : null;
+    })
+    .filter((item) => item !== null);
+}
+
 const NAME_PATTERN = "\\S+(\\s+\\S+)+";
 
 function LoanNew() {
@@ -86,12 +126,38 @@ function LoanNew() {
     return map;
   }, [loans]);
 
-  const [borrowerName, setBorrowerName] = useState("");
-  const [borrowerPhone, setBorrowerPhone] = useState("");
-  const [dueDate, setDueDate] = useState(() => defaultDueDateValue());
-  const [details, setDetails] = useState("");
-  const [items, setItems] = useState([]);
-  const [tripNotification, setTripNotification] = useState(false);
+  // Read once, synchronously, via a lazy initializer -- not a hydrating
+  // useEffect, which would render empty first and race the persist effect
+  // below (which could then write that empty state over a good draft).
+  const [draft] = useState(() => loadLoanDraft());
+
+  const [borrowerName, setBorrowerName] = useState(() => draft?.borrowerName ?? "");
+  const [borrowerPhone, setBorrowerPhone] = useState(() => draft?.borrowerPhone ?? "");
+  const [dueDate, setDueDate] = useState(() => clampDueDateValue(draft?.dueDate) ?? defaultDueDateValue());
+  const [details, setDetails] = useState(() => draft?.details ?? "");
+  const [items, setItems] = useState(() => draft?.items ?? []);
+  const [tripNotification, setTripNotification] = useState(() => draft?.tripNotification ?? false);
+
+  // Restored items are shown as-is (LoanItemCart already renders an
+  // unrecognised/unavailable line as unavailable) until the equipment list
+  // actually resolves -- reconciling while isEquipmentLoading is still true
+  // would drop every restored item on each reload, before there's any live
+  // data to check them against. Runs once: this is a one-time cleanup of a
+  // restored draft, not an ongoing sync that would fight the user's own
+  // edits (equipment availability is otherwise deliberately advisory here --
+  // see DESIGN.md).
+  const didReconcileDraftItems = useRef(false);
+  useEffect(() => {
+    if (didReconcileDraftItems.current || isEquipmentLoading || !equipment) {
+      return;
+    }
+    didReconcileDraftItems.current = true;
+    setItems((current) => reconcileDraftItems(current, equipment));
+  }, [isEquipmentLoading, equipment]);
+
+  useEffect(() => {
+    saveLoanDraft({ borrowerName, borrowerPhone, dueDate, details, items, tripNotification });
+  }, [borrowerName, borrowerPhone, dueDate, details, items, tripNotification]);
 
   const errorMessages = useMemo(
     () => collectErrorMessages(createLoan.error?.response?.data),
@@ -127,9 +193,15 @@ function LoanNew() {
     };
     createLoan.mutate(payload, {
       onSuccess: () => {
+        clearLoanDraft();
         navigate("/loans");
       },
     });
+  }
+
+  function handleCancel() {
+    clearLoanDraft();
+    navigate("/loans");
   }
 
   return (
@@ -256,11 +328,7 @@ function LoanNew() {
         >
           {t("loanForm.submit")}
         </button>
-        <button
-          className="btn btn-outline-secondary"
-          type="button"
-          onClick={() => navigate("/loans")}
-        >
+        <button className="btn btn-outline-secondary" type="button" onClick={handleCancel}>
           {t("loanForm.cancel")}
         </button>
       </div>

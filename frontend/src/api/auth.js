@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import apiClient from "./client";
+import { clearLoanDraft } from "../utils/loanDraft";
 
 export function useCurrentUser() {
   return useQuery({
@@ -19,7 +20,14 @@ export function useLogin() {
       const { data } = await apiClient.post("accounts/login/", { username, password });
       return data;
     },
-    onSuccess: (data) => queryClient.setQueryData(["currentUser"], data),
+    // A shared browser must not hand the next signed-in user the previous
+    // one's in-progress loan draft -- borrower_name/borrower_phone is
+    // third-party personal data. Clearing here is cheaper than namespacing
+    // the draft's storage key per user.
+    onSuccess: (data) => {
+      clearLoanDraft();
+      queryClient.setQueryData(["currentUser"], data);
+    },
   });
 }
 
@@ -29,7 +37,10 @@ export function useLogout() {
     mutationFn: async () => {
       await apiClient.post("accounts/logout/");
     },
-    onSuccess: () => queryClient.setQueryData(["currentUser"], { authenticated: false, user: null }),
+    onSuccess: () => {
+      clearLoanDraft();
+      queryClient.setQueryData(["currentUser"], { authenticated: false, user: null });
+    },
   });
 }
 
