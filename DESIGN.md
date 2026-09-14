@@ -783,6 +783,56 @@ doesn't exist in this domain. No new endpoint or migration was needed since
 `LoanList.jsx`/`LoanReturn.jsx` already rely on the same unpaginated loan
 list.
 
+New-loan draft persistence
+----------------------------
+
+`LoanNew.jsx`'s form state (borrower name/phone, due date, details, items,
+trip notification) is mirrored into `sessionStorage` (`utils/loanDraft.js`),
+so navigating away and back -- e.g. to check something in Storage mid-loan
+-- restores the in-progress draft instead of losing it. `sessionStorage`,
+not `localStorage`: the lifetime asked for is "until cancelled, logged out
+or browser closed", and `localStorage` would outlive tab/browser closure.
+Not the Django session either -- that's DB-backed here, and would mean a
+network round trip per keystroke to store what is, until submitted, not
+real data.
+
+The storage key is namespaced with `scriptName` (`utils/scriptName.js`)
+since `sessionStorage` is per-origin and this app can be mounted at an
+arbitrary sub-path -- two deployments sharing a host must not share a
+draft. State hydrates from a lazy `useState` initializer, not a `useEffect`,
+so the first render already has the restored values; an effect-based
+hydrate would render empty first and race the persist effect writing that
+empty state back over a good draft.
+
+A restored draft is never trusted outright. Items (`{id, name, short_code,
+quantity}`, the same shape `LoanItemCart.add` builds) are reconciled
+against the live `GET /api/loans/loanable-equipment/` result once it
+loads -- not while still loading, which would make a restored draft vanish
+on every reload before there's anything to check it against -- dropping
+equipment that's gone (deleted or no longer loanable) and clamping
+quantity to the current `loanable_quantity`. This runs once per mount, not
+on every equipment refetch: ongoing reconciliation would fight the user's
+own in-progress edits, and this app already treats live availability as
+advisory during entry (see "Loan creation UI and stock-out limits" above).
+A restored due date earlier than today (the `<input min>`, silently
+unenforceable on a value set programmatically) is clamped forward to
+today rather than reset to the today+7 default, since that's the smaller
+change to what the user originally chose. `sessionStorage` access is
+wrapped in try/catch throughout (throws in a private window or with site
+data blocked) and the parsed JSON is re-typed field by field before use,
+since its content is attacker-controllable in a shared-browser scenario.
+
+The draft is cleared -- not just left to expire -- on loan submission
+success, the Cancel button, and login/logout (`useLogin`/`useLogout` in
+`api/auth.js`). Login is included even though a fresh login starts with no
+draft of its own: `borrower_name`/`borrower_phone` is third-party personal
+data, and without this a shared browser would show the next signed-in user
+whatever the previous one left mid-loan. There is no 401/403 interceptor in
+`api/client.js`, so a session that expires mid-form falls through to
+`useCurrentUser` returning `authenticated: false`, `LoanNew.jsx` swapping
+to `LoginForm`, and the draft is cleared once that user (or the next one)
+logs back in -- cheaper than namespacing the storage key per account.
+
 Django-side translations
 --------------------------
 
