@@ -14,7 +14,7 @@ function Layout() {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <nav className="navbar navbar-expand-md navbar-dark bg-dark">
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container-fluid">
           <NavLink className="navbar-brand d-flex align-items-center gap-2" to="/">
             <img
