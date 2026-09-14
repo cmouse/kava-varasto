@@ -109,6 +109,10 @@ function Layout() {
               <div className="d-flex align-items-center gap-2">
                 <span className="text-light small">{data.user.username}</span>
                 {!mustChangePassword ? (
+                  // Disabled until entries exist: WhatsNewModal renders null
+                  // without them, so a click here that set manuallyOpened
+                  // with nothing to show would just wait, stuck, for a later
+                  // refetch to pop the dialog open unprompted.
                   <button
                     className="btn btn-sm btn-outline-light"
                     type="button"
