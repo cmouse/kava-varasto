@@ -879,7 +879,7 @@ Django-side translations
 
 `LOCALE_PATHS = [BASE_DIR / "locale"]` was already set, but `locale/` had
 never been generated. `django-admin makemessages -l fi -l en` now extracts
-the ~35 real `gettext_lazy`/`_()` call sites that already existed in the
+the real `gettext_lazy`/`_()` call sites that already existed in the
 code -- model `verbose_name`/`help_text` (inventory/loans/accounts models),
 admin fieldset/list_display labels, and DRF `ValidationError` messages in
 the loans/accounts serializers and views. `locale/fi/LC_MESSAGES/django.po`
