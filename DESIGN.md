@@ -769,6 +769,17 @@ carries no inline script at all so it cannot creep back.
 The Vite dev server serves its own `frontend/index.html` with an empty
 `data-script-name`, matching a root mount.
 
+`spa.html` resolves its own asset URLs the same way: `{% load vite %}` at
+the top loads `vite_asset`/`vite_css` from
+`kava_varasto.templatetags.vite`, which look up the `index.html` build
+entry's file names in `frontend/.vite/manifest.json` and pass them through
+`static()` -- the same helper that keeps a hashed asset URL mount-point
+correct, never a hand-built path. The manifest is parsed once into a
+module-level `_manifest_cache` and reused for the process's life, except
+under `DEBUG`, where the cache is bypassed and every request re-reads the
+file, so `npm run build` is picked up without a restart. An entry missing
+from the manifest is an uncaught `KeyError` -- there is no fallback markup.
+
 API renderers
 -------------
 
