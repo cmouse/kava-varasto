@@ -26,3 +26,7 @@ class User(AbstractUser):
             )
         ],
     )
+    # Deliberately untranslated: internal bookkeeping for the what's new
+    # dialog (DESIGN.md's "What's new dialog"), which is English-only by
+    # design and carries no i18n keys anywhere.
+    whats_new_seen_version = models.CharField(max_length=20, blank=True, default="")

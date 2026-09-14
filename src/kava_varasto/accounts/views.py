@@ -5,6 +5,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from kava_varasto.whatsnew import CURRENT_VERSION, WHATS_NEW, is_unseen
+
 from .permissions import IsAuthenticatedAndPasswordCurrent
 from .serializers import (
     ChangePasswordSerializer,
@@ -79,4 +81,36 @@ class ProfileView(APIView):
         serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response({"authenticated": True, "user": UserSerializer(request.user).data})
+
+
+class WhatsNewView(APIView):
+    # Same permission class as ProfileView, for the same reason: this isn't
+    # one of the deliberate exceptions that stays open to an account owing a
+    # password change.
+    #
+    # No @csrf_protect on the POST: same reasoning as ProfileView above --
+    # SessionAuthentication.authenticate() already enforces CSRF for an
+    # authenticated session.
+    permission_classes = [IsAuthenticatedAndPasswordCurrent]
+
+    def get(self, request):
+        # "unseen" is computed here, not left for the frontend to work out
+        # from whats_new_seen_version + entries -- there is no JS test suite
+        # to catch a regression in that comparison, so the one place it's
+        # tested (is_unseen, directly) is also the one place it runs.
+        return Response(
+            {
+                "current_version": CURRENT_VERSION,
+                "unseen": is_unseen(request.user.whats_new_seen_version),
+                "entries": WHATS_NEW,
+            }
+        )
+
+    def post(self, request):
+        # Stamping happens only here, on explicit acknowledgement -- never as
+        # a side effect of GET or of login -- so a refresh before the user
+        # has actually read the dialog can't lose it.
+        request.user.whats_new_seen_version = CURRENT_VERSION
+        request.user.save(update_fields=["whats_new_seen_version"])
         return Response({"authenticated": True, "user": UserSerializer(request.user).data})
