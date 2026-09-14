@@ -16,14 +16,20 @@ function Layout() {
     <div className="d-flex flex-column min-vh-100">
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container-fluid">
-          <NavLink className="navbar-brand d-flex align-items-center gap-2" to="/">
-            <img
-              src={logo}
-              height="40"
-              alt="Karhunvartijat ry"
-              className="bg-white rounded px-2 py-1"
-            />
-          </NavLink>
+          <div className="d-flex align-items-center">
+            <NavLink className="navbar-brand d-flex align-items-center gap-2" to="/">
+              <img
+                src={logo}
+                height="40"
+                alt="Karhunvartijat ry"
+                className="bg-white rounded px-2 py-1"
+              />
+            </NavLink>
+            {/* Outside the collapse so a user can switch language (needed most
+                acutely on the logged-out login screen) without first opening
+                the hamburger menu on a tablet-width viewport. */}
+            <LanguageSwitcher />
+          </div>
           <button
             className="navbar-toggler"
             type="button"
@@ -66,28 +72,25 @@ function Layout() {
                 </li>
               ) : null}
             </ul>
-            <div className="d-flex align-items-center gap-3">
-              <LanguageSwitcher />
-              {data?.authenticated ? (
-                <div className="d-flex align-items-center gap-2">
-                  <span className="text-light small">{data.user.username}</span>
-                  <NavLink className="btn btn-sm btn-outline-light" to="/account/profile">
-                    {t("layout.profile")}
-                  </NavLink>
-                  <NavLink className="btn btn-sm btn-outline-light" to="/account/password">
-                    {t("layout.changePassword")}
-                  </NavLink>
-                  <button
-                    className="btn btn-sm btn-outline-light"
-                    type="button"
-                    onClick={() => logout.mutate()}
-                    disabled={logout.isPending}
-                  >
-                    {t("layout.logout")}
-                  </button>
-                </div>
-              ) : null}
-            </div>
+            {data?.authenticated ? (
+              <div className="d-flex align-items-center gap-2">
+                <span className="text-light small">{data.user.username}</span>
+                <NavLink className="btn btn-sm btn-outline-light" to="/account/profile">
+                  {t("layout.profile")}
+                </NavLink>
+                <NavLink className="btn btn-sm btn-outline-light" to="/account/password">
+                  {t("layout.changePassword")}
+                </NavLink>
+                <button
+                  className="btn btn-sm btn-outline-light"
+                  type="button"
+                  onClick={() => logout.mutate()}
+                  disabled={logout.isPending}
+                >
+                  {t("layout.logout")}
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </nav>
