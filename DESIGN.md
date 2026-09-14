@@ -629,6 +629,13 @@ same `RegexValidator`) was added alongside it. Not re-exported from
 would be an app-layering inversion; a shared validator belongs above both
 apps, not inside one of them.
 
+The client side of the same rule is consolidated the same way:
+`frontend/src/utils/phonePattern.js` exports the bare pattern
+(`\+358\d{6,12}|0\d{6,12}`, no `^`/`$` -- an HTML `pattern` attribute is
+implicitly anchored already) as `PHONE_PATTERN`, and both `LoanNew.jsx` and
+`ProfileForm.jsx` import it for their native `pattern` attributes instead of
+each spelling out the regex.
+
 `PATCH /api/accounts/profile/` (`ProfileView` + `ProfileUpdateSerializer`)
 lets a logged-in user set their own `first_name`/`last_name`/`email`/`phone`.
 `ProfileUpdateSerializer` is a `ModelSerializer`, deliberately not
