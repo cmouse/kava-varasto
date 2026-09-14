@@ -1025,9 +1025,11 @@ version they haven't acknowledged, plus a way to reopen it on demand.
 the dialog's content and `CURRENT_VERSION` (`WHATS_NEW[0]["version"]`). It is
 not derived from `pyproject.toml` or `importlib.metadata` at runtime: the
 package version and the changelog's newest entry are kept in agreement by
-convention (bumped together, in their own commit) rather than by code, since
-a version bump with nothing user-visible to say about it is a normal
-occurrence this list should not be forced to track.
+convention rather than by code, since a version bump with nothing
+user-visible to say about it is a normal occurrence this list should not be
+forced to track. The two need not land in the same commit -- nothing reads
+`pyproject.toml` at runtime, so `WHATS_NEW`'s newest entry is free to ship
+ahead of the package version bump that eventually matches it.
 
 This content is deliberately **English only**, unlike the rest of the app --
 no `gettext_lazy`, no i18n keys, no `.po`/`.mo` work, dialog chrome (the
@@ -1082,22 +1084,38 @@ user cannot get past yet.
 `UserContactModal.jsx`/`EquipmentDetailModal.jsx` (Escape handler, backdrop,
 `modal-dialog-scrollable` so the list stays usable as entries accumulate)
 but hardcodes its strings instead of calling `t()`. `Layout.jsx` derives
-whether it's showing during render from query data plus two local flags
-(`manuallyOpened`, `dismissed` for this session) rather than syncing it into
+whether it's showing during render from query data plus two pieces of
+local state (`manuallyOpened`, `dismissedFor`) rather than syncing it into
 state via an effect: `whatsNewOpen = manuallyOpened || (unseen &&
-!dismissed)`. Deriving it avoids a "closed dialog pops back open" bug that a
-naive `useEffect` + `setState` would have if the acknowledging `POST` is
-slow or fails -- `dismissed` is locally authoritative the moment the user
-closes it, independent of whether the server round-trip has landed yet --
-and it also sidesteps the "setState in an effect" lint warning outright,
-rather than suppressing it.
+dismissedFor !== userId)`. `dismissedFor` holds the id of the user who
+last closed the dialog rather than a plain boolean, because `Layout` is
+the route layout element and never unmounts across logout/login -- a bare
+`dismissed` flag set by one user would silently suppress the dialog for
+the next user who logs in on the same tab. Deriving `whatsNewOpen` during
+render (instead of a naive `useEffect` + `setState`) avoids a "closed
+dialog pops back open" bug if the acknowledging `POST` is slow or fails --
+`dismissedFor` is locally authoritative the moment the user closes it,
+independent of whether the server round-trip has landed yet -- and it also
+sidesteps the "setState in an effect" lint warning outright, rather than
+suppressing it. The same failure mode applies to a *reload*, not just this
+session: if the ack POST never lands, `whats_new_seen_version` is never
+stamped server-side, so the next page load sees `unseen` still true and
+shows the dialog again -- deliberate fail-open, since the alternative (an
+unread changelog silently never shown again) is worse than an occasional
+repeat prompt.
 
 A navbar "What's new" button next to Profile/Change password (same
 `!mustChangePassword` gate) reopens the dialog on demand, satisfying issue
 #61's "tab" with a control rather than a dedicated route: the dialog has no
 state worth deep-linking to, and every other reachable-anytime action in
 this app (profile, change password) is already a button, not a page swap.
-Closing the dialog -- button, Escape, or backdrop click, all funnelled
-through the same handler -- always fires the acknowledgement `POST`,
-regardless of whether it was opened automatically or manually; re-stamping
-an already-current version is harmless.
+The button only sets `manuallyOpened`; it never fabricates `entries` for
+`WhatsNewModal` to render, which stays `null` until the query resolves. So
+the button is disabled until `whatsNew.entries` is available -- otherwise a
+click during a slow or failed first fetch would set `manuallyOpened` with
+nothing to show for it, and a later successful background refetch would
+then pop the dialog open with no click behind it, over whatever the user is
+doing by then. Closing the dialog -- button, Escape, or backdrop click, all
+funnelled through the same handler -- always fires the acknowledgement
+`POST`, regardless of whether it was opened automatically or manually;
+re-stamping an already-current version is harmless.
