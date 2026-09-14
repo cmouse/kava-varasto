@@ -103,17 +103,35 @@ function reconcileDraftItems(items, equipment) {
 const NAME_PATTERN = "\\S+(\\s+\\S+)+";
 
 function LoanNew() {
+  const { data: user, isLoading: isUserLoading } = useCurrentUser();
+
+  if (isUserLoading) {
+    return null;
+  }
+
+  if (!user?.authenticated) {
+    return <LoginForm />;
+  }
+
+  // LoanNewForm carries local state (borrower name/phone, cart, ...)
+  // mirrored into sessionStorage, and it renders LoginForm above in place --
+  // no route change -- when unauthenticated, rather than unmounting. Keying
+  // on the signed-in user's id forces a fresh LoanNewForm instance (and a
+  // fresh sessionStorage read) on any authenticated-user swap, so state
+  // from whoever was filling this form out before can never surface for
+  // the next person on a shared browser. In this app's actual flows,
+  // swapping users always passes through the LoginForm branch above first
+  // -- which already discards LoanNewForm's state by unmounting it -- so
+  // the key is defense-in-depth against ever relying on that as the only
+  // guard.
+  return <LoanNewForm key={user.user.id} />;
+}
+
+function LoanNewForm() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: user, isLoading: isUserLoading } = useCurrentUser();
-  const {
-    data: equipment,
-    isLoading: isEquipmentLoading,
-    isError: isEquipmentError,
-  } = useLoanableEquipment({
-    enabled: user?.authenticated,
-  });
-  const { data: loans } = useLoans({ enabled: user?.authenticated });
+  const { data: equipment, isLoading: isEquipmentLoading, isError: isEquipmentError } = useLoanableEquipment();
+  const { data: loans } = useLoans();
   const createLoan = useCreateLoan();
 
   const borrowerPhoneByName = useMemo(() => {
@@ -163,14 +181,6 @@ function LoanNew() {
     () => collectErrorMessages(createLoan.error?.response?.data),
     [createLoan.error],
   );
-
-  if (isUserLoading) {
-    return null;
-  }
-
-  if (!user?.authenticated) {
-    return <LoginForm />;
-  }
 
   function handleBorrowerNameChange(event) {
     const name = event.target.value;
