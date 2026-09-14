@@ -13,6 +13,7 @@
     "logout": "Log out",
     "toggleNav": "Toggle navigation",
     "changePassword": "Change password",
+    "profile": "Profile",
     "repairs": "Repairs"
   },
   "storage": {
@@ -147,6 +148,16 @@
     "submit": "Change password",
     "success": "Password changed.",
     "error": "Failed to change password."
+  },
+  "profile": {
+    "title": "Profile",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "phone": "Phone",
+    "submit": "Save",
+    "success": "Profile updated.",
+    "error": "Failed to update profile."
   },
   "repairs": {
     "title": "Repairs",

@@ -5,7 +5,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import ChangePasswordSerializer, UserSerializer
+from .permissions import IsAuthenticatedAndPasswordCurrent
+from .serializers import (
+    ChangePasswordSerializer,
+    ProfileUpdateSerializer,
+    UserSerializer,
+)
 from .throttling import LoginRateThrottle
 
 
@@ -54,4 +59,19 @@ class ChangePasswordView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         update_session_auth_hash(request, request.user)
+        return Response({"authenticated": True, "user": UserSerializer(request.user).data})
+
+
+@method_decorator(csrf_protect, name="dispatch")
+class ProfileView(APIView):
+    # This is the project's DEFAULT_PERMISSION_CLASSES anyway; spelled out
+    # here because, unlike its /me/ and change-password neighbours, this
+    # endpoint is deliberately *not* one of the exceptions that stays open
+    # to a user who still owes a password change.
+    permission_classes = [IsAuthenticatedAndPasswordCurrent]
+
+    def patch(self, request):
+        serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response({"authenticated": True, "user": UserSerializer(request.user).data})

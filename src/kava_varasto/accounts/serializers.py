@@ -8,7 +8,29 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "first_name", "last_name", "is_staff", "must_change_password"]
+        fields = [
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "phone",
+            "is_staff",
+            "must_change_password",
+        ]
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """Write path for a user editing their own profile.
+
+    Deliberately not UserSerializer: that one is also used read-only for
+    /me/ and /login/ and carries is_staff/must_change_password, which a user
+    must never be able to set on themselves via this endpoint.
+    """
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email", "phone"]
 
 
 class ChangePasswordSerializer(serializers.Serializer):

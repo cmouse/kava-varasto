@@ -153,6 +153,103 @@ def test_change_password_rejects_weak_new_password(client, django_user_model):
 
 
 @pytest.mark.django_db
+def test_update_profile_updates_all_fields(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    response = client.patch(
+        "/api/accounts/profile/",
+        {"first_name": "Alice", "last_name": "Example", "email": "alice@example.com", "phone": "0401234567"},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200, response.json()
+    data = response.json()
+    assert data["authenticated"] is True
+    assert data["user"]["first_name"] == "Alice"
+    assert data["user"]["last_name"] == "Example"
+    assert data["user"]["email"] == "alice@example.com"
+    assert data["user"]["phone"] == "0401234567"
+
+
+@pytest.mark.django_db
+def test_update_profile_can_clear_phone(client, django_user_model):
+    # ProfileUpdateSerializer must be a ModelSerializer (allow_blank derives
+    # from User.phone's blank=True) -- a hand-rolled Serializer would 400 on
+    # this and leave the phone number permanently un-clearable.
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw", phone="0401234567")
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    response = client.patch("/api/accounts/profile/", {"phone": ""}, content_type="application/json")
+
+    assert response.status_code == 200, response.json()
+    assert response.json()["user"]["phone"] == ""
+
+
+@pytest.mark.django_db
+def test_update_profile_rejects_invalid_phone(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    response = client.patch("/api/accounts/profile/", {"phone": "not-a-phone"}, content_type="application/json")
+
+    assert response.status_code == 400
+    assert "phone" in response.json()
+
+
+@pytest.mark.django_db
+def test_update_profile_cannot_set_staff_flags(client, django_user_model):
+    user = django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    response = client.patch(
+        "/api/accounts/profile/",
+        {"is_staff": True, "must_change_password": True},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200, response.json()
+    user.refresh_from_db()
+    assert user.is_staff is False
+    assert user.must_change_password is False
+
+
+@pytest.mark.django_db
+def test_update_profile_requires_authentication(client):
+    response = client.patch("/api/accounts/profile/", {"first_name": "Alice"}, content_type="application/json")
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_update_profile_refused_while_password_change_required(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw", must_change_password=True)
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    response = client.patch("/api/accounts/profile/", {"first_name": "Alice"}, content_type="application/json")
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_update_profile_requires_csrf_token(django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    csrf_client = Client(enforce_csrf_checks=True)
+    csrf_client.login(username="alice", password="s3cret-pw")
+
+    response = csrf_client.patch("/api/accounts/profile/", {"first_name": "Alice"}, content_type="application/json")
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
 def test_admin_add_user_sets_must_change_password(admin_client, django_user_model):
     response = admin_client.post(
         reverse("admin:accounts_user_add"),

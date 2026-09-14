@@ -43,3 +43,14 @@ export function useChangePassword() {
     onSuccess: (data) => queryClient.setQueryData(["currentUser"], data),
   });
 }
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (profile) => {
+      const { data } = await apiClient.patch("accounts/profile/", profile);
+      return data;
+    },
+    onSuccess: (data) => queryClient.setQueryData(["currentUser"], data),
+  });
+}

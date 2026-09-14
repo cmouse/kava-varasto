@@ -13,6 +13,7 @@
     "logout": "Kirjaudu ulos",
     "toggleNav": "Valikko",
     "changePassword": "Vaihda salasana",
+    "profile": "Profiili",
     "repairs": "Korjaukset"
   },
   "storage": {
@@ -147,6 +148,16 @@
     "submit": "Vaihda salasana",
     "success": "Salasana vaihdettu.",
     "error": "Salasanan vaihto epäonnistui."
+  },
+  "profile": {
+    "title": "Profiili",
+    "firstName": "Etunimi",
+    "lastName": "Sukunimi",
+    "email": "Sähköposti",
+    "phone": "Puhelin",
+    "submit": "Tallenna",
+    "success": "Profiili päivitetty.",
+    "error": "Profiilin päivitys epäonnistui."
   },
   "repairs": {
     "title": "Korjaukset",

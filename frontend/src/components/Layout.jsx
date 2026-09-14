@@ -71,6 +71,9 @@ function Layout() {
               {data?.authenticated ? (
                 <div className="d-flex align-items-center gap-2">
                   <span className="text-light small">{data.user.username}</span>
+                  <NavLink className="btn btn-sm btn-outline-light" to="/account/profile">
+                    {t("layout.profile")}
+                  </NavLink>
                   <NavLink className="btn btn-sm btn-outline-light" to="/account/password">
                     {t("layout.changePassword")}
                   </NavLink>
