@@ -331,6 +331,34 @@ def test_flagged_user_cannot_use_the_api_until_password_is_changed(client, djang
 
 
 @pytest.mark.django_db
+def test_flagged_user_denied_whats_new_and_password_change_recovers_it(client, django_user_model):
+    # Same gate as inventory/loans above, applied to the what's new endpoint
+    # specifically -- and proof that clearing the flag doesn't consume or
+    # lose the unseen state along the way.
+    user = django_user_model.objects.create_user(username="alice", password="s3cret-pw", must_change_password=True)
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    assert client.get("/api/accounts/whats-new/").status_code == 403
+    assert client.post("/api/accounts/whats-new/", content_type="application/json").status_code == 403
+
+    user.refresh_from_db()
+    assert user.whats_new_seen_version == ""
+
+    response = client.post(
+        "/api/accounts/change-password/",
+        {"current_password": "s3cret-pw", "new_password": "Str0ngP@ssw0rd!"},
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.json()
+
+    response = client.get("/api/accounts/whats-new/")
+    assert response.status_code == 200, response.json()
+    assert response.json()["unseen"] is True
+
+
+@pytest.mark.django_db
 def test_flagged_user_can_still_log_out(client, django_user_model):
     django_user_model.objects.create_user(username="alice", password="s3cret-pw", must_change_password=True)
     client.post(
