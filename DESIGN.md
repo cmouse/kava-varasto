@@ -1109,9 +1109,9 @@ A navbar "What's new" button next to Profile/Change password (same
 #61's "tab" with a control rather than a dedicated route: the dialog has no
 state worth deep-linking to, and every other reachable-anytime action in
 this app (profile, change password) is already a button, not a page swap.
-The button only sets `manuallyOpened`; it never fabricates `entries` for
-`WhatsNewModal` to render, which stays `null` until the query resolves. So
-the button is disabled until `whatsNew.entries` is available -- otherwise a
+The button only sets `manuallyOpened`; it never fabricates `entries`, and
+`WhatsNewModal` renders `null` until the query resolves. So the button is
+disabled until `whatsNew.entries` is available -- otherwise a
 click during a slow or failed first fetch would set `manuallyOpened` with
 nothing to show for it, and a later successful background refetch would
 then pop the dialog open with no click behind it, over whatever the user is
