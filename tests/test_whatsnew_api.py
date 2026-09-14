@@ -101,7 +101,7 @@ def test_is_unseen_uses_index_position_not_lexical_order():
     assert is_unseen("0.1.9", entries=entries, current_version="0.1.20") is True
 
 
-def test_is_unseen_true_for_current_version_itself():
+def test_is_unseen_false_for_current_version_itself():
     assert is_unseen(WHATS_NEW[0]["version"], entries=WHATS_NEW) is False
 
 
