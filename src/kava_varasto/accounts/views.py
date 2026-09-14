@@ -62,12 +62,17 @@ class ChangePasswordView(APIView):
         return Response({"authenticated": True, "user": UserSerializer(request.user).data})
 
 
-@method_decorator(csrf_protect, name="dispatch")
 class ProfileView(APIView):
     # This is the project's DEFAULT_PERMISSION_CLASSES anyway; spelled out
     # here because, unlike its /me/ and change-password neighbours, this
     # endpoint is deliberately *not* one of the exceptions that stays open
     # to a user who still owes a password change.
+    #
+    # No @csrf_protect: this is an authenticated write, same shape as
+    # ChangePasswordView. SessionAuthentication.authenticate() already calls
+    # enforce_csrf() whenever it finds an active session user -- the
+    # decorator is only needed on AllowAny/pre-auth views like LoginView,
+    # where authenticate() returns before reaching that call.
     permission_classes = [IsAuthenticatedAndPasswordCurrent]
 
     def patch(self, request):
