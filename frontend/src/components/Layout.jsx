@@ -30,17 +30,19 @@ function Layout() {
                 the hamburger menu on a tablet-width viewport. */}
             <LanguageSwitcher />
           </div>
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#nav-content"
-            aria-controls="nav-content"
-            aria-expanded="false"
-            aria-label={t("layout.toggleNav")}
-          >
-            <span className="navbar-toggler-icon" />
-          </button>
+          {data?.authenticated ? (
+            <button
+              className="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#nav-content"
+              aria-controls="nav-content"
+              aria-expanded="false"
+              aria-label={t("layout.toggleNav")}
+            >
+              <span className="navbar-toggler-icon" />
+            </button>
+          ) : null}
           <div className="collapse navbar-collapse" id="nav-content">
             <ul className="navbar-nav me-auto">
               {data?.authenticated ? (
