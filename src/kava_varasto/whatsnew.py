@@ -11,6 +11,13 @@ Baseline is 0.1.18 (no entry, nothing to show); entries accumulate from
 
 WHATS_NEW = [
     {
+        "version": "0.1.20",
+        "changes": [
+            "Phone numbers on the loan and profile forms may now be entered "
+            "with spaces, e.g. 040 123 4567.",
+        ],
+    },
+    {
         "version": "0.1.19",
         "changes": [
             "Edit your own name, email and phone from a new profile page.",

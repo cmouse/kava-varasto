@@ -648,11 +648,15 @@ whitespace, since only `ProfileUpdateSerializer.validate_phone` normalizes
 it.
 
 The client side of the same rule is consolidated the same way:
-`frontend/src/utils/phonePattern.js` exports the bare pattern
-(`\+358\d{6,12}|0\d{6,12}`, no `^`/`$` -- an HTML `pattern` attribute is
-implicitly anchored already) as its default export, `PHONE_PATTERN`, and
-both `LoanNew.jsx` and `ProfileForm.jsx` import it for their native
-`pattern` attributes instead of each spelling out the regex.
+`frontend/src/utils/phonePattern.js` exports a pattern
+(`\s*(\+\s*3\s*5\s*8|0)(\s*\d){6,12}\s*`, no `^`/`$` -- an HTML `pattern`
+attribute is implicitly anchored already) as its default export,
+`PHONE_PATTERN`, and both `LoanNew.jsx` and `ProfileForm.jsx` import it for
+their native `pattern` attributes instead of each spelling out the regex.
+It admits whitespace anywhere a digit or the `+358` prefix may have one,
+mirroring `normalize_phone` on the server: the browser's native validation
+would otherwise block submission of "040 123 4567" before the request --
+and the normalized value it stores -- is ever seen.
 
 `PATCH /api/accounts/profile/` (`ProfileView` + `ProfileUpdateSerializer`)
 lets a logged-in user set their own `first_name`/`last_name`/`email`/`phone`.

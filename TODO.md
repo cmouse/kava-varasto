@@ -37,6 +37,11 @@ Foundation/infrastructure is done. Remaining work, roughly in priority order:
       field on `LoanCreateSerializer`, checkbox in `frontend/src/pages/LoanNew.jsx`;
       not persisted, no staff exemption — see DESIGN.md's "Trip notification
       confirmation"
+- [x] Normalize phone number input, issue #68 — whitespace stripped before
+      validating on both `LoanCreateSerializer.borrower_phone` and
+      `ProfileUpdateSerializer.phone` (`kava_varasto.validators.normalize_phone`),
+      stored value has no whitespace; the loan/profile form `pattern`
+      attributes admit whitespace too
 
 ## Search & browsing
 - [x] Search by name/short code, category filter buttons — client-side filtering in `Storage.jsx` and `LoanNew.jsx` via `useEquipmentFilter`
