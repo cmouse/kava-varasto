@@ -480,8 +480,17 @@ not persisted -- see "Trip notification confirmation" below):
 
 - `borrower_name` must have at least two whitespace-separated parts (first
   and last name).
-- `borrower_phone` must match `^(\+358\d{6,12}|0\d{6,12})$` -- a Finnish
-  number starting with `+358` or a local `0` prefix.
+- `borrower_phone` is normalized (`kava_varasto.validators.normalize_phone`
+  strips all whitespace, so "040 123 4567" stores as "0401234567") and must
+  then match `^(\+358\d{6,12}|0\d{6,12})$` -- a Finnish number starting
+  with `+358` or a local `0` prefix. The serializer declares
+  `borrower_phone` explicitly rather than letting `ModelSerializer` build
+  it, because the built field would copy `Loan.borrower_phone`'s
+  `RegexValidator` and reject the whitespace before normalization runs; it
+  also carries no `max_length`, since that would run on the raw,
+  unnormalized value and interior whitespace alone can push a
+  valid-once-normalized number past the model's 30 (`PHONE_RE` already
+  caps the normalized length at 16).
 - `due_date` must not be before today, using `timezone.localdate()` (not
   `.now().date()`) since the app runs with `TIME_ZONE = "Europe/Helsinki"`
   and `USE_TZ = True` -- comparing against the UTC date would reject valid
@@ -492,7 +501,12 @@ at the model level: `Loan.clean()` checks the two-word name, the phone
 regex lives in a `RegexValidator` on `borrower_phone` (shared `PHONE_RE`
 constant in `kava_varasto.validators`), and the past-due-date check runs
 only on creation (`self._state.adding`) so admin edits of loans whose due
-date has since passed still save. `clean()` also requires
+date has since passed still save. The two layers disagree on whitespace by
+design: the API normalizes before matching, but the model-level
+`RegexValidator` -- the only check that runs for a loan edited directly in
+the Django admin -- matches the raw value and still rejects "040 123
+4567". The admin form is staff-only internal tooling, not the surface
+issue #68 targets, so it is left as-is. `clean()` also requires
 `returned_at`/`returned_by` to be set together. Two portable
 `CheckConstraint`s back this at the DB
 level (`loan_borrower_name_has_space`, `loan_returned_fields_consistent`);

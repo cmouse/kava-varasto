@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 from kava_varasto.accounts.serializers import UserContactSerializer
 from kava_varasto.inventory.models import Equipment
-from kava_varasto.validators import PHONE_RE
+from kava_varasto.validators import PHONE_RE, normalize_phone
 
 from .models import Loan, LoanItem
 
@@ -59,6 +59,15 @@ class LoanSerializer(serializers.ModelSerializer):
 class LoanCreateSerializer(serializers.ModelSerializer):
     items = LoanItemWriteSerializer(many=True)
     trip_notification_submitted = serializers.BooleanField(write_only=True)
+    # Declared explicitly: a ModelSerializer-built field would copy
+    # Loan.borrower_phone's RegexValidator, which runs before
+    # validate_borrower_phone and would reject whitespace before it gets a
+    # chance to normalize. No max_length either -- it would run on the raw,
+    # unnormalized value, and whitespace between every character
+    # ("+ 3 5 8 1 2 3 4 5 6 7 8 9 0 1 2", 31 chars) can push that past the
+    # model's 30 even though PHONE_RE already caps the normalized value at
+    # 16. PHONE_RE alone is the length check that matters.
+    borrower_phone = serializers.CharField()
 
     class Meta:
         model = Loan
@@ -84,6 +93,7 @@ class LoanCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_borrower_phone(self, value):
+        value = normalize_phone(value)
         if not PHONE_RE.match(value):
             raise serializers.ValidationError(
                 _("Enter a valid phone number, e.g. 0401234567 or +358401234567.")

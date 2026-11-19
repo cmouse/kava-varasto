@@ -184,6 +184,69 @@ def test_loan_create_accepts_plus358_phone(admin_client, equipment):
 
 
 @pytest.mark.django_db
+def test_loan_create_normalizes_whitespace_in_phone(admin_client, equipment):
+    response = admin_client.post(
+        "/api/loans/",
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            borrower_phone="\t 040 123 4567 ",
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 201, response.json()
+    assert Loan.objects.get().borrower_phone == "0401234567"
+
+
+@pytest.mark.django_db
+def test_loan_create_accepts_spaced_out_phone_over_raw_max_length(admin_client, equipment):
+    # Spacing every character pushes the raw value past the model's
+    # max_length=30 even though it normalizes to 16 chars -- the field must
+    # not check max_length against the raw value.
+    response = admin_client.post(
+        "/api/loans/",
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            borrower_phone=" ".join("+358123456789012"),
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 201, response.json()
+    assert Loan.objects.get().borrower_phone == "+358123456789012"
+
+
+@pytest.mark.django_db
+def test_loan_create_normalizes_bom_in_phone(admin_client, equipment):
+    # U+FEFF is whitespace under JavaScript's \s (so phonePattern.js's
+    # native <input pattern> accepts it) but not Python's str.isspace() --
+    # normalize_phone must strip it explicitly or the API would reject
+    # what the frontend just accepted.
+    response = admin_client.post(
+        "/api/loans/",
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            borrower_phone="040\ufeff123\ufeff4567",
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 201, response.json()
+    assert Loan.objects.get().borrower_phone == "0401234567"
+
+
+@pytest.mark.django_db
+def test_loan_create_rejects_invalid_phone_with_whitespace(admin_client, equipment):
+    response = admin_client.post(
+        "/api/loans/",
+        loan_payload(
+            items=[{"equipment": equipment.pk, "quantity": 1}],
+            borrower_phone="040 12x 4567",
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert "borrower_phone" in response.json()
+
+
+@pytest.mark.django_db
 def test_loan_create_rejects_past_due_date(admin_client, equipment):
     response = admin_client.post(
         "/api/loans/",
