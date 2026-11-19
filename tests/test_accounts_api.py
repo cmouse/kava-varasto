@@ -176,9 +176,10 @@ def test_update_profile_updates_all_fields(client, django_user_model):
 
 @pytest.mark.django_db
 def test_update_profile_can_clear_phone(client, django_user_model):
-    # ProfileUpdateSerializer must be a ModelSerializer (allow_blank derives
-    # from User.phone's blank=True) -- a hand-rolled Serializer would 400 on
-    # this and leave the phone number permanently un-clearable.
+    # ProfileUpdateSerializer's phone field re-supplies allow_blank=True by
+    # hand (see its declaration) to match User.phone's blank=True -- a
+    # field without it would 400 on this and leave the phone number
+    # permanently un-clearable.
     django_user_model.objects.create_user(username="alice", password="s3cret-pw", phone="0401234567")
     client.post(
         "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
@@ -211,6 +212,73 @@ def test_update_profile_rejects_invalid_phone(client, django_user_model):
     )
 
     response = client.patch("/api/accounts/profile/", {"phone": "not-a-phone"}, content_type="application/json")
+
+    assert response.status_code == 400
+    assert "phone" in response.json()
+
+
+@pytest.mark.django_db
+def test_update_profile_normalizes_whitespace_in_phone(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    response = client.patch(
+        "/api/accounts/profile/", {"phone": "\t 040 123 4567 "}, content_type="application/json"
+    )
+
+    assert response.status_code == 200, response.json()
+    assert response.json()["user"]["phone"] == "0401234567"
+
+
+@pytest.mark.django_db
+def test_update_profile_accepts_spaced_out_phone_over_raw_max_length(client, django_user_model):
+    # Spacing every character pushes the raw value past the model's
+    # max_length=30 even though it normalizes to 16 chars -- the field must
+    # not check max_length against the raw value.
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    response = client.patch(
+        "/api/accounts/profile/",
+        {"phone": " ".join("+358123456789012")},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200, response.json()
+    assert response.json()["user"]["phone"] == "+358123456789012"
+
+
+@pytest.mark.django_db
+def test_update_profile_normalizes_bom_in_phone(client, django_user_model):
+    # U+FEFF is whitespace under JavaScript's \s (so phonePattern.js's
+    # native <input pattern> accepts it) but not Python's str.isspace() --
+    # normalize_phone must strip it explicitly or the API would reject what
+    # the frontend just accepted.
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    response = client.patch(
+        "/api/accounts/profile/", {"phone": "040\ufeff123\ufeff4567"}, content_type="application/json"
+    )
+
+    assert response.status_code == 200, response.json()
+    assert response.json()["user"]["phone"] == "0401234567"
+
+
+@pytest.mark.django_db
+def test_update_profile_rejects_invalid_phone_with_whitespace(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="s3cret-pw")
+    client.post(
+        "/api/accounts/login/", {"username": "alice", "password": "s3cret-pw"}, content_type="application/json"
+    )
+
+    response = client.patch("/api/accounts/profile/", {"phone": "040 12x 4567"}, content_type="application/json")
 
     assert response.status_code == 400
     assert "phone" in response.json()

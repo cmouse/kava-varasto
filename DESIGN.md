@@ -641,7 +641,11 @@ handed equipment out or took it back.
 same `RegexValidator`) was added alongside it. Not re-exported from
 `loans.models` and not imported by `accounts.models` from `loans` -- either
 would be an app-layering inversion; a shared validator belongs above both
-apps, not inside one of them.
+apps, not inside one of them. As with `Loan.borrower_phone`, this
+model-level `RegexValidator` matches the raw value: a user's phone number
+edited directly in the Django admin still needs to be typed without
+whitespace, since only `ProfileUpdateSerializer.validate_phone` normalizes
+it.
 
 The client side of the same rule is consolidated the same way:
 `frontend/src/utils/phonePattern.js` exports the bare pattern
@@ -655,10 +659,16 @@ lets a logged-in user set their own `first_name`/`last_name`/`email`/`phone`.
 `ProfileUpdateSerializer` is a `ModelSerializer`, deliberately not
 `UserSerializer`: the latter is read-only and also carries `is_staff` and
 `must_change_password`, which this endpoint must never let a user set on
-themselves. Building it as a `ModelSerializer` rather than a hand-rolled one
-also means `allow_blank` on `phone` derives straight from the model's
-`blank=True` -- a plain `serializers.CharField()` would 400 on `phone: ""`
-and a user could never clear a number they'd previously entered. The
+themselves. `phone` is declared explicitly rather than left for
+`ModelSerializer` to build, the same reasoning and normalization
+(`kava_varasto.validators.normalize_phone`) as `LoanCreateSerializer.
+borrower_phone` above: a built field would copy `User.phone`'s
+`RegexValidator` (and its `max_length`, wrongly checked against the raw,
+unnormalized value) and reject whitespace before `validate_phone` runs,
+and the declared field re-supplies `allow_blank=True, required=False` by
+hand to match the model's `blank=True` -- a plain `serializers.CharField()`
+would 400 on `phone: ""` and a user could never clear a number they'd
+previously entered. The
 response envelope matches `ChangePasswordView` exactly
 (`{"authenticated": True, "user": UserSerializer(...).data}`), so the SPA's
 `useUpdateProfile()` mutation can `setQueryData(["currentUser"], data)` the

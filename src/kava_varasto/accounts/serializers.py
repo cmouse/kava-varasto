@@ -2,6 +2,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from kava_varasto.validators import PHONE_RE, normalize_phone
+
 from .models import User
 
 
@@ -29,9 +31,29 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     must never be able to set on themselves via this endpoint.
     """
 
+    # Declared explicitly (not model-derived) so the RegexValidator copied
+    # from User.phone doesn't reject whitespace before validate_phone can
+    # normalize it. allow_blank/required=False are re-supplied by hand to
+    # match User.phone's blank=True -- a plain CharField() would 400 on
+    # phone: "" and a user could never clear a number they'd previously set.
+    # No max_length either -- see LoanCreateSerializer.borrower_phone for
+    # why (the raw, unnormalized value can exceed it on interior
+    # whitespace alone; PHONE_RE already caps the normalized value).
+    phone = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = User
         fields = ["first_name", "last_name", "email", "phone"]
+
+    def validate_phone(self, value):
+        if not value:
+            return value
+        value = normalize_phone(value)
+        if not PHONE_RE.match(value):
+            raise serializers.ValidationError(
+                _("Enter a valid phone number, e.g. 0401234567 or +358401234567.")
+            )
+        return value
 
 
 class UserContactSerializer(serializers.ModelSerializer):
